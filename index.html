@@ -278,6 +278,22 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     </footer>
   </div>
 </div>
+<div class="modal-bg" id="connectBg">
+  <div class="modal" style="width:min(470px,100%)">
+    <header>
+      <h2>🔗 Anslut till gemensam mapp</h2>
+      <button class="icon-btn" onclick="hideConnectPopup()">✕</button>
+    </header>
+    <div class="body">
+      <p id="connectText" style="margin-bottom:10px"></p>
+      <p style="font-size:.82rem;color:var(--muted)">Klicka på <b>📁 Anslut nu</b> – webbläsaren öppnar en behörighetsdialog där du väljer mappen och trycker <b>Välj mapp</b>. Godkännandet krävs en gång per appstart (webbläsarens säkerhetsregel).</p>
+    </div>
+    <footer>
+      <button class="secondary" onclick="hideConnectPopup()">Senare</button>
+      <button onclick="hideConnectPopup();connectFolder()">📁 Anslut nu</button>
+    </footer>
+  </div>
+</div>
 <div class="status-menu" id="statusMenu"></div>
 <div class="toast" id="toast"></div>
 
@@ -507,17 +523,24 @@ async function idbGet(k){
     q.onerror = ()=>res(null);
   });
 }
+function hideConnectPopup(){ $("connectBg").classList.remove("open"); }
 async function autoConnect(){
   if(!canFS) return;
   const dir = await idbGet("sharedDirHandle");
   const namn = await idbGet("ownEntryName");
+  if(!dir || !namn){
     const btn = $("sharedBtn");
     let sparad = "";
     try{ sparad = localStorage.getItem("va_reg_dir") || ""; }catch(e){}
     btn.style.display = "";
     btn.textContent = sparad? ("\ud83d\udcc1 Anslut: " + sparad) : "\ud83d\udcc1 Anslut gemensam mapp";
     btn.title = "Webbl\u00e4saren kr\u00e4ver att du godk\u00e4nner mappen en g\u00e5ng per start \u2013 d\u00e4refter sk\u00f6ter appen allt automatiskt.";
+    $("connectText").innerHTML = sparad
+      ? "Projektregistret beh\u00f6ver \u00e5tkomst till den gemensamma mappen <b>" + esc(sparad) + "</b> f\u00f6r att spara dina projekt och h\u00e4mta kollegors \u00e4ndringar automatiskt."
+      : "Projektregistret beh\u00f6ver \u00e5tkomst till den gemensamma SharePoint-mappen f\u00f6r att spara och h\u00e4mta projekt automatiskt. Klicka nedan och v\u00e4lj mappen i dialogen som \u00f6ppnas.";
+    $("connectBg").classList.add("open");
     return;
+  }
   let perm = "prompt";
   try{ perm = await dir.queryPermission({mode:"readwrite"}); }catch(e){}
   if(perm === "granted"){
