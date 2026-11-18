@@ -6,14 +6,14 @@
 <title>Projektregister – VA-organisationen</title>
 <style>
 :root{
-  --bg:#f4f6f9; --card:#ffffff; --border:#e2e8f0; --text:#1e293b; --muted:#64748b;
-  --primary:#0f6e5f; --primary-dark:#0a4f45; --accent:#d97706;
+  --bg:#f7f3ea; --card:#ffffff; --border:#e5dbc8; --text:#2b2420; --muted:#6f6357;
+  --primary:#8f1d2b; --primary-dark:#6d121e; --accent:#e1a91c;
+  --gold:#e1a91c; --red:#8f1d2b; --warmgreen:#3f6f4f; --coldgreen:#2b5346;
   --ok:#16a34a; --warn:#d97706; --danger:#dc2626; --info:#2563eb;
-  --radius:10px; --shadow:0 1px 3px rgba(15,23,42,.08),0 4px 12px rgba(15,23,42,.06);
-}
+  --radius:10px; --shadow:0 1px 3px rgba(43,36,32,.08),0 4px 12px rgba(43,36,32,.07);
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14.5px}
-header{background:var(--primary);color:#fff;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+header{background:linear-gradient(135deg,var(--red) 0%,#6d121e 100%);color:#fff;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:4px solid var(--gold)}
 header h1{font-size:1.25rem;font-weight:600}
 header .sub{font-size:.8rem;opacity:.85}
 .saveinfo{font-size:.75rem;opacity:.85}
@@ -35,13 +35,13 @@ main{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
 .dot.rv{background:#0e7490}.dot.vv{background:#2563eb}.dot.ln{background:#d97706}.dot.adm{background:#7c3aed}
 .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
 .tab{padding:9px 18px;border-radius:8px 8px 0 0;background:#e2e8f0;color:var(--muted);font-weight:500;cursor:pointer;border:none}
-.tab.active{background:var(--card);color:var(--primary);box-shadow:var(--shadow);border:1px solid var(--border);border-bottom-color:var(--card)}
+.tab.active{background:var(--card);color:var(--red);box-shadow:var(--shadow);border:1px solid var(--border);border-bottom-color:var(--card);border-top:3px solid var(--gold)}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
 input[type=text],input[type=date],input[type=email],input[type=tel],select,textarea,input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text)}
 input[type=text]{min-width:180px}
 .toolbar input{min-width:250px}
 table{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-th{background:#f8fafc;text-align:left;padding:10px 12px;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
+th{background:#f5efdf;text-align:left;padding:10px 12px;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
 th:hover{color:var(--primary)}
 td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
 tr:hover td{background:#f8fafc}
@@ -70,7 +70,7 @@ button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
 .detail-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .detail-tabs{display:flex;gap:6px;margin:18px 0 14px;flex-wrap:wrap}
 .dtab{padding:8px 16px;border-radius:999px;background:#e2e8f0;color:var(--muted);border:none;cursor:pointer;font:inherit;font-weight:500}
-.dtab.active{background:var(--primary);color:#fff}
+.dtab.active{background:var(--red);color:#fff;box-shadow:inset 0 -3px 0 var(--gold)}
 .panel{display:none}
 .panel.active{display:block}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px}
@@ -106,9 +106,19 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 <body>
 
 <header>
-  <div>
-    <h1>Projektregister</h1>
-    <div class="sub">Reningsverk · Vattenverk · Ledningsnät · Admin &nbsp;|&nbsp; Offline &amp; SharePoint-färdig</div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <svg width="44" height="52" viewBox="0 0 44 52" aria-label="Uppvidinge kommuns vapen, stiliserad" role="img">
+      <path d="M2 2 h40 v26 c0 12 -10 18 -20 22 c-10 -4 -20 -10 -20 -22 z" fill="#e8b830" stroke="#8f1d2b" stroke-width="4"/>
+      <g fill="#8f1d2b">
+        <path d="M22 12 c-2.5 3 -4 6 0 10 c4 -4 2.5 -7 0 -10 z"/>
+        <path d="M22 22 c-5 0 -8 3 -9 8 c5 0 8 -1 9 -4 c1 3 4 4 9 4 c-1 -5 -4 -8 -9 -8 z"/>
+        <circle cx="22" cy="10" r="2.4"/>
+      </g>
+    </svg>
+    <div>
+      <h1>Projektregister</h1>
+      <div class="sub">Uppvidinge kommun &nbsp;·&nbsp; Reningsverk · Vattenverk · Ledningsnät · Admin</div>
+    </div>
   </div>
   <div class="actions">
       <span class="saveinfo" id="saveInfo">Senast sparat: –</span>
@@ -179,7 +189,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen –/använd 💾 Spara för att spara direkt (Ctrl+S).
+  Uppvidinge kommun – Projektregister. Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen –/använd 💾 Spara för att spara direkt (Ctrl+S).
   För SharePoint-delning: exportera JSON-filen till den gemensamma mappen – övriga importerar den.
 </footer>
 
