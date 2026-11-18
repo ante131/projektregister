@@ -241,7 +241,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 "use strict";
 const LS_KEY = "va_projektregister_v2";
 const KATEGORIER = {reningsverk:"Reningsverk", vattenverk:"Vattenverk", ledningsnat:"Ledningsnät", admin:"Admin"};
-const MAX_FIL = 2*1024*1024;
+const MAX_FIL = 10*1024*1024;
 let data = {projects:[], updated:null, saved:null, tabort:[]};
 let activeCat = "alla", sortKey = "namn", sortDir = 1, currentDetail = null, m2cfg = null;
 const $ = id => document.getElementById(id);
@@ -664,7 +664,7 @@ function renderFiler(p){
   $("p-filer").innerHTML = `<div class="card"><div class="card-h"><h3>Filer &amp; länkar</h3>
       <div style="display:flex;gap:8px">
         <button class="btn-sm secondary" onclick="linkForm()">🔗 Ny länk</button>
-        <button class="btn-sm" onclick="m2File()">📎 Bifoga fil</button>
+        <button class="btn-sm" onclick="m2File()">📎 Bifoga fil(er)</button>
       </div></div>
     <div class="body">${ (p.filer||[]).length? p.filer.map((f,i)=>`
       <div class="file-row"><span>📄 <b>${esc(f.namn)}</b>${f.url?` <span style="color:var(--muted);font-size:.78rem">(länk)</span>`:` <span style="color:var(--muted);font-size:.78rem">${(f.storlek/1024).toFixed(0)} kB</span>`}</span>
@@ -672,7 +672,7 @@ function renderFiler(p){
         ${f.url? `<a class="mail-btn" href="${esc(f.url)}" target="_blank">Öppna</a>`:
           `<a class="mail-btn" href="${f.data}" download="${esc(f.namn)}">Hämta</a>`}
         <button class="icon-btn" title="Ta bort" onclick="delItem('filer',${i},'filen')">🗑</button></span></div>`).join("")
-      : '<span style="color:var(--muted)">Länka till dokument i SharePoint-mappen eller bifoga filer (max '+(MAX_FIL/(1024*1024))+' MB).</span>'}
+      : '<span style="color:var(--muted)">Länka till dokument i SharePoint-mappen eller bifoga flera filer samtidigt (max '+(MAX_FIL/(1024*1024))+' MB).</span>'}
     </div></div>`;
 }
 function linkForm(i){
@@ -683,8 +683,8 @@ function linkForm(i){
       required:["namn","url"], keepUrl:true});
 }
 function m2File(){
-  m2({title:"Bifoga fil", key:"filer", filePick:true,
-      fields:[["fil","Välj fil (max "+(MAX_FIL/(1024*1024))+" MB)","","file"]]});
+  m2({title:"Bifoga filer", key:"filer", filePick:true,
+      fields:[["fil","Välj fil(er) – flera kan väljas samtidigt (max "+(MAX_FIL/(1024*1024))+" MB per fil)","","file"]]});
 }
 /* ---------- Kontakter ---------- */
 function renderKontakter(p){
@@ -716,7 +716,7 @@ function m2(cfg){
   $("m2title").textContent = cfg.title;
   $("m2body").innerHTML = cfg.fields.map(([id,label,val,type])=>{
     if(type==="textarea") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><textarea id="m2_${id}" style="min-height:110px">${esc(val)}</textarea></div>`;
-    if(type==="file") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="file" id="m2_${id}"></div>`;
+    if(type==="file") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="file" id="m2_${id}" multiple></div>`;
     return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="${type}" id="m2_${id}" value="${esc(val)}" style="width:100%"></div>`;
   }).join("");
   $("m2bg").classList.add("open");
@@ -730,16 +730,25 @@ function saveM2(){
   markP(p);
   const arr = p[cfg.key] || (p[cfg.key]=[]);
   if(cfg.filePick){
-    const inp = $("m2_fil"), f = inp.files[0];
-    if(!f){ toast("⚠ Välj en fil först."); return; }
-    if(f.size > MAX_FIL){ toast("⚠ Filen är över "+(MAX_FIL/(1024*1024))+" MB – länka istället till filen i SharePoint-mappen."); return; }
-    const r = new FileReader();
-    r.onload = ()=>{
-      arr.push({id:uid(), namn:f.name, data:r.result, storlek:f.size, datum:new Date().toISOString()});
-      autosave(); closeM2(); openDetail(currentDetail); renderStats(); render();
-      toast("📎 Filen bifogad: "+f.name);
-    };
-    r.readAsDataURL(f);
+    const inp = $("m2_fil");
+    const files = inp.files ? Array.from(inp.files) : [];
+    if(!files.length){ toast("⚠ Välj minst en fil först."); return; }
+    const forStora = files.filter(f=>f.size > MAX_FIL);
+    if(forStora.length){ toast("⚠ "+forStora.length+" fil(er) är över "+(MAX_FIL/(1024*1024))+" MB – länka istället till dem i SharePoint-mappen."); return; }
+    let kvar = files.length, bifogade = 0;
+    files.forEach(f=>{
+      const r = new FileReader();
+      r.onload = ()=>{
+        arr.push({id:uid(), namn:f.name, data:r.result, storlek:f.size, datum:new Date().toISOString()});
+        bifogade++;
+        if(--kvar === 0){
+          try{ autosave(); }catch(e){ toast("⚠ Lagringen kan vara full – stora bifogade filer tar plats. Överväg länkar för stora filer."); }
+          closeM2(); openDetail(currentDetail); renderStats(); render();
+          toast("📎 "+bifogade+" fil(er) bifogade.");
+        }
+      };
+      r.readAsDataURL(f);
+    });
     return;
   }
   const obj = {}; let ok = true;
