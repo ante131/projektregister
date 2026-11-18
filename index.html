@@ -287,6 +287,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     </header>
     <div class="body">
       <p id="connectText" style="margin-bottom:10px"></p>
+      <div id="connectPathBox" style="margin-bottom:10px"></div>
       <p style="font-size:.82rem;color:var(--muted)">Klicka på <b>📁 Anslut nu</b> – webbläsaren öppnar en behörighetsdialog där du väljer mappen och trycker <b>Välj mapp</b>. Godkännandet krävs en gång per appstart (webbläsarens säkerhetsregel).</p>
     </div>
     <footer>
@@ -391,7 +392,7 @@ async function connectFolder(){
     try{ namn = localStorage.getItem("va_reg_user") || ""; }catch(e){}
     if(!namn) namn = getUser();
     if(!namn){ toast("\u26a0 Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return; }
-    const dir = await window.showDirectoryPicker({mode:"readwrite"});
+    const dir = await window.showDirectoryPicker({mode:"readwrite", startIn:"documents"});
     sharedDir = dir; sharedDirName = dir.name; sharedErr = 0; lastWritten = null;
     ownEntryName = fileNameFor(namn);
     try{ localStorage.setItem("va_reg_dir", dir.name); localStorage.setItem("va_reg_own", ownEntryName); }catch(e){}
@@ -525,6 +526,29 @@ async function idbGet(k){
   });
 }
 function hideConnectPopup(){ $("connectBg").classList.remove("open"); }
+function rutMappinfo(mappNamn){
+  let path = "";
+  try{ path = localStorage.getItem("va_reg_path") || ""; }catch(e){}
+  let html = mappNamn? ("<b>Mapp att v\u00e4lja: " + esc(mappNamn) + "</b>") : "";
+  if(path){
+    const url = "file:///" + path.replace(/\\/g,"/").replace(/ /g,"%20").replace(/\u00e5/g,"%C3%A5").replace(/\u00e4/g,"%C3%A4").replace(/\u00f6/g,"%C3%B6").replace(/\u00c5/g,"%C3%85").replace(/\u00c4/g,"%C3%84").replace(/\u00d6/g,"%C3%96");
+    html += '<div style="margin-top:8px;font-size:.85rem">S\u00f6kv\u00e4g: <code>' + esc(path) + '</code> <a href="' + url + '" style="margin-left:8px">\ud83d\udcc2 \u00d6ppna i Utforskaren</a></div>';
+  } else {
+    html += '<div style="margin-top:8px;font-size:.85rem;color:var(--muted)">Tips: spara mappens s\u00f6kv\u00e4g en g\u00e5ng (knappen nedan) s\u00e5 visas den h\u00e4r som hj\u00e4lp vid varje start.</div>';
+  }
+  html += '<div style="margin-top:8px"><button class="secondary btn-sm" onclick="stallMappSokvag()">\u270f\ufe0f ' + (path? "\u00c4ndra mappens s\u00f6kv\u00e4g" : "Spara mappens s\u00f6kv\u00e4g") + '</button></div>';
+  $("connectPathBox").innerHTML = html;
+}
+function stallMappSokvag(){
+  let nu = "";
+  try{ nu = localStorage.getItem("va_reg_path") || ""; }catch(e){}
+  const p = prompt("Skriv mappens fullst\u00e4ndiga s\u00f6kv\u00e4g som hj\u00e4lp vid start (t.ex. C:\\Users\\dittnamn\\Kommunsamverkan\\...\\06. VA-PROJEKT):", nu);
+  if(p === null) return;
+  try{ localStorage.setItem("va_reg_path", p.trim()); }catch(e){}
+  let m = "";
+  try{ m = localStorage.getItem("va_reg_dir") || ""; }catch(e){}
+  rutMappinfo(m);
+}
 async function autoConnect(){
   if(!canFS) return;
   const dir = await idbGet("sharedDirHandle");
@@ -536,9 +560,7 @@ async function autoConnect(){
     btn.style.display = "";
     btn.textContent = sparad? ("\ud83d\udcc1 Anslut: " + sparad) : "\ud83d\udcc1 Anslut gemensam mapp";
     btn.title = "Webbl\u00e4saren kr\u00e4ver att du godk\u00e4nner mappen en g\u00e5ng per start \u2013 d\u00e4refter sk\u00f6ter appen allt automatiskt.";
-    $("connectText").innerHTML = sparad
-      ? "Projektregistret beh\u00f6ver \u00e5tkomst till den gemensamma mappen <b>" + esc(sparad) + "</b> f\u00f6r att spara dina projekt och h\u00e4mta kollegors \u00e4ndringar automatiskt."
-      : "Projektregistret beh\u00f6ver \u00e5tkomst till den gemensamma SharePoint-mappen f\u00f6r att spara och h\u00e4mta projekt automatiskt. Klicka nedan och v\u00e4lj mappen i dialogen som \u00f6ppnas.";
+    rutMappinfo(sparad);
     $("connectBg").classList.add("open");
     return;
   }
