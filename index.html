@@ -100,6 +100,9 @@ button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
 .browse-item{display:block;padding:8px 10px;border-radius:8px;cursor:pointer;user-select:none;font-size:.92rem}
 .browse-item:hover{background:#f1f5f9}
 .browse-item input{margin-right:8px;accent-color:var(--primary)}
+.status-menu{position:fixed;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.18);display:none;z-index:60;min-width:170px;overflow:hidden;padding:4px}
+.status-menu button{display:block;width:100%;text-align:left;background:none;color:var(--text);border:none;border-radius:8px;padding:8px 12px;font-weight:500;box-shadow:none}
+.status-menu button:hover{background:#f1f5f9;transform:none}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;z-index:99;font-size:.9rem;max-width:340px}
 .toast.show{opacity:1;transform:none}
 footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted);font-size:.75rem}
@@ -264,6 +267,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     </footer>
   </div>
 </div>
+<div class="status-menu" id="statusMenu"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -627,8 +631,9 @@ function render(){
       <td>${fmtKr(p.kostnad)}</td>
       <td style="white-space:nowrap">
         <button class="icon-btn" title="Öppna projekt" onclick="event.stopPropagation();openDetail('${p.id}')">📂</button>
+        <button class="icon-btn" title="Ändra status" onclick="event.stopPropagation();openStatusMenu(event,'${p.id}')">🔄</button>
+        <button class="icon-btn" title="Anteckningar" onclick="event.stopPropagation();gotoNotes('${p.id}')">📝</button>
         <button class="icon-btn" title="Redigera" onclick="event.stopPropagation();openForm('${p.id}',true)">✏️</button>
-        <button class="icon-btn" title="Duplicera" onclick="event.stopPropagation();duplicate('${p.id}')">⧉</button>
       </td>
     </tr>`;}).join("");
 }
@@ -1057,14 +1062,46 @@ function deleteProject(){
   showList();
   toast("🗑 Projektet togs bort.");
 }
-function duplicate(id){
-  const p = data.projects.find(x=>x.id===id);
-  data.projects.push({...p, id:uid(), namn:p.namn+" (kopia)", nr:"",
-    etapper:(p.etapper||[]).map(e=>({...e,id:uid(),klar:false,klarDatum:null})),
-    kontakter:(p.kontakter||[]).map(c=>c), anteckningar:[], filer:(p.filer||[]).map(f=>f)});
-  autosave(); render(); renderStats();
-  toast("⧉ Projektet duplicerat.");
+const STATUSLISTA = ["Planering","Pågående","Pausad","Avslutat","Avbrutet"];
+function openStatusMenu(evt, id){
+  const meny = $("statusMenu");
+  if(meny.style.display === "block" && meny.dataset.pid === id){ meny.style.display = "none"; return; }
+  meny.dataset.pid = id;
+  meny.innerHTML = STATUSLISTA.map(st=>{
+    const p = data.projects.find(x=>x.id===id);
+    const mark = p && p.status===st? " ✔":"";
+    return `<button onclick="setStatus('${id}','${st}')">${st}${mark}</button>`;
+  }).join("");
+  meny.style.display = "block";
+  const x = Math.min(evt.clientX, window.innerWidth-190);
+  const y = Math.min(evt.clientY, window.innerHeight-240);
+  meny.style.left = x+"px";
+  meny.style.top = y+"px";
 }
+function setStatus(id, st){
+  const p = data.projects.find(x=>x.id===id);
+  if(!p) return;
+  p.status = st;
+  markP(p);
+  autosave();
+  $("statusMenu").style.display = "none";
+  render(); renderStats();
+  if(currentDetail) openDetail(currentDetail);
+  toast("🔄 Status för \""+p.namn+"\": "+st);
+}
+function gotoNotes(id){
+  currentDetail = id;
+  openDetail(id);
+  document.querySelectorAll(".dtab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  const flik = document.querySelector('.dtab[data-panel="anteckningar"]');
+  if(flik) flik.classList.add("active");
+  $("p-anteckningar").classList.add("active");
+}
+document.addEventListener("click", e=>{
+  const meny = $("statusMenu");
+  if(meny && meny.style.display==="block" && !meny.contains(e.target)) meny.style.display="none";
+}, true);
 
 function formDirty(){
   if(!("modalBg" in window)) return true;
