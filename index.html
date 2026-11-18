@@ -152,6 +152,12 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
         <option value="">Alla prioriteter</option>
         <option>Hög</option><option>Medel</option><option>Låg</option>
       </select>
+      <label style="display:flex;align-items:center;gap:5px;color:var(--muted);font-size:.82rem;cursor:pointer;white-space:nowrap" title="Dölj avslutade projekt i listan">
+        <input type="checkbox" id="hideAvslutade" onchange="render()" style="accent-color:var(--primary)"> Dölj avslutade
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;color:var(--muted);font-size:.82rem;cursor:pointer;white-space:nowrap" title="Dölj avbrutna projekt i listan">
+        <input type="checkbox" id="hideAvbrutna" onchange="render()" style="accent-color:var(--primary)"> Dölj avbrutna
+      </label>
       <span style="margin-left:auto;color:var(--muted);font-size:.8rem" id="countInfo"></span>
     </div>
     <table id="tbl"><thead></thead><tbody></tbody></table>
@@ -597,7 +603,12 @@ function statusBadge(s){
 function render(){
   const q = ($("search").value||"").toLowerCase();
   const sf = $("statusFilter").value, pf = $("prioFilter").value;
+  const dolda = new Set();
+  if($("hideAvslutade") && $("hideAvslutade").checked) dolda.add("Avslutat");
+  if($("hideAvbrutna") && $("hideAvbrutna").checked) dolda.add("Avbrutet");
+  try{ localStorage.setItem("va_reg_dolj", Array.from(dolda).join(",")); }catch(e){}
   let list = data.projects.filter(p=>{
+    if(dolda.has(p.status)) return false;
     if(activeCat!=="alla" && p.kategori!==activeCat) return false;
     if(sf && p.status!==sf) return false;
     if(pf && p.prio!==pf) return false;
@@ -1182,6 +1193,12 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 load(); updateSaveInfo(); sharedUI(); renderStats(); render();
+try{
+  const d = (localStorage.getItem("va_reg_dolj")||"").split(",").filter(Boolean);
+  if(d.includes("Avslutat") && $("hideAvslutade")) $("hideAvslutade").checked = true;
+  if(d.includes("Avbrutet") && $("hideAvbrutna")) $("hideAvbrutna").checked = true;
+  if(d.length) render();
+}catch(e){}
 autoConnect();
 if(canFS && !data.hintShared){ setTimeout(()=>{ toast("💡 Tips: klicka på 📁 Anslut gemensam mapp (överst) och välj er SharePoint-mapp – du får en egen datafil (projektdata-dittnamn.json) och appen läser automatiskt in kollegors filer. Konfliktkopior skapas inte."); data.hintShared = true; persist(); }, 1500); }
 </script>
