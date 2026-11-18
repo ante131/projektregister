@@ -293,6 +293,8 @@ function catOf(p){ return KATEGORIER[p.kategori] || p.kategori; }
 /* ---------- Gemensam datafil (SharePoint) ---------- */
 const canFS = typeof window !== "undefined" && typeof window.showOpenFilePicker === "function";
 let sharedHandle = null, sharedName = null, sharedTimer = null, sharedErr = 0, sharedFileCount = null;
+let lastWritten = null;
+function dataUnchanged(){ return lastWritten !== null && JSON.stringify(data) === lastWritten; }
 function markP(p){ if(p) p.andrad = new Date().toISOString(); }
 function normalizeP(p){
   p.kontakter=p.kontakter||[]; p.etapper=p.etapper||[];
@@ -361,6 +363,7 @@ function mergeIntoLocal(src){
 async function writeSharedNow(){
   if(!sharedHandle) return;
   try{
+    if(dataUnchanged()) return;
     /* Slå ihop filens senaste innehåll innan skrivning – vi skriver alltid unionen */
     let fileCount = null;
     try{
@@ -381,9 +384,11 @@ async function writeSharedNow(){
       }
     }catch(e){ /* oläslbar/tom fil – skriv vår data */ }
     sharedFileCount = fileCount;
+    const payload = JSON.stringify(data);
     const w = await sharedHandle.createWritable();
-    await w.write(JSON.stringify(data));
+    await w.write(payload);
     await w.close();
+    lastWritten = payload;
     sharedErr = 0;
     updateSharedStatus();
   }catch(e){
@@ -406,7 +411,7 @@ async function syncNow(){
 function scheduleShared(){
   if(!sharedHandle) return;
   clearTimeout(sharedTimer);
-  sharedTimer = setTimeout(writeSharedNow, 800);
+  sharedTimer = setTimeout(writeSharedNow, 2500);
 }
 /* Automatisk synkning: hämta andres ändringar från filen */
 async function refreshFromShared(quiet){

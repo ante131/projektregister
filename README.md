@@ -42,6 +42,14 @@ Webbläsarens lokala lagring är per dator. För att **alla ska se och fortsätt
 - Undvik att två personer redigerar **samma projekt** samtidigt – vid anslutning hämtas alltid den senast sparade versionen per projekt in, men håll korta arbetspass och anslut på nytt innan du börjar.
 - Filer som någon annan har öppen i ett program kan vara tillfälligt låsta – appen varnar och försöker igen vid nästa ändring.
 
+### Om en konfliktkopia dyker upp (projektdata-NAMN.json)
+OneDrive/SharePoint skapar en konfliktkopia om två datorer skriver till filen innan synkningen hunnit med. Så löser du det:
+1. Kontrollera vilken fil som är "huvudfilen" (den appen visar i statusraden). Helst den som senast synkats klart.
+2. Öppna appen, klicka **⬆ Importera** och välj konfliktkopieran – appen slår ihop alla projekt/ändringar i den i huvudfilen (inget går förlorat).
+3. Klicka 🔄 Synka nu så skrivs den sammanslagna datan till huvudfilen.
+4. Ta bort konfliktkopieran ur mappen och låt alla andra klicka 🔄 Synka nu.
+5. Undvik framöver att redigera samtidigt som andra – appen skyddar data per projekt, men OneDrive gillar inte samtidiga skrivningar (håll appen öppen i en flik och det fungerar bra i vardagen).
+
 ### Reserv: export/import
 Fungerar i alla webbläsare: exportera JSON till mappen efter ändringar och låt övriga importera filen. Importen slår ihop nya och uppdaterade projekt.
 
