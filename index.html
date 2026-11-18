@@ -6,42 +6,42 @@
 <title>Projektregister – VA-organisationen</title>
 <style>
 :root{
-  --bg:#f7f3ea; --card:#ffffff; --border:#e5dbc8; --text:#2b2420; --muted:#6f6357;
-  --primary:#df2e2f; --primary-dark:#b31d1e; --accent:#db9311;
-  --gold:#db9311; --red:#df2e2f; --warmgreen:#3f6f4f; --coldgreen:#2b5346;
+  --bg:#f4f6f9; --card:#ffffff; --border:#e2e8f0; --text:#1e293b; --muted:#64748b;
+  --primary:#0f6e5f; --primary-dark:#0a4f45; --accent:#d97706;
   --ok:#16a34a; --warn:#d97706; --danger:#dc2626; --info:#2563eb;
-  --radius:10px; --shadow:0 1px 3px rgba(43,36,32,.08),0 4px 12px rgba(43,36,32,.07);
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14.5px}
-header{background:linear-gradient(135deg,#df2e2f 0%,#9e1416 100%);color:#fff;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:4px solid var(--gold)}
-header h1{font-size:1.25rem;font-weight:600}
+  --radius:14px; --shadow:0 1px 2px rgba(15,23,42,.05),0 10px 28px rgba(15,23,42,.09);
+  --radius-btn:11px;
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:radial-gradient(1200px 400px at 80% -10%,rgba(15,110,95,.05),transparent 60%),var(--bg);color:var(--text);font-size:14.5px}
+header{background:linear-gradient(120deg,#0f6e5f 0%,#0c5a4e 55%,#0a4f45 100%);color:#fff;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:40;box-shadow:0 6px 24px rgba(15,110,95,.25)}
+header h1{font-size:1.3rem;font-weight:700;letter-spacing:-.01em}
 header .sub{font-size:.8rem;opacity:.85}
 .saveinfo{font-size:.75rem;opacity:.85}
 .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:8px 14px;background:var(--primary);color:#fff;font-weight:500;transition:.15s}
-button:hover{background:var(--primary-dark)}
-button.secondary{background:#fff;color:var(--text);border:1px solid var(--border)}
+button{font:inherit;cursor:pointer;border:none;border-radius:var(--radius-btn);padding:9px 15px;background:var(--primary);color:#fff;font-weight:600;transition:all .18s ease;box-shadow:0 2px 6px rgba(15,110,95,.22)}
+button:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 16px rgba(15,110,95,.28)}
+button.secondary{background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none}
 button.secondary:hover{background:#f1f5f9}
 button.ghost{background:transparent;color:inherit;opacity:.9;border:1px solid rgba(255,255,255,.4)}
 button.ghost:hover{background:rgba(255,255,255,.15)}
 .btn-sm{padding:5px 10px;font-size:.82rem}
 main{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease}
 .stat .cat{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
-.stat .num{font-size:1.5rem;font-weight:600}
+.stat .num{font-size:1.55rem;font-weight:700;letter-spacing:-.02em}
 .stat .budget{font-size:.78rem;color:var(--muted);margin-top:2px}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
 .dot.rv{background:#0e7490}.dot.vv{background:#2563eb}.dot.ln{background:#d97706}.dot.adm{background:#7c3aed}
 .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
 .tab{padding:9px 18px;border-radius:8px 8px 0 0;background:#e2e8f0;color:var(--muted);font-weight:500;cursor:pointer;border:none}
-.tab.active{background:var(--card);color:var(--red);box-shadow:var(--shadow);border:1px solid var(--border);border-bottom-color:var(--card);border-top:3px solid var(--gold)}
+.tab.active{background:var(--card);color:var(--primary);box-shadow:0 -3px 12px rgba(15,110,95,.10);border:1px solid var(--border);border-bottom:2px solid var(--card);font-weight:600}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-input[type=text],input[type=date],input[type=email],input[type=tel],select,textarea,input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text)}
+input[type=text],input[type=date],input[type=email],input[type=tel],select,textarea,input[type=number]{font:inherit;padding:9px 12px;border:1px solid var(--border);border-radius:11px;background:#fff;color:var(--text);transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,110,95,.14)}
 input[type=text]{min-width:180px}
 .toolbar input{min-width:250px}
-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-th{background:#f5efdf;text-align:left;padding:10px 12px;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
+table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.07)}
+th{background:#f8fafc;text-align:left;padding:10px 12px;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
 th:hover{color:var(--primary)}
 td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
 tr:hover td{background:#f8fafc}
@@ -55,7 +55,7 @@ tr:hover td{background:#f8fafc}
 .warn-flag{display:inline-flex;align-items:center;gap:5px;background:#fef3c7;color:#b45309;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
 .modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:14px;width:min(680px,100%);box-shadow:0 20px 50px rgba(0,0,0,.25);animation:pop .15s ease}
+.modal{background:#fff;border-radius:18px;width:min(680px,100%);box-shadow:0 20px 50px rgba(0,0,0,.25);animation:pop .15s ease}
 @keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
 .modal header{background:#f8fafc;color:var(--text);padding:16px 22px;border-bottom:1px solid var(--border);border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center}
 .modal header h2{font-size:1.05rem}
@@ -70,10 +70,10 @@ button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
 .detail-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
 .detail-tabs{display:flex;gap:6px;margin:18px 0 14px;flex-wrap:wrap}
 .dtab{padding:8px 16px;border-radius:999px;background:#e2e8f0;color:var(--muted);border:none;cursor:pointer;font:inherit;font-weight:500}
-.dtab.active{background:var(--red);color:#fff;box-shadow:inset 0 -3px 0 var(--gold)}
+.dtab.active{background:var(--primary);color:#fff;box-shadow:0 6px 16px rgba(15,110,95,.28);transform:translateY(-1px)}
 .panel{display:none}
 .panel.active{display:block}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.07);margin-bottom:18px;overflow:hidden}
 .card .card-h{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .card .card-h h3{font-size:.95rem}
 .card .body{padding:16px 18px}
@@ -106,19 +106,9 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 <body>
 
 <header>
-  <div style="display:flex;align-items:center;gap:14px">
-    <svg width="44" height="52" viewBox="0 0 44 52" aria-label="Uppvidinge kommuns vapen, stiliserad" role="img">
-      <path d="M2 2 h40 v26 c0 12 -10 18 -20 22 c-10 -4 -20 -10 -20 -22 z" fill="#db9311" stroke="#df2e2f" stroke-width="4"/>
-      <g fill="#df2e2f">
-        <path d="M22 12 c-2.5 3 -4 6 0 10 c4 -4 2.5 -7 0 -10 z"/>
-        <path d="M22 22 c-5 0 -8 3 -9 8 c5 0 8 -1 9 -4 c1 3 4 4 9 4 c-1 -5 -4 -8 -9 -8 z"/>
-        <circle cx="22" cy="10" r="2.4"/>
-      </g>
-    </svg>
     <div>
-      <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;·&nbsp; Reningsverk · Vattenverk · Ledningsnät · Admin</div>
-    </div>
+    <h1>Projektregister</h1>
+    <div class="sub">Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; Offline &amp; SharePoint-f&auml;rdig</div>
   </div>
   <div class="actions">
       <span class="saveinfo" id="saveInfo">Senast sparat: –</span>
@@ -189,7 +179,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  Uppvidinge kommun – Projektregister. Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen –/använd 💾 Spara för att spara direkt (Ctrl+S).
+  Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen –/använd 💾 Spara för att spara direkt (Ctrl+S).
   För SharePoint-delning: exportera JSON-filen till den gemensamma mappen – övriga importerar den.
 </footer>
 
@@ -252,7 +242,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 const LS_KEY = "va_projektregister_v2";
 const KATEGORIER = {reningsverk:"Reningsverk", vattenverk:"Vattenverk", ledningsnat:"Ledningsnät", admin:"Admin"};
 const MAX_FIL = 2*1024*1024;
-let data = {projects:[], updated:null, saved:null};
+let data = {projects:[], updated:null, saved:null, tabort:[]};
 let activeCat = "alla", sortKey = "namn", sortDir = 1, currentDetail = null, m2cfg = null;
 const $ = id => document.getElementById(id);
 
@@ -264,6 +254,9 @@ function load(){
       if(old && Array.isArray(old.projects)) data = old;
     }
   }catch(e){}
+  data.tabort = data.tabort || [];
+  const grens = new Date(Date.now()-180*86400000).toISOString();
+  data.tabort = data.tabort.filter(t=>t && t.id && String(t.datum||"") > grens);
   data.projects.forEach(p=>{
     p.kontakter = p.kontakter||[]; p.etapper = p.etapper||[];
     p.anteckningar = p.anteckningar||[]; p.filer = p.filer||[];
@@ -355,12 +348,31 @@ async function connectFile(){
   }catch(e){ if(e && e.name !== "AbortError"){ toast("⚠ Kunde inte ansluta: " + e.message); } }
   sharedUI();
 }
+function tombMap(){
+  const m = new Map();
+  (data.tabort||[]).forEach(t=>{ if(t && t.id && (!m.has(t.id) || String(t.datum||"") > String(m.get(t.id).datum||""))) m.set(t.id, t); });
+  return m;
+}
 function mergeIntoLocal(src){
+  data.tabort = data.tabort || [];
+  (src.tabort||[]).forEach(st=>{
+    if(!st || !st.id) return;
+    const lt = data.tabort.find(x=>x.id===st.id);
+    if(!lt) data.tabort.push(st);
+    else if(String(st.datum||"") > String(lt.datum||"")) data.tabort[data.tabort.indexOf(lt)] = st;
+  });
+  const tmap = tombMap();
+  data.projects = data.projects.filter(p=>{
+    const ts = tmap.get(p.id);
+    return !(ts && String(ts.datum||"") >= String(p.andrad||""));
+  });
   const byId = new Map(data.projects.map(p=>[p.id,p]));
   let added=0, updated=0, localNew=0;
   const srcIds = new Set(src.projects.map(p=>p.id));
   src.projects.forEach(sp=>{
     if(!sp.id || !sp.namn) return;
+    const ts = tmap.get(sp.id);
+    if(ts && String(ts.datum||"") >= String(sp.andrad||"")) return;
     normalizeP(sp);
     const lp = byId.get(sp.id);
     if(!lp){ data.projects.push(sp); added++; }
@@ -816,6 +828,8 @@ function saveProject(){
 function deleteProject(){
   const id = f_id.value;
   if(!confirm("Ta bort projektet med alla etapper, anteckningar, filer och kontakter?")) return;
+  data.tabort = data.tabort||[];
+  data.tabort.push({id:id, datum:new Date().toISOString()});
   data.projects = data.projects.filter(x=>x.id!==id);
   autosave(); closeForm();
   showList();
@@ -864,8 +878,12 @@ function importJSON(ev){
       if(!imported || !Array.isArray(imported.projects)) throw new Error();
       const mine = new Set(data.projects.map(p=>p.id));
       let added=0, updated=0;
+      imported.tabort = imported.tabort||[];
+      const tm = tombMap();
       imported.projects.forEach(p=>{
         if(!p.id || !p.namn) return;
+        const ts2 = tm.get(p.id);
+        if(ts2 && String(ts2.datum||"") >= String(p.andrad||"")) return;
         p.kontakter=p.kontakter||[]; p.etapper=p.etapper||[]; p.anteckningar=p.anteckningar||[]; p.filer=p.filer||[];
         if(mine.has(p.id)){ data.projects[data.projects.findIndex(x=>x.id===p.id)] = p; updated++; }
         else { data.projects.push(p); added++; }
