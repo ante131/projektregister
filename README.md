@@ -55,3 +55,12 @@ Fungerar i alla webbläsare: exportera JSON till mappen efter ändringar och lå
 
 ## Tekniska begränsningar (offline/SharePoint)
 En ren HTML-fil kan bara skriva data via webbläsarens filåtkomst-API (Chrome/Edge) eller nedladdning – därför används datafilen `projektdata.json` som "databas". Full samtidig redigering som i ett webbverktyg går inte att få i offline-HTML.
+
+## Starta appen utan mappbladdring (startfil)
+Chrome blockerar normalt lagring av mappbeorigheter for lokala filer, vilket tidigare kravde att man bladdrade fram den gemensamma mappen vid varje omstart. Med startfilen **`Starta Projektregister.bat`** startas Chrome med flagget `--allow-file-access-from-files`:
+
+1. Lagg `Starta Projektregister.bat` i er SharePoint-mapp (eller pa skrivbordet).
+2. Allt-justera vid behov: hogerklicka -> Redigera, andra raden `set "HTML=..."` sa att den pekar pa er index.html.
+3. Dubbelklicka bat-filen for att starta appen. Vid start visas appens popup -> klicka **Anslut nu** -> webblasarens behorighetsdialog visas -> tryck **Tillat**. KLART - ingen mappbladdring, och Chrome sparar mappen mellan omstarter.
+
+OBS: flagget `--allow-file-access-from-files` slackter en av Chromes sandlade-regler for lokala filer. Det ar en avvagning mot funktionalitet for interna verktyg. Om er IT-avdelning har policy mot bat-filer kan Chrome genvagen istallet skapas manuellt: hogerklicka pa Chrome-genvagen -> Eigenskaper -> mal: `chrome.exe --allow-file-access-from-files "file:///C:/Users/DITTNAMN/Kommunsamverkan/UPP-SSF-Tekniska-VA/index.html"`.
