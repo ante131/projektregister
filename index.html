@@ -152,6 +152,14 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <div class="empty" id="emptyMsg" style="display:none">
       Inga projekt matchar filtret. Klicka på <b>＋ Nytt projekt</b> för att registrera ett projekt.
     </div>
+
+    <div class="card" style="margin-top:26px">
+      <div class="card-h">
+        <h3>Budgetsammanställning per kategori</h3>
+        <select id="yearSel" onchange="renderSummary()" title="Filtrera på projektets startår"></select>
+      </div>
+      <div class="body" id="sumBody"></div>
+    </div>
   </div>
 
   <div id="detailView" style="display:none">
@@ -500,11 +508,12 @@ function renderStats(){
     const list = data.projects.filter(p=>p.kategori===k);
     const budget = list.reduce((s,p)=>s+(+p.budget||0),0);
     const pagaende = list.filter(p=>p.status==="Pågående").length;
+    const avslutade = list.filter(p=>p.status==="Avslutat").length;
     const warns = list.reduce((s,p)=>s+projectWarns(p).length,0);
     return `<div class="stat">
       <div class="cat"><span class="dot ${k.slice(0,2)==='re'?'rv':k.slice(0,2)==='va'?'vv':k.slice(0,2)==='le'?'ln':'adm'}"></span>${KATEGORIER[k]}</div>
       <div class="num">${list.length} projekt</div>
-      <div class="budget">${pagaende} pågående · Budget: ${fmtKr(budget)}${warns?`<br><span class="warn-flag">⚠ ${warns} etappvarning${warns>1?"ar":""}</span>`:""}</div>
+      <div class="budget">${pagaende} pågående · ${avslutade} avslutade · Budget: ${fmtKr(budget)}${warns?`<br><span class="warn-flag">⚠ ${warns} etappvarning${warns>1?"ar":""}</span>`:""}</div>
     </div>`;
   }).join("");
   const all = data.projects.flatMap(projectWarns);
@@ -514,6 +523,47 @@ function renderStats(){
     <ul>${all.slice(0,8).map(w=>`<li>${esc(w.text)}</li>`).join("")}${all.length>8?`<li>… och ${all.length-8} till</li>`:""}</ul>
     <span style="font-size:.78rem;color:var(--muted)">Öppna projektet och markera etappen som färdig, eller ändra datumet, för att ta bort varningen.</span></div>
   </div>` : "";
+  renderSummary();
+}
+function summaryYears(){
+  const ys = new Set();
+  data.projects.forEach(p=>{ if(p.start) ys.add(String(p.start).slice(0,4)); });
+  return Array.from(ys).sort().reverse();
+}
+function renderSummary(){
+  const body = $("sumBody"); if(!body) return;
+  const sel = $("yearSel");
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Alla år</option>' + summaryYears().map(y=>`<option value="${y}"${cur===y?" selected":""}>${y}</option>`).join("");
+  const y = sel.value;
+  const list = data.projects.filter(p=>!y || String(p.start||"").slice(0,4)===y);
+  const rows = Object.keys(KATEGORIER).map(k=>{
+    const l = list.filter(p=>p.kategori===k);
+    return {
+      k, antal: l.length,
+      budget: l.reduce((s,p)=>s+(+p.budget||0),0),
+      kostnad: l.reduce((s,p)=>s+(+p.kostnad||0),0)
+    };
+  });
+  const totAntal = rows.reduce((s,r)=>s+r.antal,0);
+  const totBudget = rows.reduce((s,r)=>s+r.budget,0);
+  const totKostnad = rows.reduce((s,r)=>s+r.kostnad,0);
+  const kr = n => Number(n||0).toLocaleString("sv-SE")+" kr";
+  body.innerHTML = `<table>
+    <thead><tr><th>Kategori</th><th>Projekt</th><th>Budget</th><th>Kostnad hittills</th><th>Återstående</th></tr></thead>
+    <tbody>
+      ${rows.map(r=>`<tr>
+        <td><span class="dot ${r.k.slice(0,2)==='re'?'rv':r.k.slice(0,2)==='va'?'vv':r.k.slice(0,2)==='le'?'ln':'adm'}"></span> ${KATEGORIER[r.k]}</td>
+        <td>${r.antal}</td>
+        <td>${kr(r.budget)}</td>
+        <td>${kr(r.kostnad)}</td>
+        <td>${kr(r.budget-r.kostnad)}</td>
+      </tr>`).join("")}
+      <tr style="font-weight:700;background:#f0fdf6">
+        <td>Totalt ${y?"("+y+")":""}</td><td>${totAntal}</td><td>${kr(totBudget)}</td><td>${kr(totKostnad)}</td><td>${kr(totBudget-totKostnad)}</td>
+      </tr>
+    </tbody></table>
+    <div style="color:var(--muted);font-size:.78rem;margin-top:8px">Årfiltreringen bygger på projektens startår. Endast projektkortets budget/kostnad räknas med.</div>`;
 }
 function statusBadge(s){
   const map={Planering:"b-plan",Pågående:"b-pagaende",Pausad:"b-paus",Avslutat:"b-klar",Avbrutet:"b-avbruten"};
