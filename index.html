@@ -133,6 +133,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <button class="ghost" onclick="exportJSON()">⬇ JSON</button>
     <button class="ghost" onclick="document.getElementById('importFile').click()">⬆ Importera</button>
     <button class="ghost" onclick="exportCSV()">📄 CSV</button>
+    <button class="ghost" onclick="exportListCSV()" title="Exporterar projekten i exakt det format som passar SharePoint-listan – klistra in i rutnätvyn">📄 Export för SharePoint-lista</button>
     <button id="newBtn" onclick="openForm()">＋ Nytt projekt</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
   </div>
@@ -1376,6 +1377,24 @@ function stamp(){ return new Date().toISOString().slice(0,10); }
 function exportJSON(){
   download(`projektdata_${stamp()}.json`, JSON.stringify(data,null,2), "application/json");
   toast("⬇ JSON exporterad – spara i SharePoint-mappen.");
+}
+function exportListCSV(){
+  const quote = v => `"${String(v??"").replace(/"/g,'""')}"`;
+  const head = ["Projektnamn","Projektnummer","Kategori","Projektledare","Beställare/Ägare","Status","Prioritet","Startdatum","Slutdatum","Budget","Kostnad hittills","Plats","Beskrivning","Etapp-namn","Etapp-datum","Etapp klar","Anteckningar","Fil-länkar"];
+  const rows = data.projects.map(p=>{
+    const etapp = (p.etapper||[]).find(e=>!e.klar) || (p.etapper||[])[0] || {};
+    const datum = etapp.datum? etapp.datum : "";
+    const klar = etapp.klar? "Ja" : (etapp.datum? "Nej":"");
+    const notes = (p.anteckningar||[]).map(n=>((n.av?n.av+": ":"")+(n.text||""))).join("\n");
+    const lank = (p.filer||[]).map(f=>f.namn).join(", ");
+    return [
+      p.namn, p.nr, catOf(p), p.pl, p.agare, p.status, p.prio,
+      p.start, p.slut, p.budget, p.kostnad, p.plats,
+      p.beskrivning, etapp.namn||"", datum, klar, notes, lank
+    ].map(quote).join(";");
+  });
+  download(`sharepoint-import-${stamp()}.csv`, "\uFEFF"+head.map(quote).join(";")+"\n"+rows.join("\n"), "text/csv");
+  toast("\ud83d\udcc4 Export klar: \u00f6ppna filen i Excel, markera dataomr\u00e5det, kopiera och klistra in i listans rutn\u00e4tvy.");
 }
 function exportCSV(){
   const cols = ["nr","namn","kategori","pl","agare","status","prio","start","slut","budget","kostnad","plats"];
