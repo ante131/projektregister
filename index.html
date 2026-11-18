@@ -370,11 +370,15 @@ function sharedUI(){
 async function connectFolder(){
   if(!canFS){ toast("\u26a0 Din webbl\u00e4sare kan inte spara till mappen. Anv\u00e4nd Chrome/Edge, eller Exportera/Importera."); return; }
   try{
-    const namn = getUser();
+    let namn = "";
+    try{ namn = localStorage.getItem("va_reg_user") || ""; }catch(e){}
+    if(!namn) namn = getUser();
     if(!namn){ toast("\u26a0 Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return; }
     const dir = await window.showDirectoryPicker({mode:"readwrite"});
     sharedDir = dir; sharedDirName = dir.name; sharedErr = 0; lastWritten = null;
     ownEntryName = fileNameFor(namn);
+    try{ localStorage.setItem("va_reg_dir", dir.name); localStorage.setItem("va_reg_own", ownEntryName); }catch(e){}
+    try{ localStorage.setItem("va_reg_user", namn); }catch(e){}
     await idbSet("sharedDirHandle", dir);
     await idbSet("ownEntryName", ownEntryName);
     await refreshFromShared(true);
@@ -507,7 +511,13 @@ async function autoConnect(){
   if(!canFS) return;
   const dir = await idbGet("sharedDirHandle");
   const namn = await idbGet("ownEntryName");
-  if(!dir || !namn){ $("sharedBtn").style.display = ""; return; }
+    const btn = $("sharedBtn");
+    let sparad = "";
+    try{ sparad = localStorage.getItem("va_reg_dir") || ""; }catch(e){}
+    btn.style.display = "";
+    btn.textContent = sparad? ("\ud83d\udcc1 Anslut: " + sparad) : "\ud83d\udcc1 Anslut gemensam mapp";
+    btn.title = "Webbl\u00e4saren kr\u00e4ver att du godk\u00e4nner mappen en g\u00e5ng per start \u2013 d\u00e4refter sk\u00f6ter appen allt automatiskt.";
+    return;
   let perm = "prompt";
   try{ perm = await dir.queryPermission({mode:"readwrite"}); }catch(e){}
   if(perm === "granted"){
