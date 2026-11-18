@@ -16,7 +16,7 @@ Projekt registreras uppdelat på fyra kategorier:
 - **Projektvy** med flikarna Översikt, Etapper, Anteckningar, Filer & länkar och Kontakter
 - **Etapper** med automatisk varning när det är mindre än en vecka kvar till datumet (röd varning för passerade datum) – varningen försvinner när etappen bockas färdig; varningarna syns också i listan och på startsidan
 - **Anteckningar** med författare och tidsstämpel
-- **Filer & länkar** – länka till dokument i SharePoint-mappen eller bifoga filer (max 2 MB per fil; totalgräns för lagringen är ca 5–10 MB – länka större dokument till SharePoint-mappen)
+- - **Filer & länkar** – länka till dokument, eller bifoga fil(er) direkt: när den gemensamma mappen är ansluten sparas bifogade filer i undermappen `projektfiler` i SharePoint-mappen (gräns 200 MB per fil, tar ingen plats i registret); utan ansluten mapp lagras små filer inne i registret (max 10 MB). Bifogade filer kan hämtas av alla som är anslutna till mappen, och tas även bort ur mappen vid radering per fil; totalgräns för lagringen är ca 5–10 MB – länka större dokument till SharePoint-mappen)
 - **Kontakter** med knapp "Mejla" som öppnar e-postprogrammet med färdig mottagare och ämnesrad
 - Sökning, filtrering på status/prioritet och sorterbar tabell
 - Autosparning + 💾 Spara-knapp (Ctrl+S) och "Senast sparat"-tidsstämpel

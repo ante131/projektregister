@@ -241,7 +241,8 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 "use strict";
 const LS_KEY = "va_projektregister_v2";
 const KATEGORIER = {reningsverk:"Reningsverk", vattenverk:"Vattenverk", ledningsnat:"Ledningsnät", admin:"Admin"};
-const MAX_FIL = 10*1024*1024;
+const MAX_FIL = 10*1024*1024;   /* inline-lagring i registret */
+const MAX_FIL_MAPP = 200*1024*1024; /* filer som sparas i gemensam mapp */
 let data = {projects:[], updated:null, saved:null, tabort:[]};
 let activeCat = "alla", sortKey = "namn", sortDir = 1, currentDetail = null, m2cfg = null;
 const $ = id => document.getElementById(id);
@@ -667,9 +668,10 @@ function renderFiler(p){
         <button class="btn-sm" onclick="m2File()">📎 Bifoga fil(er)</button>
       </div></div>
     <div class="body">${ (p.filer||[]).length? p.filer.map((f,i)=>`
-      <div class="file-row"><span>📄 <b>${esc(f.namn)}</b>${f.url?` <span style="color:var(--muted);font-size:.78rem">(länk)</span>`:` <span style="color:var(--muted);font-size:.78rem">${(f.storlek/1024).toFixed(0)} kB</span>`}</span>
+      <div class="file-row"><span>📄 <b>${esc(f.namn)}</b>${f.mapp?` <span style="color:var(--muted);font-size:.78rem">(i mappen)</span>`:f.url?` <span style="color:var(--muted);font-size:.78rem">(länk)</span>`:` <span style="color:var(--muted);font-size:.78rem">${(f.storlek/1024).toFixed(0)} kB</span>`}</span>
         <span style="display:flex;gap:6px;align-items:center">
         ${f.url? `<a class="mail-btn" href="${esc(f.url)}" target="_blank">Öppna</a>`:
+          f.mapp? `<button class="mail-btn" style="border:none;cursor:pointer" onclick="openAttached(${i})">Hämta/Öppna</button>`:
           `<a class="mail-btn" href="${f.data}" download="${esc(f.namn)}">Hämta</a>`}
         <button class="icon-btn" title="Ta bort" onclick="delItem('filer',${i},'filen')">🗑</button></span></div>`).join("")
       : '<span style="color:var(--muted)">Länka till dokument i SharePoint-mappen eller bifoga flera filer samtidigt (max '+(MAX_FIL/(1024*1024))+' MB).</span>'}
@@ -683,8 +685,13 @@ function linkForm(i){
       required:["namn","url"], keepUrl:true});
 }
 function m2File(){
-  m2({title:"Bifoga filer", key:"filer", filePick:true,
-      fields:[["fil","Välj fil(er) – flera kan väljas samtidigt (max "+(MAX_FIL/(1024*1024))+" MB per fil)","","file"]]});
+  if(sharedDir){
+    m2({title:"Bifoga filer (sparas i mappen)", key:"filer", filePick:true, mappMode:true,
+      fields:[["fil","Välj fil(er) – flera kan väljas samtidigt (max "+(MAX_FIL_MAPP/(1024*1024))+" MB per fil). Filerna sparas i undermappen projektfiler i den gemensamma mappen och tar ingen plats i registret.","","file"]]});
+  } else {
+    m2({title:"Bifoga filer", key:"filer", filePick:true,
+      fields:[["fil","Välj fil(er) – max "+(MAX_FIL/(1024*1024))+" MB per fil. Tips: klicka på 📁 Anslut gemensam mapp överst – då sparas bifogade filer i SharePoint-mappen utan storleksbegränsning i registret.","","file"]]});
+  }
 }
 /* ---------- Kontakter ---------- */
 function renderKontakter(p){
@@ -724,11 +731,35 @@ function m2(cfg){
   if(first && first.focus) setTimeout(()=>first.focus(),50);
 }
 function closeM2(){ $("m2bg").classList.remove("open"); m2cfg = null; }
-function saveM2(){
+async function saveM2(){
   const cfg = m2cfg, p = getDetail();
   if(!cfg || !p) return;
   markP(p);
   const arr = p[cfg.key] || (p[cfg.key]=[]);
+  if(cfg.filePick && cfg.mappMode){
+    const inp = $("m2_fil");
+    const files = inp.files ? Array.from(inp.files) : [];
+    if(!files.length){ toast("⚠ Välj minst en fil först."); return; }
+    const forStora2 = files.filter(f=>f.size > MAX_FIL_MAPP);
+    if(forStora2.length){ toast("⚠ "+forStora2.length+" fil(er) är över "+(MAX_FIL_MAPP/(1024*1024))+" MB."); return; }
+    try{
+      const sub = await sharedDir.getDirectoryHandle("projektfiler", {create:true});
+      let n = 0;
+      for(const f of files){
+        const unik = currentDetail + "-" + Date.now() + "-" + n + "-" + f.name.replace(/[\\/:*?"<>|]/g,"_");
+        const fh = await sub.getFileHandle(unik, {create:true});
+        const w = await fh.createWritable();
+        await w.write(await f.arrayBuffer());
+        await w.close();
+        arr.push({id:uid(), namn:f.name, mapp:unik, storlek:f.size, datum:new Date().toISOString()});
+        n++;
+      }
+      markP(p);
+      autosave(); closeM2(); openDetail(currentDetail); renderStats(); render();
+      toast("📎 "+n+" fil(er) sparade i undermappen projektfiler i den gemensamma mappen.");
+    }catch(e){ toast("⚠ Kunde inte spara filerna i mappen: " + (e.message||"")); }
+    return;
+  }
   if(cfg.filePick){
     const inp = $("m2_fil");
     const files = inp.files ? Array.from(inp.files) : [];
@@ -767,10 +798,34 @@ function saveM2(){
   autosave(); closeM2(); openDetail(currentDetail); renderStats(); render();
   toast("✅ Sparat.");
 }
-function delItem(key, i, what){
+async function openAttached(i){
+  const p = getDetail(); if(!p) return;
+  const f = (p.filer||[])[i];
+  if(!f) return;
+  if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) för att nå filen."); return; }
+  try{
+    const sub = await sharedDir.getDirectoryHandle("projektfiler", {create:false});
+    const fh = await sub.getFileHandle(f.mapp);
+    const file = await fh.getFile();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(file);
+    a.download = f.namn;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+    toast("📄 Hämtar \"" + f.namn + "\" – öppnas/laddas ner via webbläsaren.");
+  }catch(e){ toast("⚠ Filen hittades inte i mappen – den kanske inte synkats till din dator än."); }
+}
+async function delItem(key, i, what){
   if(!confirm("Ta bort "+what+"?")) return;
   const p = getDetail();
   markP(p);
+  const f = p[key][i];
+  if(key === "filer" && f && f.mapp && sharedDir){
+    try{
+      const sub = await sharedDir.getDirectoryHandle("projektfiler", {create:false});
+      await sub.removeEntry(f.mapp);
+    }catch(e){}
+  }
   p[key].splice(i,1);
   autosave(); openDetail(currentDetail); renderStats(); render();
   toast("🗑 Borttagen.");
