@@ -754,10 +754,16 @@ function renderFiler(p){
       <div style="display:flex;gap:8px">
         <button class="btn-sm secondary" onclick="linkForm()">🔗 Ny länk (URL)</button>
         <button class="btn-sm secondary" onclick="linkInFolderForm()">📂 Länka fil i mappen</button>
+        <button class="btn-sm secondary" onclick="linkExternalFolder()" title="Välj en mapp var som helst på datorn – t.ex. en annan SharePoint-plats som projektmapp">🌐 Länka projektmapp (annan plats)</button>
         <button class="btn-sm" onclick="m2File()">📎 Bifoga fil(er)</button>
       </div></div>
     <div class="body">${ (p.filer||[]).length? p.filer.map((f,i)=>`
-      ${f.folderLink? `<div class="file-row"><span>📁 <b>${esc(f.namn)}</b> <span style="color:var(--muted);font-size:.78rem">(mapplänk – innehållet hämtas live, nya filer syns automatiskt)</span></span>
+      ${f.externMapp? `<div class="file-row"><span>🌐 <b>${esc(f.namn)}</b> <span style="color:var(--muted);font-size:.78rem">(extern projektmapp – innehållet visas live; kräver återanslutning en gång per öppning)</span></span>
+        <span style="display:flex;gap:6px;align-items:center">
+        <button class="mail-btn" style="border:none;cursor:pointer" onclick="toggleFolderFiles('${esc(f.id)}')">Visa filer</button>
+        <button class="icon-btn" title="Ta bort länken (mappen påverkas ej)" onclick="delItem('filer',${i},'mapp_lanken')">🗑</button></span></div>
+        <div id="fold-${esc(f.id)}" style="display:none;padding-left:26px"></div>`:
+      f.folderLink? `<div class="file-row"><span>📁 <b>${esc(f.namn)}</b> <span style="color:var(--muted);font-size:.78rem">(mapplänk – innehållet hämtas live, nya filer syns automatiskt)</span></span>
         <span style="display:flex;gap:6px;align-items:center">
         <button class="mail-btn" style="border:none;cursor:pointer" onclick="toggleFolderFiles('${esc(f.id)}')">Visa filer</button>
         <button class="icon-btn" title="Ta bort länken (mappen raderas ej)" onclick="delItem('filer',${i},'mapp_lanken')">🗑</button></span></div>
@@ -854,6 +860,20 @@ async function linkCurrentFolder(){
   markP(p);
   autosave(); closeBrowse(); openDetail(currentDetail); renderStats(); render();
   toast("📁 Mappen \"" + namm + "\" länkad – filerna listar upp automatiskt och nya filer syns direkt.");
+}
+async function linkExternalFolder(){
+  if(!canFS){ toast("⚠ Din webbläsare stödjer inte mappval – använd Chrome/Edge."); return; }
+  const p = getDetail(); if(!p) return;
+  try{
+    const dir = await window.showDirectoryPicker({mode:"readwrite"});
+    const arr = p.filer || (p.filer=[]);
+    arr.push({id:uid(), namn:dir.name, datum:new Date().toISOString(), externMapp:true});
+    const ny = arr[arr.length-1];
+    projMappHandles[ny.id] = dir;
+    markP(p);
+    autosave(); openDetail(currentDetail); renderStats(); render();
+    toast("🌐 Projektmappen \"" + dir.name + "\" länkad till projektet – filerna hämtas live från mappen.");
+  }catch(e){ if(e && e.name !== "AbortError"){ toast("⚠ Kunde inte länka mappen: " + e.message); } }
 }
 async function linkSelectedFiles(){
   if(!browseSel.size){ toast("⚠ Kryssa i minst en fil i listan."); return; }
@@ -1005,6 +1025,7 @@ async function saveM2(){
   toast("✅ Sparat.");
 }
 let folderItems = {};
+let projMappHandles = {};   /* externa projektmappar: f.id -> handle (inte bestandiga mellan sessioner) */
 async function resolveDir(path){
   let dh = sharedDir;
   for(const part of String(path||"").split("/").filter(Boolean)){ dh = await dh.getDirectoryHandle(part); }
@@ -1030,18 +1051,29 @@ async function openAttachedPath(path, namn){
 }
 async function toggleFolderFiles(fid){
   const p = getDetail(); if(!p) return;
-  const f = (p.filer||[]).find(x=>x.id===fid); if(!f || !f.folderLink) return;
+  const f = (p.filer||[]).find(x=>x.id===fid); if(!f || (!f.folderLink && !f.externMapp)) return;
   const box = $("fold-"+fid); if(!box) return;
   if(box.dataset.open === "1"){ box.style.display = "none"; box.dataset.open = ""; return; }
-  if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) först."); return; }
+  if(!f.externMapp && !sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) först."); return; }
   try{
-    const dh = await resolveDir(f.mapp);
-    const bas = f.mapp? f.mapp+"/" : "";
+    let dh;
+    if(f.externMapp){
+      if(!projMappHandles[f.id]){
+        const dir = await window.showDirectoryPicker({mode:"readwrite"});
+        projMappHandles[f.id] = dir;
+        toast("🔌 Projektmappen återansluten: " + dir.name);
+      }
+      dh = projMappHandles[f.id];
+    } else {
+      dh = await resolveDir(f.mapp);
+    }
+    const bas = (f.externMapp || !f.mapp)? "" : (f.mapp + "/");
     const it = [];
     for await (const e of dh.values()){
       if(e.kind === "file" && !/^projektdata.*\.json$/i.test(e.name)) it.push({path: bas + e.name, namn: e.name});
     }
     it.sort((a,b)=>a.namn.localeCompare(b.namn,"sv"));
+    it.forEach(x=>{ if(f.externMapp) x.ext = fid; });
     folderItems[fid] = it;
     box.innerHTML = it.length? it.map((x,ix)=>`<div class="file-row" style="margin:4px 0">📄 ${esc(x.namn)} <button class="mail-btn" style="border:none;cursor:pointer;float:right" onclick="openFolderItem('${esc(fid)}',${ix})">Hämta</button></div>`).join("")
       : '<div style="color:var(--muted);font-size:.85rem;margin:4px 0">Inga filer i mappen ännu.</div>';
@@ -1049,10 +1081,27 @@ async function toggleFolderFiles(fid){
     box.style.display = "block"; box.dataset.open = "1";
   }catch(e){ toast("⚠ Mappen kunde inte läsas – den kanske inte synkats till din dator än."); }
 }
-function openFolderItem(fid, ix){
+async function downloadFromDir(dh, namn, visaNamn){
+  const fh = await dh.getFileHandle(namn);
+  const file = await fh.getFile();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = visaNamn || namn;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+}
+async function openFolderItem(fid, ix){
   const it = folderItems[fid];
   if(!it || !it[ix]) return;
-  openAttachedPath(it[ix].path, it[ix].namn);
+  const x = it[ix];
+  if(x.ext){
+    try{
+      const dh = projMappHandles[x.ext];
+      if(!dh){ toast("⚠ Projektmappen måste återanslutas – tryck \"Visa filer\" igen."); return; }
+      await downloadFromDir(dh, x.namn, x.namn);
+      toast("📄 Hämtar \"" + x.namn + "\".");
+    }catch(e){ toast("⚠ Filen kunde inte hämtas från projektmappen."); }
+  } else openAttachedPath(x.path, x.namn);
 }
 async function openAttached(i){
   const p = getDetail(); if(!p) return;
