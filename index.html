@@ -775,7 +775,7 @@ function delItem(key, i, what){
   autosave(); openDetail(currentDetail); renderStats(); render();
   toast("🗑 Borttagen.");
 }
-$("m2bg").addEventListener("click", e=>{ if(e.target===e.currentTarget) closeM2(); });
+
 
 /* ---------- Projektformulär ---------- */
 function openForm(id, fromDetail){
@@ -832,9 +832,19 @@ function duplicate(id){
   autosave(); render(); renderStats();
   toast("⧉ Projektet duplicerat.");
 }
-$("modalBg").addEventListener("click", e=>{ if(e.target===e.currentTarget) closeForm(); });
+
+function formDirty(){
+  if(!("modalBg" in window)) return true;
+  return f_namn.value.trim() !== "" || f_nr.value.trim() !== "" || f_beskrivning.value.trim() !== "" || f_budget.value !== "";
+}
 document.addEventListener("keydown", e=>{
-  if(e.key==="Escape"){ closeForm(); closeM2(); }
+  if(e.key==="Escape"){
+    if($("modalBg").classList.contains("open")){
+      if(!formDirty() || confirm("St\u00e4nga utan att spara? Osparade uppgifter g\u00e5r f\u00f6rlorade.")) closeForm();
+    } else if($("m2bg").classList.contains("open")){
+      closeM2();
+    }
+  }
   if((e.ctrlKey||e.metaKey) && e.key==="s"){ e.preventDefault(); saveAll(); }
 });
 
