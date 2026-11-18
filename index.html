@@ -97,6 +97,9 @@ button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
 .banner b{display:block;margin-bottom:2px}
 .banner ul{margin:6px 0 0 18px;font-size:.85rem}
 .file-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap;font-size:.9rem}
+.browse-item{display:block;padding:8px 10px;border-radius:8px;cursor:pointer;user-select:none;font-size:.92rem}
+.browse-item:hover{background:#f1f5f9}
+.browse-item input{margin-right:8px;accent-color:var(--primary)}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;z-index:99;font-size:.9rem;max-width:340px}
 .toast.show{opacity:1;transform:none}
 footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted);font-size:.75rem}
@@ -243,6 +246,24 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
   </div>
 </div>
 
+<div class="modal-bg" id="browseBg">
+  <div class="modal" style="width:min(580px,100%)">
+    <header>
+      <h2>📂 Länka fil i gemensam mapp</h2>
+      <button class="icon-btn" onclick="closeBrowse()">✕</button>
+    </header>
+    <div class="body">
+      <div id="browsePath" style="font-size:.8rem;color:var(--muted);margin-bottom:8px"></div>
+      <div id="browseSelected" style="font-size:.8rem;color:var(--primary);margin-bottom:6px;font-weight:600"></div>
+      <div id="browseList" style="max-height:380px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px"></div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:8px">Klicka på mappar för att bläddra. Kryssa i filer och tryck "Länka markerade" – länkarna pekar på filernas plats, så uppdateringar följer med automatiskt.</div>
+    </div>
+    <footer>
+      <button class="secondary" onclick="closeBrowse()">Avbryt</button>
+      <button onclick="linkSelectedFiles()">Länka markerade</button>
+    </footer>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -741,14 +762,78 @@ async function listFolderFiles(dir, prefix, ut, djup){
     }
   }catch(e){}
 }
+let browseDir = null, browseStack = [], browseSel = new Map(), browseDirs = [], browseFiles = [];
+function closeBrowse(){ $("browseBg").classList.remove("open"); }
 async function linkInFolderForm(){
   if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) först."); return; }
-  const ut = [];
-  await listFolderFiles(sharedDir, "", ut, 0);
-  if(!ut.length){ toast("Inga filer hittades i mappen – lägg filen i den gemensamma SharePoint-mappen först."); return; }
-  const opts = ut.map(o=>`<option value="${esc(o.path)}">${esc(o.namn)} ${o.path.includes("/")?"("+esc(o.path.split("/").slice(0,-1).join("/"))+")":""}</option>`).join("");
-  m2({title:"Länka fil i gemensam mapp", key:"filer", folderPick:true, ut,
-      fields:[["valj","Välj fil(er) i den gemensamma mappen – länken följer alltid filens senaste version (uppdateras automatiskt)","" ,"filelist",opts]]});
+  browseDir = sharedDir; browseStack = []; browseSel = new Map();
+  $("browseBg").classList.add("open");
+  await browseRender();
+}
+function browseUp(){
+  if(!browseStack.length) return;
+  browseStack.pop();
+  browseWalk().then(()=>browseRender());
+}
+function browseInto(i){
+  const namn = browseDirs[i];
+  browseDir.getDirectoryHandle(namn).then(h=>{
+    browseDir = h; browseStack.push(namn);
+    browseRender();
+  }).catch(()=>toast("⚠ Kunde inte öppna mappen."));
+  return false;
+}
+function browseToggle(cb, i){
+  const f = browseFiles[i];
+  if(cb.checked) browseSel.set(f.path, f.namn);
+  else browseSel.delete(f.path);
+  $("browseSelected").textContent = browseSel.size? ("Markerade: " + browseSel.size + " st") : "";
+}
+async function browseWalk(){
+  browseDir = sharedDir;
+  for(const namn of browseStack){ browseDir = await browseDir.getDirectoryHandle(namn); }
+}
+async function browseRender(){
+  const prefix = browseStack.join("/");
+  $("browsePath").textContent = "Sökväg: /" + (prefix || "(mappens rot)");
+  browseDirs = []; browseFiles = [];
+  try{
+    for await (const entry of browseDir.values()){
+      if(entry.kind === "directory") browseDirs.push(entry.name);
+      else{
+        if(/^projektdata.*\.json$/i.test(entry.name)) continue;
+        browseFiles.push({namn: entry.name, path: (prefix? prefix + "/" : "") + entry.name});
+      }
+    }
+  }catch(e){}
+  browseDirs.sort((a,b)=>a.localeCompare(b,"sv"));
+  browseFiles.sort((a,b)=>a.namn.localeCompare(b.namn,"sv"));
+  let html = "";
+  if(browseStack.length) html += `<div class="browse-item" onclick="browseUp()">📁 <b>.. upp ett steg</b></div>`;
+  if(!browseDirs.length && !browseFiles.length) html += `<div class="browse-item" style="color:var(--muted)">Tom mapp</div>`;
+  browseDirs.forEach((d,i)=>{
+    html += `<div class="browse-item" onclick="browseInto(${i})">📁 ${esc(d)}</div>`;
+  });
+  browseFiles.forEach((f,i)=>{
+    const checked = browseSel.has(f.path)? " checked":"";
+    html += `<label class="browse-item"><input type="checkbox"${checked} onchange="browseToggle(this,${i})">📄 ${esc(f.namn)}</label>`;
+  });
+  $("browseList").innerHTML = html;
+  $("browseSelected").textContent = browseSel.size? ("Markerade: " + browseSel.size + " st") : "";
+}
+async function linkSelectedFiles(){
+  if(!browseSel.size){ toast("⚠ Kryssa i minst en fil i listan."); return; }
+  const p = getDetail(); if(!p){ closeBrowse(); return; }
+  const arr = p.filer || (p.filer=[]);
+  let n = 0;
+  browseSel.forEach((namn, path)=>{
+    if(arr.some(f=>f.mapp===path)) return;
+    arr.push({id:uid(), namn:namn, mapp:path, datum:new Date().toISOString(), lankFil:true});
+    n++;
+  });
+  markP(p);
+  autosave(); closeBrowse(); openDetail(currentDetail); renderStats(); render();
+  toast("📂 " + n + " fil(er) länkade till projektet.");
 }
 function linkForm(i){
   const p = getDetail();
