@@ -111,8 +111,10 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <div class="sub">Reningsverk · Vattenverk · Ledningsnät · Admin &nbsp;|&nbsp; Offline &amp; SharePoint-färdig</div>
   </div>
   <div class="actions">
-    <span class="saveinfo" id="saveInfo">Senast sparat: –</span>
-    <button onclick="saveAll()" title="Spara nu (Ctrl+S)">💾 Spara</button>
+      <span class="saveinfo" id="saveInfo">Senast sparat: –</span>
+      <button id="sharedBtn" title="Koppla appen mot den gemensamma datafilen i SharePoint-mappen" style="display:none" onclick="connectFile()">📁 Anslut gemensam datafil</button>
+      <span class="saveinfo" id="sharedStatus" style="display:none"></span>
+      <button onclick="saveAll()" title="Spara nu (Ctrl+S)">💾 Spara</button>
     <button class="ghost" onclick="exportJSON()">⬇ JSON</button>
     <button class="ghost" onclick="document.getElementById('importFile').click()">⬆ Importera</button>
     <button class="ghost" onclick="exportCSV()">📄 CSV</button>
@@ -259,13 +261,16 @@ function load(){
 function persist(){
   data.updated = new Date().toISOString();
   try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
-  catch(e){ toast("⚠ Lagringen är full – stora bifogade filer kan orsaka detta. Ta bortfiler/exportera."); }
+  catch(e){ toast("⚠ Lagringen är full – stora bifogade filer kan orsaka detta. Exportera data och ta bort bifogade filer."); }
+  scheduleShared();
   updateSaveInfo();
 }
 function saveAll(){
   data.saved = new Date().toISOString();
+  for(const pr of data.projects){ if(!pr.andrad) pr.andrad = data.saved; }
   persist();
-  toast("💾 Sparat klockan " + new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"}) + ".");
+  writeSharedNow();
+  toast("💾 Sparat" + (sharedHandle? " till " + sharedName : "") + " klockan " + new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"}) + ".");
 }
 function autosave(){ persist(); }
 function updateSaveInfo(){
@@ -283,6 +288,78 @@ const fmtDate = s => s? new Date(s+"T00:00").toLocaleDateString("sv-SE") : "–"
 const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uid = () => "p"+Date.now()+Math.random().toString(36).slice(2,6);
 function catOf(p){ return KATEGORIER[p.kategori] || p.kategori; }
+
+/* ---------- Gemensam datafil (SharePoint) ---------- */
+const canFS = typeof window !== "undefined" && typeof window.showOpenFilePicker === "function";
+let sharedHandle = null, sharedName = null, sharedTimer = null, sharedErr = 0;
+function markP(p){ if(p) p.andrad = new Date().toISOString(); }
+function normalizeP(p){
+  p.kontakter=p.kontakter||[]; p.etapper=p.etapper||[];
+  p.anteckningar=p.anteckningar||[]; p.filer=p.filer||[];
+}
+function sharedUI(){
+  const btn = $("sharedBtn"), st = $("sharedStatus");
+  if(!canFS){ btn.style.display="none"; st.style.display="none"; return; }
+  btn.style.display = sharedHandle? "none":"";
+  st.style.display = sharedHandle? "":"none";
+  if(sharedHandle) st.textContent = "🔗 Gemensam fil: " + sharedName;
+}
+async function connectFile(){
+  if(!canFS){ toast("⚠ Din webbläsare kan inte spara direkt till filen. Använd Chrome/Edge, eller Exportera/Importera."); return; }
+  try{
+    const [h] = await window.showOpenFilePicker({
+      types:[{description:"Projektdata", accept:{"application/json":[".json"]}}],
+      multiple:false, excludeAcceptAllOption:true
+    });
+    sharedHandle = h; sharedName = h.name; sharedErr = 0;
+    if(!/\.json$/i.test(h.name)){ toast("⚠ Välj en JSON-datafil (t.ex. projektdata.json)."); sharedHandle=null; sharedUI(); return; }
+    const file = await h.getFile();
+    let src = null;
+    if(file.size){ try{ src = JSON.parse(await file.text()); }catch(e){} }
+    if(src && Array.isArray(src.projects)){
+      const n = mergeIntoLocal(src);
+      toast("🔗 Ansluten till " + h.name + ": " + n.added + " nya, " + n.updated + " uppdaterade från filen.");
+    } else {
+      toast("🔗 Ansluten till " + h.name + " (tom fil – aktuell data skrivs till den).");
+    }
+    await writeSharedNow();
+    persist(); render(); renderStats();
+    if(currentDetail) openDetail(currentDetail);
+  }catch(e){ if(e && e.name !== "AbortError"){ toast("⚠ Kunde inte ansluta: " + e.message); } }
+  sharedUI();
+}
+function mergeIntoLocal(src){
+  const byId = new Map(data.projects.map(p=>[p.id,p]));
+  let added=0, updated=0, localNew=0;
+  const srcIds = new Set(src.projects.map(p=>p.id));
+  src.projects.forEach(sp=>{
+    if(!sp.id || !sp.namn) return;
+    normalizeP(sp);
+    const lp = byId.get(sp.id);
+    if(!lp){ data.projects.push(sp); added++; }
+    else if(String(sp.andrad||"") > String(lp.andrad||"")){
+      data.projects[data.projects.indexOf(lp)] = sp; updated++;
+    } else localNew++;
+  });
+  return {added, updated};
+}
+async function writeSharedNow(){
+  if(!sharedHandle) return;
+  try{
+    const w = await sharedHandle.createWritable();
+    await w.write(JSON.stringify(data));
+    await w.close();
+    sharedErr = 0;
+  }catch(e){
+    sharedErr++;
+    if(sharedErr===1) toast("⚠ Kunde inte spara till " + sharedName + ". Kontrollera att filen inte är låst/öppnad av någon annan.");
+  }
+}
+function scheduleShared(){
+  if(!sharedHandle) return;
+  clearTimeout(sharedTimer);
+  sharedTimer = setTimeout(writeSharedNow, 800);
+}
 
 /* ---------- Etappvarningar ---------- */
 function daysLeft(datum){
@@ -434,6 +511,7 @@ function toggleEtapp(i, klar){
   const p = getDetail();
   p.etapper[i].klar = klar;
   p.etapper[i].klarDatum = klar? new Date().toISOString() : null;
+  markP(p);
   autosave(); openDetail(currentDetail); renderStats(); render();
   if(klar) toast("✅ Etapp markerad som färdig – varningen försvinner.");
 }
@@ -531,6 +609,7 @@ function closeM2(){ $("m2bg").classList.remove("open"); m2cfg = null; }
 function saveM2(){
   const cfg = m2cfg, p = getDetail();
   if(!cfg || !p) return;
+  markP(p);
   const arr = p[cfg.key] || (p[cfg.key]=[]);
   if(cfg.filePick){
     const inp = $("m2_fil"), f = inp.files[0];
@@ -564,6 +643,7 @@ function saveM2(){
 function delItem(key, i, what){
   if(!confirm("Ta bort "+what+"?")) return;
   const p = getDetail();
+  markP(p);
   p[key].splice(i,1);
   autosave(); openDetail(currentDetail); renderStats(); render();
   toast("🗑 Borttagen.");
@@ -599,6 +679,7 @@ function saveProject(){
     kontakter: old.kontakter||[], etapper: old.etapper||[],
     anteckningar: old.anteckningar||[], filer: old.filer||[]
   };
+  markP(obj);
   if(id){ data.projects[data.projects.findIndex(x=>x.id===id)] = obj; }
   else data.projects.push(obj);
   autosave(); closeForm();
@@ -687,7 +768,8 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   $("p-"+btn.dataset.panel).classList.add("active");
 });
-load(); updateSaveInfo(); renderStats(); render();
+load(); updateSaveInfo(); sharedUI(); renderStats(); render();
+if(canFS && !data.hintShared){ setTimeout(()=>{ toast("💡 Tips: klicka på 📁 Anslut gemensam datafil (överst) och välj projektdata.json i SharePoint-mappen – då sparar appen direkt dit och alla ser ändringarna. En gång per öppning räcker."); data.hintShared = true; persist(); }, 1500); }
 </script>
 </body>
 </html>
