@@ -34,7 +34,8 @@ Webbläsarens lokala lagring är per dator. För att **alla ska se och fortsätt
 1. Skapa en gång en tom fil i SharePoint-mappen som heter **`projektdata.json`** (högerklicka → Nytt → Textdokument, döp om till projektdata.json med filtillägget .json).
 2. Öppna `index.html`, klicka på **📁 Anslut gemensam datafil** och välj `projektdata.json` i mappen.
 3. Nu sparar appen **automatiskt direkt till filen** vid varje ändring, och vid anslutning hämtas andras ändringar in. Lokala nya projekt förs automatiskt in i filen.
-4. En gång per öppning: klicka på knappen och välj filen igen (webbläsarkraven; sparande sker sedan automatiskt).
+4. Appen **kommer ihåg filen** mellan öppningar. Vid nästa start sker **automatisk återanslutning** om webbläsaren tillåter (Chrome kan komma ihåg filåtkomsten – i så fall synkar allt utan klick). Annars visar knappen "📁 Fortsätt med projektdata.json" – ett enda klick, ingen filbläddring.
+5. Medan appen är öppen **hämtas kollegors ändringar automatiskt var 20:e sekund** (och när fönstret blir aktivt igen) och era ändringar skrivs till filen direkt.
 
 **OBS:**
 - SharePoint synkar filen till andras datorer via OneDrive-synk (kan ta någon minut).

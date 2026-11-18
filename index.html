@@ -307,11 +307,24 @@ function sharedUI(){
 async function connectFile(){
   if(!canFS){ toast("⚠ Din webbläsare kan inte spara direkt till filen. Använd Chrome/Edge, eller Exportera/Importera."); return; }
   try{
-    const [h] = await window.showOpenFilePicker({
-      types:[{description:"Projektdata", accept:{"application/json":[".json"]}}],
-      multiple:false, excludeAcceptAllOption:true
-    });
+    let h = null;
+    const saved = await idbGet("sharedHandle");
+    if(saved){
+      let perm = "prompt";
+      try{ perm = await saved.queryPermission({mode:"readwrite"}); }catch(e){}
+      if(perm !== "granted"){
+        try{ perm = await saved.requestPermission({mode:"readwrite"}); }catch(e){ perm = "prompt"; }
+      }
+      if(perm === "granted") h = saved;
+    }
+    if(!h){
+      [h] = await window.showOpenFilePicker({
+        types:[{description:"Projektdata", accept:{"application/json":[".json"]}}],
+        multiple:false, excludeAcceptAllOption:true
+      });
+    }
     sharedHandle = h; sharedName = h.name; sharedErr = 0;
+    idbSet("sharedHandle", h);
     if(!/\.json$/i.test(h.name)){ toast("⚠ Välj en JSON-datafil (t.ex. projektdata.json)."); sharedHandle=null; sharedUI(); return; }
     const file = await h.getFile();
     let src = null;
@@ -339,9 +352,9 @@ function mergeIntoLocal(src){
     if(!lp){ data.projects.push(sp); added++; }
     else if(String(sp.andrad||"") > String(lp.andrad||"")){
       data.projects[data.projects.indexOf(lp)] = sp; updated++;
-    } else localNew++;
+    } else if(lp.andrad){ localNew++; }
   });
-  return {added, updated};
+  return {added, updated, localNew};
 }
 async function writeSharedNow(){
   if(!sharedHandle) return;
@@ -360,6 +373,67 @@ function scheduleShared(){
   clearTimeout(sharedTimer);
   sharedTimer = setTimeout(writeSharedNow, 800);
 }
+/* Automatisk synkning: hämta andres ändringar från filen */
+async function refreshFromShared(quiet){
+  if(!sharedHandle) return;
+  try{
+    const file = await sharedHandle.getFile();
+    if(!file.size) return;
+    const src = JSON.parse(await file.text());
+    if(!src || !Array.isArray(src.projects)) return;
+    if(src.updated === data.updated) return;
+    const n = mergeIntoLocal(src);
+    if(n.added || n.updated || n.localNew){
+      persist();
+      render(); renderStats();
+      if(currentDetail) openDetail(currentDetail);
+      if(n.added || n.updated){ toast("🔄 Hämtat från gemensamma filen: " + n.added + " nya, " + n.updated + " uppdaterade projekt."); }
+    }
+  }catch(e){}
+}
+/* IndexedDB – för att komma ihåg den anslutna filen mellan öppningar */
+function idbOpen(){
+  return new Promise(res=>{
+    let r;
+    try{ r = indexedDB.open("va_projreg", 1); }catch(e){ res(null); return; }
+    r.onupgradeneeded = ()=>{ try{ r.result.createObjectStore("kv"); }catch(e){} };
+    r.onerror = ()=>res(null);
+    r.onsuccess = ()=>res(r.result);
+  });
+}
+async function idbSet(k,v){
+  const db = await idbOpen(); if(!db) return;
+  try{ db.transaction("kv","readwrite").objectStore("kv").put(v,k); }catch(e){}
+}
+async function idbGet(k){
+  const db = await idbOpen(); if(!db) return null;
+  return new Promise(res=>{
+    let q;
+    try{ q = db.transaction("kv","readonly").objectStore("kv").get(k); }
+    catch(e){ res(null); return; }
+    q.onsuccess = ()=>res(q.result || null);
+    q.onerror = ()=>res(null);
+  });
+}
+async function autoConnect(){
+  if(!canFS) return;
+  const h = await idbGet("sharedHandle");
+  if(!h || !h.name){ $("sharedBtn").style.display = ""; return; }
+  let perm = "prompt";
+  try{ perm = await h.queryPermission({mode:"readwrite"}); }catch(e){}
+  if(perm === "granted"){
+    sharedHandle = h; sharedName = h.name; sharedErr = 0;
+    await refreshFromShared(true);
+    sharedUI();
+    toast("🔗 Automatiskt ansluten till " + h.name + " – synkning sker löpande.");
+  } else {
+    const btn = $("sharedBtn");
+    btn.style.display = "";
+    btn.textContent = "📁 Fortsätt med " + h.name;
+  }
+}
+setInterval(()=>refreshFromShared(false), 20000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refreshFromShared(false); });
 
 /* ---------- Etappvarningar ---------- */
 function daysLeft(datum){
@@ -769,6 +843,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 load(); updateSaveInfo(); sharedUI(); renderStats(); render();
+autoConnect();
 if(canFS && !data.hintShared){ setTimeout(()=>{ toast("💡 Tips: klicka på 📁 Anslut gemensam datafil (överst) och välj projektdata.json i SharePoint-mappen – då sparar appen direkt dit och alla ser ändringarna. En gång per öppning räcker."); data.hintShared = true; persist(); }, 1500); }
 </script>
 </body>
