@@ -114,6 +114,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
       <span class="saveinfo" id="saveInfo">Senast sparat: –</span>
       <button id="sharedBtn" title="Koppla appen mot den gemensamma datafilen i SharePoint-mappen" style="display:none" onclick="connectFile()">📁 Anslut gemensam datafil</button>
       <span class="saveinfo" id="sharedStatus" style="display:none"></span>
+      <button id="syncBtn" style="display:none" title="Hämta andras ändringar och spara till filen nu" onclick="syncNow()">🔄 Synka nu</button>
       <button onclick="saveAll()" title="Spara nu (Ctrl+S)">💾 Spara</button>
     <button class="ghost" onclick="exportJSON()">⬇ JSON</button>
     <button class="ghost" onclick="document.getElementById('importFile').click()">⬆ Importera</button>
@@ -291,7 +292,7 @@ function catOf(p){ return KATEGORIER[p.kategori] || p.kategori; }
 
 /* ---------- Gemensam datafil (SharePoint) ---------- */
 const canFS = typeof window !== "undefined" && typeof window.showOpenFilePicker === "function";
-let sharedHandle = null, sharedName = null, sharedTimer = null, sharedErr = 0;
+let sharedHandle = null, sharedName = null, sharedTimer = null, sharedErr = 0, sharedFileCount = null;
 function markP(p){ if(p) p.andrad = new Date().toISOString(); }
 function normalizeP(p){
   p.kontakter=p.kontakter||[]; p.etapper=p.etapper||[];
@@ -301,8 +302,9 @@ function sharedUI(){
   const btn = $("sharedBtn"), st = $("sharedStatus");
   if(!canFS){ btn.style.display="none"; st.style.display="none"; return; }
   btn.style.display = sharedHandle? "none":"";
-  st.style.display = sharedHandle? "":"none";
-  if(sharedHandle) st.textContent = "🔗 Gemensam fil: " + sharedName;
+  const sb = $("syncBtn");
+  if(sb) sb.style.display = sharedHandle? "":"none";
+  updateSharedStatus();
 }
 async function connectFile(){
   if(!canFS){ toast("⚠ Din webbläsare kan inte spara direkt till filen. Använd Chrome/Edge, eller Exportera/Importera."); return; }
@@ -359,14 +361,47 @@ function mergeIntoLocal(src){
 async function writeSharedNow(){
   if(!sharedHandle) return;
   try{
+    /* Slå ihop filens senaste innehåll innan skrivning – vi skriver alltid unionen */
+    let fileCount = null;
+    try{
+      const file = await sharedHandle.getFile();
+      if(file.size){
+        const src = JSON.parse(await file.text());
+        if(src && Array.isArray(src.projects)){
+          fileCount = src.projects.length;
+          if(src.updated !== data.updated){
+            const n = mergeIntoLocal(src);
+            if(n.added || n.updated){
+              render(); renderStats();
+              if(currentDetail) openDetail(currentDetail);
+              toast("🔄 " + n.added + " nya, " + n.updated + " uppdaterade projekt hämtade från filen.");
+            }
+          }
+        }
+      }
+    }catch(e){ /* oläslbar/tom fil – skriv vår data */ }
+    sharedFileCount = fileCount;
     const w = await sharedHandle.createWritable();
     await w.write(JSON.stringify(data));
     await w.close();
     sharedErr = 0;
+    updateSharedStatus();
   }catch(e){
     sharedErr++;
     if(sharedErr===1) toast("⚠ Kunde inte spara till " + sharedName + ". Kontrollera att filen inte är låst/öppnad av någon annan.");
   }
+}
+function updateSharedStatus(){
+  const st = $("sharedStatus");
+  if(!sharedHandle){ st.style.display="none"; return; }
+  st.style.display = "";
+  st.textContent = "🔗 " + sharedName + (sharedFileCount!=null? " · " + sharedFileCount + " projekt i filen":"") + " · synk " + new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"});
+}
+async function syncNow(){
+  if(!sharedHandle){ toast("⚠ Anslut den gemensamma datafilen först (📁 Anslut gemensam datafil)."); return; }
+  await refreshFromShared(false);
+  await writeSharedNow();
+  toast("🔄 Synkat med filen – statusraden uppe till höger visar hur många projekt filen innehåller.");
 }
 function scheduleShared(){
   if(!sharedHandle) return;
@@ -382,9 +417,11 @@ async function refreshFromShared(quiet){
     const src = JSON.parse(await file.text());
     if(!src || !Array.isArray(src.projects)) return;
     if(src.updated === data.updated) return;
+    sharedFileCount = src.projects.length;
     const n = mergeIntoLocal(src);
     if(n.added || n.updated || n.localNew){
       persist();
+      updateSharedStatus();
       render(); renderStats();
       if(currentDetail) openDetail(currentDetail);
       if(n.added || n.updated){ toast("🔄 Hämtat från gemensamma filen: " + n.added + " nya, " + n.updated + " uppdaterade projekt."); }
