@@ -104,6 +104,10 @@ button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
 .toggle-chip:hover{border-color:var(--primary);color:var(--primary)}
 .toggle-chip input{display:none}
 .toggle-chip.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 3px 10px rgba(15,110,95,.25)}
+.drop-zone{border:2px dashed var(--primary);border-radius:16px;padding:26px 18px;text-align:center;cursor:pointer;transition:all .18s ease;background:#f0faf7;margin-bottom:12px}
+.drop-zone.hover{background:#dcf3eb;transform:scale(1.01);border-style:solid}
+.drop-zone .dz-big{font-size:1.05rem;font-weight:700;color:var(--primary)}
+.drop-zone .dz-small{font-size:.8rem;color:var(--muted);margin-top:6px}
 .status-menu{position:fixed;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.18);display:none;z-index:60;min-width:170px;overflow:hidden;padding:4px}
 .status-menu button{display:block;width:100%;text-align:left;background:none;color:var(--text);border:none;border-radius:8px;padding:8px 12px;font-weight:500;box-shadow:none}
 .status-menu button:hover{background:#f1f5f9;transform:none}
@@ -287,6 +291,10 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     </header>
     <div class="body">
       <p id="connectText" style="margin-bottom:10px"></p>
+      <div id="dropZone" class="drop-zone">
+        <div class="dz-big">📂 Dra in mappen här – direkt från Utforskaren eller Skrivbordet</div>
+        <div class="dz-small">Släpp projektmappen (t.ex. 06. VA-PROJEKT) här – du slipper bläddra och behöver bara godkänna en gång. Det går också bra att klicka här för att välja mappen på vanligt sätt.</div>
+      </div>
       <div id="connectPathBox" style="margin-bottom:10px"></div>
       <p style="font-size:.82rem;color:var(--muted)">Klicka på <b>📁 Anslut nu</b> – webbläsaren öppnar en behörighetsdialog där du väljer mappen och trycker <b>Välj mapp</b>. Godkännandet krävs en gång per appstart (webbläsarens säkerhetsregel).</p>
     </div>
@@ -393,16 +401,7 @@ async function connectFolder(){
     if(!namn) namn = getUser();
     if(!namn){ toast("\u26a0 Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return; }
     const dir = await window.showDirectoryPicker({mode:"readwrite", startIn:"documents"});
-    sharedDir = dir; sharedDirName = dir.name; sharedErr = 0; lastWritten = null;
-    ownEntryName = fileNameFor(namn);
-    try{ localStorage.setItem("va_reg_dir", dir.name); localStorage.setItem("va_reg_own", ownEntryName); }catch(e){}
-    try{ localStorage.setItem("va_reg_user", namn); }catch(e){}
-    await idbSet("sharedDirHandle", dir);
-    await idbSet("ownEntryName", ownEntryName);
-    await refreshFromShared(true);
-    await writeSharedNow(true);
-    persist(); render(); renderStats();
-    if(currentDetail) openDetail(currentDetail);
+    if(!(await finishConnect(dir))) return;
     toast("\ud83d\udd17 Ansluten till mappen \"" + dir.name + "\" \u2013 appen skriver bara till " + ownEntryName + " och l\u00e4ser in alla \u00f6vrigas datafiler i mappen. Inga fler konfliktkopior!");
   }catch(e){ if(e && e.name !== "AbortError"){ toast("\u26a0 Kunde inte ansluta: " + e.message); } }
   sharedUI();
@@ -526,6 +525,45 @@ async function idbGet(k){
   });
 }
 function hideConnectPopup(){ $("connectBg").classList.remove("open"); }
+async function finishConnect(dir){
+  let namn = "";
+  try{ namn = localStorage.getItem("va_reg_user") || ""; }catch(e){}
+  if(!namn) namn = getUser();
+  if(!namn){ toast("\u26a0\ufe0f Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return false; }
+  sharedDir = dir; sharedDirName = dir.name || (sharedDirName||"mapp"); sharedErr = 0; lastWritten = null;
+  ownEntryName = fileNameFor(namn);
+  try{ localStorage.setItem("va_reg_dir", sharedDirName); localStorage.setItem("va_reg_own", ownEntryName); localStorage.setItem("va_reg_user", namn); }catch(e){}
+  await idbSet("sharedDirHandle", dir);
+  await idbSet("ownEntryName", ownEntryName);
+  hideConnectPopup();
+  await refreshFromShared(true);
+  await writeSharedNow(true);
+  persist(); render(); renderStats();
+  sharedUI();
+  if(currentDetail) openDetail(currentDetail);
+  toast("\ud83d\udd17 Ansluten till mappen \"" + sharedDirName + "\" – allt synkar automatiskt.");
+  return true;
+}
+async function csharpDrop(evt){
+  evt.preventDefault();
+  const dz = $("dropZone");
+  if(dz) dz.classList.remove("hover");
+  const items = evt.dataTransfer && evt.dataTransfer.items;
+  if(!items || !items[0]){ return; }
+  let h = null;
+  try{ h = await items[0].getAsFileSystemHandle(); }catch(e){}
+  if(!h || h.kind !== "directory"){
+    toast("\u26a0 Sl\u00e4pp en mapp (katalog), inte en fil.");
+    return;
+  }
+  let ok = true;
+  try{
+    const perm = await h.requestPermission({mode:"readwrite"});
+    if(perm !== "granted"){ toast("\u26a0 Skriv\u00e5tkomst nekades – f\u00f6rs\u00f6k igen och v\u00e4lj Till\u00e5t."); return; }
+  }catch(e){ ok = false; }
+  if(!ok){ toast("\u26a0 Beh\u00f6righetsdialogen misslyckades – anv\u00e4nd \ud83d\udcc1 Anslut nu ist\u00e4llet."); return; }
+  await finishConnect(h);
+}
 function rutMappinfo(mappNamn){
   let path = "";
   try{ path = localStorage.getItem("va_reg_path") || ""; }catch(e){}
@@ -1390,6 +1428,13 @@ try{
   if(d.includes("Avbrutet") && $("hideAvbrutna")){ $("hideAvbrutna").checked = true; $("chipAvbrutna").classList.add("on"); }
   if(d.length) render();
 }catch(e){}
+(function setupDrop(){
+  const dz = $("dropZone");
+  if(!dz) return;
+  ["dragenter","dragover"].forEach(evname=>dz.addEventListener(evname, e=>{ e.preventDefault(); e.stopPropagation(); dz.classList.add("hover"); }));
+  ["dragleave","drop"].forEach(evname=>dz.addEventListener(evname, e=>{ if(evname==="drop"){ csharpDrop(e); } else { dz.classList.remove("hover"); } }));
+  dz.addEventListener("click", ()=>connectFolder());
+})();
 autoConnect();
 if(canFS && !data.hintShared){ setTimeout(()=>{ toast("💡 Tips: klicka på 📁 Anslut gemensam mapp (överst) och välj er SharePoint-mapp – du får en egen datafil (projektdata-dittnamn.json) och appen läser automatiskt in kollegors filer. Konfliktkopior skapas inte."); data.hintShared = true; persist(); }, 1500); }
 </script>
