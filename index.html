@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister – VA-organisationen</title>
+<title>Projektregister v10</title>
 <style>
 :root{
   --bg:#f4f6f9; --card:#ffffff; --border:#e2e8f0; --text:#1e293b; --muted:#64748b;
@@ -203,7 +203,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 9 – synk-popup</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 10 – om denna text syns langst ner har du ratt fil</span><br>
   Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen – använd 💾 Spara för att spara direkt (Ctrl+S).
   För SharePoint-delning: exportera JSON-filen till den gemensamma mappen – övriga importerar den.
 </footer>
@@ -552,7 +552,11 @@ async function autoConnect(){
   } else {
     const btn = $("sharedBtn");
     btn.style.display = "";
-    btn.textContent = "\ud83d\udcc1 Forts\u00e4tt med gemensam mapp";
+    let sparad2 = "";
+    try{ sparad2 = localStorage.getItem("va_reg_dir") || ""; }catch(e){}
+    btn.textContent = sparad2? ("\ud83d\udcc1 Anslut: " + sparad2) : "\ud83d\udcc1 Anslut gemensam mapp";
+    $("connectText").innerHTML = "Webbl\u00e4saren beh\u00f6ver f\u00f6rnya \u00e5tkomsten till den gemensamma mappen" + (sparad2? " <b>" + esc(sparad2) + "</b>" : "") + " \u2013 klicka p\u00e5 Anslut nu och godk\u00e4nn.";
+    $("connectBg").classList.add("open");
   }
 }
 setInterval(()=>refreshFromShared(false), 20000);
@@ -1352,7 +1356,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v9 – om synk-popupen inte syns har du en aldre fil.');
+console.log('Projektregister v10 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
