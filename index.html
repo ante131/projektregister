@@ -203,7 +203,8 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen –/använd 💾 Spara för att spara direkt (Ctrl+S).
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 9 – synk-popup</span><br>
+  Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen – använd 💾 Spara för att spara direkt (Ctrl+S).
   För SharePoint-delning: exportera JSON-filen till den gemensamma mappen – övriga importerar den.
 </footer>
 
@@ -1350,7 +1351,8 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   $("p-"+btn.dataset.panel).classList.add("active");
 });
-load(); updateSaveInfo(); sharedUI(); renderStats(); render();
+try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
+console.log('Projektregister v9 – om synk-popupen inte syns har du en aldre fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
