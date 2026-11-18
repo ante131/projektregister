@@ -554,7 +554,7 @@ function renderFiler(p){
         ${f.url? `<a class="mail-btn" href="${esc(f.url)}" target="_blank">Öppna</a>`:
           `<a class="mail-btn" href="${f.data}" download="${esc(f.namn)}">Hämta</a>`}
         <button class="icon-btn" title="Ta bort" onclick="delItem('filer',${i},'filen')">🗑</button></span></div>`).join("")
-      : '<span style="color:var(--muted)">Länka till dokument i SharePoint-mappen eller bifoga små filer (max '+(MAX_FIL/1024)+' kB).</span>'}
+      : '<span style="color:var(--muted)">Länka till dokument i SharePoint-mappen eller bifoga filer (max '+(MAX_FIL/(1024*1024))+' MB).</span>'}
     </div></div>`;
 }
 function linkForm(i){
