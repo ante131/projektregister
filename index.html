@@ -112,7 +112,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
   </div>
   <div class="actions">
       <span class="saveinfo" id="saveInfo">Senast sparat: –</span>
-      <button id="sharedBtn" title="Koppla appen mot den gemensamma datafilen i SharePoint-mappen" style="display:none" onclick="connectFile()">📁 Anslut gemensam datafil</button>
+      <button id="sharedBtn" title="Koppla appen mot den gemensamma SharePoint-mappen – du får en egen datafil och läser in kollegors" style="display:none" onclick="connectFolder()">📁 Anslut gemensam mapp</button>
       <span class="saveinfo" id="sharedStatus" style="display:none"></span>
       <button id="syncBtn" style="display:none" title="Hämta andras ändringar och spara till filen nu" onclick="syncNow()">🔄 Synka nu</button>
       <button onclick="saveAll()" title="Spara nu (Ctrl+S)">💾 Spara</button>
@@ -293,59 +293,51 @@ const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;","
 const uid = () => "p"+Date.now()+Math.random().toString(36).slice(2,6);
 function catOf(p){ return KATEGORIER[p.kategori] || p.kategori; }
 
-/* ---------- Gemensam datafil (SharePoint) ---------- */
-const canFS = typeof window !== "undefined" && typeof window.showOpenFilePicker === "function";
-let sharedHandle = null, sharedName = null, sharedTimer = null, sharedErr = 0, sharedFileCount = null;
-let lastWritten = null;
-function dataUnchanged(){ return lastWritten !== null && JSON.stringify(data) === lastWritten; }
+/* ---------- Gemensam mapp i SharePoint: en datafil per anvandare ---------- */
+const canFS = typeof window !== "undefined" && typeof window.showDirectoryPicker === "function";
+let sharedDir = null, sharedDirName = null, ownEntryName = null, sharedTimer = null, sharedErr = 0, lastWritten = null;
+function ownKey(){ return JSON.stringify([data.projects, data.tabort||[], data.saved]); }
+function dataUnchanged(){ return lastWritten !== null && ownKey() === lastWritten; }
 function markP(p){ if(p) p.andrad = new Date().toISOString(); }
 function normalizeP(p){
   p.kontakter=p.kontakter||[]; p.etapper=p.etapper||[];
   p.anteckningar=p.anteckningar||[]; p.filer=p.filer||[];
 }
+function getUser(){
+  let n = null;
+  try{ n = localStorage.getItem("va_reg_user"); }catch(e){}
+  if(!n){
+    n = (prompt("Ditt namn (anv\u00e4nds f\u00f6r din egen datafil i den gemensamma mappen):","")||"").trim();
+    if(n){ try{ localStorage.setItem("va_reg_user", n); }catch(e){} }
+  }
+  return n;
+}
+function fileNameFor(namn){
+  return "projektdata-" + namn.toLowerCase().replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"") + ".json";
+}
 function sharedUI(){
-  const btn = $("sharedBtn"), st = $("sharedStatus");
-  if(!canFS){ btn.style.display="none"; st.style.display="none"; return; }
-  btn.style.display = sharedHandle? "none":"";
-  const sb = $("syncBtn");
-  if(sb) sb.style.display = sharedHandle? "":"none";
+  const btn = $("sharedBtn"), st = $("sharedStatus"), sb = $("syncBtn");
+  if(!canFS){ btn.style.display="none"; st.style.display="none"; if(sb) sb.style.display="none"; return; }
+  btn.style.display = sharedDir? "none":"";
+  if(sb) sb.style.display = sharedDir? "":"none";
   updateSharedStatus();
 }
-async function connectFile(){
-  if(!canFS){ toast("⚠ Din webbläsare kan inte spara direkt till filen. Använd Chrome/Edge, eller Exportera/Importera."); return; }
+async function connectFolder(){
+  if(!canFS){ toast("\u26a0 Din webbl\u00e4sare kan inte spara till mappen. Anv\u00e4nd Chrome/Edge, eller Exportera/Importera."); return; }
   try{
-    let h = null;
-    const saved = await idbGet("sharedHandle");
-    if(saved){
-      let perm = "prompt";
-      try{ perm = await saved.queryPermission({mode:"readwrite"}); }catch(e){}
-      if(perm !== "granted"){
-        try{ perm = await saved.requestPermission({mode:"readwrite"}); }catch(e){ perm = "prompt"; }
-      }
-      if(perm === "granted") h = saved;
-    }
-    if(!h){
-      [h] = await window.showOpenFilePicker({
-        types:[{description:"Projektdata", accept:{"application/json":[".json"]}}],
-        multiple:false, excludeAcceptAllOption:true
-      });
-    }
-    sharedHandle = h; sharedName = h.name; sharedErr = 0;
-    idbSet("sharedHandle", h);
-    if(!/\.json$/i.test(h.name)){ toast("⚠ Välj en JSON-datafil (t.ex. projektdata.json)."); sharedHandle=null; sharedUI(); return; }
-    const file = await h.getFile();
-    let src = null;
-    if(file.size){ try{ src = JSON.parse(await file.text()); }catch(e){} }
-    if(src && Array.isArray(src.projects)){
-      const n = mergeIntoLocal(src);
-      toast("🔗 Ansluten till " + h.name + ": " + n.added + " nya, " + n.updated + " uppdaterade från filen.");
-    } else {
-      toast("🔗 Ansluten till " + h.name + " (tom fil – aktuell data skrivs till den).");
-    }
-    await writeSharedNow();
+    const namn = getUser();
+    if(!namn){ toast("\u26a0 Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return; }
+    const dir = await window.showDirectoryPicker({mode:"readwrite"});
+    sharedDir = dir; sharedDirName = dir.name; sharedErr = 0; lastWritten = null;
+    ownEntryName = fileNameFor(namn);
+    await idbSet("sharedDirHandle", dir);
+    await idbSet("ownEntryName", ownEntryName);
+    await refreshFromShared(true);
+    await writeSharedNow(true);
     persist(); render(); renderStats();
     if(currentDetail) openDetail(currentDetail);
-  }catch(e){ if(e && e.name !== "AbortError"){ toast("⚠ Kunde inte ansluta: " + e.message); } }
+    toast("\ud83d\udd17 Ansluten till mappen \"" + dir.name + "\" \u2013 appen skriver bara till " + ownEntryName + " och l\u00e4ser in alla \u00f6vrigas datafiler i mappen. Inga fler konfliktkopior!");
+  }catch(e){ if(e && e.name !== "AbortError"){ toast("\u26a0 Kunde inte ansluta: " + e.message); } }
   sharedUI();
 }
 function tombMap(){
@@ -368,7 +360,6 @@ function mergeIntoLocal(src){
   });
   const byId = new Map(data.projects.map(p=>[p.id,p]));
   let added=0, updated=0, localNew=0;
-  const srcIds = new Set(src.projects.map(p=>p.id));
   src.projects.forEach(sp=>{
     if(!sp.id || !sp.namn) return;
     const ts = tmap.get(sp.id);
@@ -376,86 +367,74 @@ function mergeIntoLocal(src){
     normalizeP(sp);
     const lp = byId.get(sp.id);
     if(!lp){ data.projects.push(sp); added++; }
-    else if(String(sp.andrad||"") > String(lp.andrad||"")){
-      data.projects[data.projects.indexOf(lp)] = sp; updated++;
-    } else if(lp.andrad){ localNew++; }
+    else if(String(sp.andrad||"") > String(lp.andrad||"")){ data.projects[data.projects.indexOf(lp)] = sp; updated++; }
+    else if(lp.andrad){ localNew++; }
   });
   return {added, updated, localNew};
 }
-async function writeSharedNow(){
-  if(!sharedHandle) return;
+async function writeSharedNow(force){
+  if(!sharedDir || !ownEntryName) return;
   try{
-    if(dataUnchanged()) return;
-    /* Slå ihop filens senaste innehåll innan skrivning – vi skriver alltid unionen */
-    let fileCount = null;
-    try{
-      const file = await sharedHandle.getFile();
-      if(file.size){
-        const src = JSON.parse(await file.text());
-        if(src && Array.isArray(src.projects)){
-          fileCount = src.projects.length;
-          if(src.updated !== data.updated){
-            const n = mergeIntoLocal(src);
-            if(n.added || n.updated){
-              render(); renderStats();
-              if(currentDetail) openDetail(currentDetail);
-              toast("🔄 " + n.added + " nya, " + n.updated + " uppdaterade projekt hämtade från filen.");
-            }
-          }
-        }
-      }
-    }catch(e){ /* oläslbar/tom fil – skriv vår data */ }
-    sharedFileCount = fileCount;
-    const payload = JSON.stringify(data);
-    const w = await sharedHandle.createWritable();
+    if(!force && dataUnchanged()) return;
+    const entry = await sharedDir.getFileHandle(ownEntryName, {create:true});
+    const payload = JSON.stringify({projects:data.projects, tabort:data.tabort||[], updated:data.updated, saved:data.saved});
+    if(!force && payload === lastWritten) return;
+    const w = await entry.createWritable();
     await w.write(payload);
     await w.close();
-    lastWritten = payload;
+    lastWritten = ownKey();
     sharedErr = 0;
     updateSharedStatus();
   }catch(e){
     sharedErr++;
-    if(sharedErr===1) toast("⚠ Kunde inte spara till " + sharedName + ". Kontrollera att filen inte är låst/öppnad av någon annan.");
+    if(sharedErr===1) toast("\u26a0 Kunde inte spara till " + ownEntryName + " \u2013 kontrollera att mappen \u00e4r synkroniserad och inte \u00f6ppnad av annat program.");
   }
 }
 function updateSharedStatus(){
   const st = $("sharedStatus");
-  if(!sharedHandle){ st.style.display="none"; return; }
+  if(!sharedDir){ st.style.display="none"; return; }
   st.style.display = "";
-  st.textContent = "🔗 " + sharedName + (sharedFileCount!=null? " · " + sharedFileCount + " projekt i filen":"") + " · synk " + new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"});
+  st.textContent = "\ud83d\udd17 Mapp: " + (sharedDirName||"mapp") + " \u00b7 Min fil: " + ownEntryName + " \u00b7 " + data.projects.length + " projekt totalt \u00b7 synk " + new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"});
 }
 async function syncNow(){
-  if(!sharedHandle){ toast("⚠ Anslut den gemensamma datafilen först (📁 Anslut gemensam datafil)."); return; }
+  if(!sharedDir){ toast("\u26a0 Anslut den gemensamma mappen f\u00f6rst (\ud83d\udcc1 Anslut gemensam mapp)."); return; }
   await refreshFromShared(false);
-  await writeSharedNow();
-  toast("🔄 Synkat med filen – statusraden uppe till höger visar hur många projekt filen innehåller.");
+  await writeSharedNow(true);
+  toast("\ud83d\udd04 Synkat \u2013 statusraden uppe till h\u00f6ger visar l\u00e4get.");
 }
 function scheduleShared(){
-  if(!sharedHandle) return;
+  if(!sharedDir) return;
   clearTimeout(sharedTimer);
   sharedTimer = setTimeout(writeSharedNow, 2500);
 }
-/* Automatisk synkning: hämta andres ändringar från filen */
+/* Automatisk synkning: las alla datafiler i mappen och sl ihop dem */
 async function refreshFromShared(quiet){
-  if(!sharedHandle) return;
+  if(!sharedDir || !ownEntryName) return;
   try{
-    const file = await sharedHandle.getFile();
-    if(!file.size) return;
-    const src = JSON.parse(await file.text());
-    if(!src || !Array.isArray(src.projects)) return;
-    if(src.updated === data.updated) return;
-    sharedFileCount = src.projects.length;
-    const n = mergeIntoLocal(src);
-    if(n.added || n.updated || n.localNew){
+    let addedTot=0, updTot=0, read=0;
+    for await (const entry of sharedDir.values()){
+      if(entry.kind !== "file" || !/\.json$/i.test(entry.name)) continue;
+      if(entry.name === ownEntryName) continue;
+      let src = null;
+      try{
+        const f = await entry.getFile();
+        if(f.size) src = JSON.parse(await f.text());
+      }catch(e){}
+      if(!src || !Array.isArray(src.projects)) continue;
+      read++;
+      const n = mergeIntoLocal(src);
+      addedTot += n.added; updTot += n.updated;
+    }
+    if(addedTot || updTot){
       persist();
-      updateSharedStatus();
       render(); renderStats();
       if(currentDetail) openDetail(currentDetail);
-      if(n.added || n.updated){ toast("🔄 Hämtat från gemensamma filen: " + n.added + " nya, " + n.updated + " uppdaterade projekt."); }
+      if(!quiet) toast("\ud83d\udd04 H\u00e4mtat fr\u00e5n kollegors filer: " + addedTot + " nya, " + updTot + " uppdaterade projekt.");
     }
+    updateSharedStatus();
   }catch(e){}
 }
-/* IndexedDB – för att komma ihåg den anslutna filen mellan öppningar */
+/* IndexedDB \u2013 kom ihg den anslutna mappen mellan oppningar */
 function idbOpen(){
   return new Promise(res=>{
     let r;
@@ -481,19 +460,20 @@ async function idbGet(k){
 }
 async function autoConnect(){
   if(!canFS) return;
-  const h = await idbGet("sharedHandle");
-  if(!h || !h.name){ $("sharedBtn").style.display = ""; return; }
+  const dir = await idbGet("sharedDirHandle");
+  const namn = await idbGet("ownEntryName");
+  if(!dir || !namn){ $("sharedBtn").style.display = ""; return; }
   let perm = "prompt";
-  try{ perm = await h.queryPermission({mode:"readwrite"}); }catch(e){}
+  try{ perm = await dir.queryPermission({mode:"readwrite"}); }catch(e){}
   if(perm === "granted"){
-    sharedHandle = h; sharedName = h.name; sharedErr = 0;
+    sharedDir = dir; sharedDirName = dir.name; ownEntryName = namn; sharedErr = 0; lastWritten = null;
     await refreshFromShared(true);
     sharedUI();
-    toast("🔗 Automatiskt ansluten till " + h.name + " – synkning sker löpande.");
+    toast("\ud83d\udd17 Automatiskt ansluten till mappen \u2013synkning sker l\u00f6pande.");
   } else {
     const btn = $("sharedBtn");
     btn.style.display = "";
-    btn.textContent = "📁 Fortsätt med " + h.name;
+    btn.textContent = "\ud83d\udcc1 Forts\u00e4tt med gemensam mapp";
   }
 }
 setInterval(()=>refreshFromShared(false), 20000);
@@ -914,7 +894,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
 });
 load(); updateSaveInfo(); sharedUI(); renderStats(); render();
 autoConnect();
-if(canFS && !data.hintShared){ setTimeout(()=>{ toast("💡 Tips: klicka på 📁 Anslut gemensam datafil (överst) och välj projektdata.json i SharePoint-mappen – då sparar appen direkt dit och alla ser ändringarna. En gång per öppning räcker."); data.hintShared = true; persist(); }, 1500); }
+if(canFS && !data.hintShared){ setTimeout(()=>{ toast("💡 Tips: klicka på 📁 Anslut gemensam mapp (överst) och välj er SharePoint-mapp – du får en egen datafil (projektdata-dittnamn.json) och appen läser automatiskt in kollegors filer. Konfliktkopior skapas inte."); data.hintShared = true; persist(); }, 1500); }
 </script>
 </body>
 </html>
