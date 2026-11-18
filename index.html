@@ -100,6 +100,10 @@ button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
 .browse-item{display:block;padding:8px 10px;border-radius:8px;cursor:pointer;user-select:none;font-size:.92rem}
 .browse-item:hover{background:#f1f5f9}
 .browse-item input{margin-right:8px;accent-color:var(--primary)}
+.toggle-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;font-size:.82rem;font-weight:600;white-space:nowrap;transition:all .18s ease;user-select:none}
+.toggle-chip:hover{border-color:var(--primary);color:var(--primary)}
+.toggle-chip input{display:none}
+.toggle-chip.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 3px 10px rgba(15,110,95,.25)}
 .status-menu{position:fixed;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.18);display:none;z-index:60;min-width:170px;overflow:hidden;padding:4px}
 .status-menu button{display:block;width:100%;text-align:left;background:none;color:var(--text);border:none;border-radius:8px;padding:8px 12px;font-weight:500;box-shadow:none}
 .status-menu button:hover{background:#f1f5f9;transform:none}
@@ -152,11 +156,11 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
         <option value="">Alla prioriteter</option>
         <option>Hög</option><option>Medel</option><option>Låg</option>
       </select>
-      <label style="display:flex;align-items:center;gap:5px;color:var(--muted);font-size:.82rem;cursor:pointer;white-space:nowrap" title="Dölj avslutade projekt i listan">
-        <input type="checkbox" id="hideAvslutade" onchange="render()" style="accent-color:var(--primary)"> Dölj avslutade
+      <label class="toggle-chip" id="chipAvslutade" title="Dölj avslutade projekt i listan">
+        <input type="checkbox" id="hideAvslutade" onchange="chipToggle(this)"> 🚫 Dölj avslutade
       </label>
-      <label style="display:flex;align-items:center;gap:5px;color:var(--muted);font-size:.82rem;cursor:pointer;white-space:nowrap" title="Dölj avbrutna projekt i listan">
-        <input type="checkbox" id="hideAvbrutna" onchange="render()" style="accent-color:var(--primary)"> Dölj avbrutna
+      <label class="toggle-chip" id="chipAvbrutna" title="Dölj avbrutna projekt i listan">
+        <input type="checkbox" id="hideAvbrutna" onchange="chipToggle(this)"> 🚫 Dölj avbrutna
       </label>
       <span style="margin-left:auto;color:var(--muted);font-size:.8rem" id="countInfo"></span>
     </div>
@@ -1314,10 +1318,15 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 load(); updateSaveInfo(); sharedUI(); renderStats(); render();
+function chipToggle(cb){
+  const chip = cb.parentElement;
+  if(chip) chip.classList.toggle("on", cb.checked);
+  render();
+}
 try{
   const d = (localStorage.getItem("va_reg_dolj")||"").split(",").filter(Boolean);
-  if(d.includes("Avslutat") && $("hideAvslutade")) $("hideAvslutade").checked = true;
-  if(d.includes("Avbrutet") && $("hideAvbrutna")) $("hideAvbrutna").checked = true;
+  if(d.includes("Avslutat") && $("hideAvslutade")){ $("hideAvslutade").checked = true; $("chipAvslutade").classList.add("on"); }
+  if(d.includes("Avbrutet") && $("hideAvbrutna")){ $("hideAvbrutna").checked = true; $("chipAvbrutna").classList.add("on"); }
   if(d.length) render();
 }catch(e){}
 autoConnect();
