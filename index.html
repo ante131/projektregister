@@ -564,7 +564,14 @@ async function csharpDrop(evt){
   if(!ok){ toast("\u26a0 Beh\u00f6righetsdialogen misslyckades – anv\u00e4nd \ud83d\udcc1 Anslut nu ist\u00e4llet."); return; }
   await finishConnect(h);
 }
-function rutMappinfo(mappNamn){
+async function idbTest(){
+  try{
+    await idbSet("va_diagnos","ok");
+    const t = await idbGet("va_diagnos");
+    return t === "ok";
+  }catch(e){ return false; }
+}
+function rutMappinfo(mappNamn, diag){
   let path = "";
   try{ path = localStorage.getItem("va_reg_path") || ""; }catch(e){}
   let html = mappNamn? ("<b>Mapp att v\u00e4lja: " + esc(mappNamn) + "</b>") : "";
@@ -575,6 +582,10 @@ function rutMappinfo(mappNamn){
     html += '<div style="margin-top:8px;font-size:.85rem;color:var(--muted)">Tips: spara mappens s\u00f6kv\u00e4g en g\u00e5ng (knappen nedan) s\u00e5 visas den h\u00e4r som hj\u00e4lp vid varje start.</div>';
   }
   html += '<div style="margin-top:8px"><button class="secondary btn-sm" onclick="stallMappSokvag()">\u270f\ufe0f ' + (path? "\u00c4ndra mappens s\u00f6kv\u00e4g" : "Spara mappens s\u00f6kv\u00e4g") + '</button></div>';
+  const dl = diag===true? '<span style="color:#16a34a;font-weight:700">aktiv</span>'
+            : diag===false? '<span style="color:#dc2626;font-weight:700">avst\u00e4ngd</span>'
+            : '<span style="color:var(--muted)">?</span>';
+  html += '<div style="margin-top:10px;font-size:.75rem;color:var(--muted)">Minneslagring (beh\u00f6vs f\u00f6r att slippa mappv\u00e4ljaren vid varje start): ' + dl + '</div>';
   $("connectPathBox").innerHTML = html;
 }
 function stallMappSokvag(){
@@ -598,7 +609,8 @@ async function autoConnect(){
     btn.style.display = "";
     btn.textContent = sparad? ("\ud83d\udcc1 Anslut: " + sparad) : "\ud83d\udcc1 Anslut gemensam mapp";
     btn.title = "Webbl\u00e4saren kr\u00e4ver att du godk\u00e4nner mappen en g\u00e5ng per start \u2013 d\u00e4refter sk\u00f6ter appen allt automatiskt.";
-    rutMappinfo(sparad);
+    const dx = await idbTest();
+    rutMappinfo(sparad, dx);
     $("connectBg").classList.add("open");
     return;
   }
@@ -616,6 +628,8 @@ async function autoConnect(){
     try{ sparad2 = localStorage.getItem("va_reg_dir") || ""; }catch(e){}
     btn.textContent = sparad2? ("\ud83d\udcc1 Anslut: " + sparad2) : "\ud83d\udcc1 Anslut gemensam mapp";
     $("connectText").innerHTML = "Webbl\u00e4saren beh\u00f6ver f\u00f6rnya \u00e5tkomsten till den gemensamma mappen" + (sparad2? " <b>" + esc(sparad2) + "</b>" : "") + " \u2013 klicka p\u00e5 Anslut nu och godk\u00e4nn.";
+    const dx = await idbTest();
+    rutMappinfo(sparad2, dx);
     $("connectBg").classList.add("open");
   }
 }
