@@ -16,13 +16,15 @@ body{font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;background:
 header{background:var(--primary);color:#fff;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
 header h1{font-size:1.25rem;font-weight:600}
 header .sub{font-size:.8rem;opacity:.85}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
+.saveinfo{font-size:.75rem;opacity:.85}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 button{font:inherit;cursor:pointer;border:none;border-radius:8px;padding:8px 14px;background:var(--primary);color:#fff;font-weight:500;transition:.15s}
 button:hover{background:var(--primary-dark)}
 button.secondary{background:#fff;color:var(--text);border:1px solid var(--border)}
 button.secondary:hover{background:#f1f5f9}
 button.ghost{background:transparent;color:inherit;opacity:.9;border:1px solid rgba(255,255,255,.4)}
 button.ghost:hover{background:rgba(255,255,255,.15)}
+.btn-sm{padding:5px 10px;font-size:.82rem}
 main{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
@@ -35,9 +37,9 @@ main{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
 .tab{padding:9px 18px;border-radius:8px 8px 0 0;background:#e2e8f0;color:var(--muted);font-weight:500;cursor:pointer;border:none}
 .tab.active{background:var(--card);color:var(--primary);box-shadow:var(--shadow);border:1px solid var(--border);border-bottom-color:var(--card)}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
-input[type=text],input[type=date],select,textarea,input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text)}
-input[type=text]{min-width:220px}
-.toolbar input{min-width:260px}
+input[type=text],input[type=date],input[type=email],input[type=tel],select,textarea,input[type=number]{font:inherit;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text)}
+input[type=text]{min-width:180px}
+.toolbar input{min-width:250px}
 table{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
 th{background:#f8fafc;text-align:left;padding:10px 12px;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
 th:hover{color:var(--primary)}
@@ -48,8 +50,9 @@ tr:hover td{background:#f8fafc}
 .b-paus{background:#e2e8f0;color:#475569}.b-klar{background:#dcfce7;color:#15803d}.b-avbruten{background:#fee2e2;color:#b91c1c}
 .prio-hog{color:var(--danger);font-weight:600}.prio-medel{color:var(--warn)}.prio-lag{color:var(--muted)}
 .empty{padding:40px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--border);border-radius:var(--radius)}
-.icon-btn{background:none;border:none;color:var(--muted);padding:4px;cursor:pointer;font-size:15px}
-.icon-btn:hover{color:var(--primary)}
+.icon-btn{background:none;border:none;color:var(--muted);padding:4px;cursor:pointer;font-size:14px;border-radius:6px}
+.icon-btn:hover{color:var(--primary);background:#f1f5f9}
+.warn-flag{display:inline-flex;align-items:center;gap:5px;background:#fef3c7;color:#b45309;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700}
 .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
 .modal-bg.open{display:flex}
 .modal{background:#fff;border-radius:14px;width:min(680px,100%);box-shadow:0 20px 50px rgba(0,0,0,.25);animation:pop .15s ease}
@@ -64,6 +67,36 @@ tr:hover td{background:#f8fafc}
 textarea{resize:vertical;min-height:70px}
 .modal footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:#f8fafc;border-radius:0 0 14px 14px}
 button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
+.detail-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.detail-tabs{display:flex;gap:6px;margin:18px 0 14px;flex-wrap:wrap}
+.dtab{padding:8px 16px;border-radius:999px;background:#e2e8f0;color:var(--muted);border:none;cursor:pointer;font:inherit;font-weight:500}
+.dtab.active{background:var(--primary);color:#fff}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px}
+.card .card-h{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card .card-h h3{font-size:.95rem}
+.card .body{padding:16px 18px}
+.note{border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#f8fafc}
+.note .meta{color:var(--muted);font-size:.75rem;margin-top:6px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.contact{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap}
+.contact .c-info b{display:block}
+.contact .c-info{font-size:.88rem}
+.contact .c-info span{color:var(--muted);font-size:.8rem}
+.mail-btn{text-decoration:none;background:var(--primary);color:#fff;border-radius:8px;padding:5px 12px;font-size:.82rem;font-weight:500}
+.mail-btn:hover{background:var(--primary-dark)}
+.etapp{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap}
+.etapp.soon{border-color:var(--warn);background:#fffbeb}
+.etapp.overdue{border-color:var(--danger);background:#fef2f2}
+.etapp.done{opacity:.65}
+.etapp .e-namn{flex:1;font-weight:500}
+.etapp .e-datum{color:var(--muted);font-size:.85rem;white-space:nowrap}
+.etapp input[type=checkbox]{width:18px;height:18px;accent-color:var(--ok);cursor:pointer}
+.banner{display:flex;gap:12px;align-items:flex-start;background:#fef3c7;border:1px solid var(--warn);border-left:6px solid var(--warn);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px}
+.banner.red{background:#fef2f2;border-color:var(--danger);border-left-color:var(--danger)}
+.banner b{display:block;margin-bottom:2px}
+.banner ul{margin:6px 0 0 18px;font-size:.85rem}
+.file-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap;font-size:.9rem}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;z-index:99;font-size:.9rem;max-width:340px}
 .toast.show{opacity:1;transform:none}
 footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted);font-size:.75rem}
@@ -78,59 +111,80 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <div class="sub">Reningsverk · Vattenverk · Ledningsnät · Admin &nbsp;|&nbsp; Offline &amp; SharePoint-färdig</div>
   </div>
   <div class="actions">
-    <button class="ghost" onclick="exportJSON()">⬇ Exportera data (JSON)</button>
-    <button class="ghost" onclick="document.getElementById('importFile').click()">⬆ Importera data</button>
-    <button class="ghost" onclick="exportCSV()">📄 Exportera CSV</button>
-    <button onclick="openForm()">＋ Nytt projekt</button>
+    <span class="saveinfo" id="saveInfo">Senast sparat: –</span>
+    <button onclick="saveAll()" title="Spara nu (Ctrl+S)">💾 Spara</button>
+    <button class="ghost" onclick="exportJSON()">⬇ JSON</button>
+    <button class="ghost" onclick="document.getElementById('importFile').click()">⬆ Importera</button>
+    <button class="ghost" onclick="exportCSV()">📄 CSV</button>
+    <button id="newBtn" onclick="openForm()">＋ Nytt projekt</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
   </div>
 </header>
 
 <main>
-  <section class="stats" id="stats"></section>
-
-  <nav class="tabs" id="tabs">
-    <button class="tab active" data-cat="alla">Alla projekt</button>
-    <button class="tab" data-cat="reningsverk">Reningsverk</button>
-    <button class="tab" data-cat="vattenverk">Vattenverk</button>
-    <button class="tab" data-cat="ledningsnat">Ledningsnät</button>
-    <button class="tab" data-cat="admin">Admin</button>
-  </nav>
-
-  <div class="toolbar">
-    <input type="text" id="search" placeholder="🔍 Sök projekt, nummer, projektledare..." oninput="render()">
-    <select id="statusFilter" onchange="render()">
-      <option value="">Alla statusar</option>
-      <option>Planering</option><option>Pågående</option><option>Pausad</option>
-      <option>Avslutat</option><option>Avbrutet</option>
-    </select>
-    <select id="prioFilter" onchange="render()">
-      <option value="">Alla prioriteter</option>
-      <option>Hög</option><option>Medel</option><option>Låg</option>
-    </select>
-    <span style="margin-left:auto;color:var(--muted);font-size:.8rem" id="countInfo"></span>
+  <div id="listView">
+    <section class="stats" id="stats"></section>
+    <div id="globalWarn"></div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-cat="alla">Alla projekt</button>
+      <button class="tab" data-cat="reningsverk">Reningsverk</button>
+      <button class="tab" data-cat="vattenverk">Vattenverk</button>
+      <button class="tab" data-cat="ledningsnat">Ledningsnät</button>
+      <button class="tab" data-cat="admin">Admin</button>
+    </nav>
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="🔍 Sök projekt, nummer, projektledare, kontakt..." oninput="render()">
+      <select id="statusFilter" onchange="render()">
+        <option value="">Alla statusar</option>
+        <option>Planering</option><option>Pågående</option><option>Pausad</option>
+        <option>Avslutat</option><option>Avbrutet</option>
+      </select>
+      <select id="prioFilter" onchange="render()">
+        <option value="">Alla prioriteter</option>
+        <option>Hög</option><option>Medel</option><option>Låg</option>
+      </select>
+      <span style="margin-left:auto;color:var(--muted);font-size:.8rem" id="countInfo"></span>
+    </div>
+    <table id="tbl"><thead></thead><tbody></tbody></table>
+    <div class="empty" id="emptyMsg" style="display:none">
+      Inga projekt matchar filtret. Klicka på <b>＋ Nytt projekt</b> för att registrera ett projekt.
+    </div>
   </div>
 
-  <table id="tbl">
-    <thead></thead>
-    <tbody></tbody>
-  </table>
-  <div class="empty" id="emptyMsg" style="display:none">
-    Inga projekt matchar filtret. Klicka på <b>＋ Nytt projekt</b> för att registrera det första projektet.
+  <div id="detailView" style="display:none">
+    <button class="secondary btn-sm" onclick="showList()">← Tillbaka till listan</button>
+    <h2 id="dTitle" style="margin:14px 0 2px;font-size:1.35rem"></h2>
+    <div id="dMeta" style="color:var(--muted);font-size:.85rem;margin-bottom:10px"></div>
+    <div id="dWarn"></div>
+    <nav class="detail-tabs">
+      <button class="dtab active" data-panel="oversikt">Översikt</button>
+      <button class="dtab" data-panel="etapper">Etapper</button>
+      <button class="dtab" data-panel="anteckningar">Anteckningar</button>
+      <button class="dtab" data-panel="filer">Filer &amp; länkar</button>
+      <button class="dtab" data-panel="kontakter">Kontakter</button>
+    </nav>
+    <section class="panel active" id="p-oversikt"></section>
+    <section class="panel" id="p-etapper"></section>
+    <section class="panel" id="p-anteckningar"></section>
+    <section class="panel" id="p-filer"></section>
+    <section class="panel" id="p-kontakter"></section>
+    <div class="toolbar" style="margin-top:20px">
+      <button onclick="openForm(currentDetail, true)">✏️ Redigera projektuppgifter</button>
+      <button class="secondary" onclick="saveAll()">💾 Spara</button>
+    </div>
   </div>
 </main>
 
 <footer class="app">
-  Informationen sparas automatiskt i webbläsarens lokala lagring. För SharePoint-delning: exportera regelbundet JSON-filen
-  (t.ex. <b>projektdata.json</b>) till den gemensamma mappen – övriga användare importerar den. Senast sparad version gäller vid import.
+  Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen –/använd 💾 Spara för att spara direkt (Ctrl+S).
+  För SharePoint-delning: exportera JSON-filen till den gemensamma mappen – övriga importerar den.
 </footer>
 
-<!-- Formulär -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <header>
       <h2 id="formTitle">Nytt projekt</h2>
-      <button class="icon-btn" style="color:var(--muted)" onclick="closeForm()">✕</button>
+      <button class="icon-btn" onclick="closeForm()">✕</button>
     </header>
     <div class="body">
       <input type="hidden" id="f_id">
@@ -157,12 +211,12 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
         <div class="field"><label>Slutdatum</label><input type="date" id="f_slut"></div>
         <div class="field"><label>Budget (kr)</label><input type="number" id="f_budget" min="0" step="1000" placeholder="0"></div>
         <div class="field"><label>Kostnad hittills (kr)</label><input type="number" id="f_kostnad" min="0" step="1000" placeholder="0"></div>
-        <div class="field full"><label>Lokation / Område</label><input type="text" id="f_plats" placeholder="T.ex. Återvinningen 4, Motala"></div>
+        <div class="field full"><label>Lokation / Område</label><input type="text" id="f_plats" placeholder="T.ex. Industrigatan 4"></div>
         <div class="field full"><label>Beskrivning</label><textarea id="f_beskrivning" placeholder="Kort beskrivning av omfattning, syfte, noteringar..."></textarea></div>
       </div>
     </div>
     <footer>
-      <button class="danger" id="deleteBtn" style="display:none" onclick="deleteProject()">Ta bort</button>
+      <button class="danger" id="deleteBtn" style="display:none" onclick="deleteProject()">Ta bort projekt</button>
       <span style="flex:1"></span>
       <button class="secondary" onclick="closeForm()">Avbryt</button>
       <button onclick="saveProject()">Spara projekt</button>
@@ -170,141 +224,409 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
   </div>
 </div>
 
+<div class="modal-bg" id="m2bg">
+  <div class="modal" style="width:min(520px,100%)">
+    <header><h2 id="m2title"></h2><button class="icon-btn" onclick="closeM2()">✕</button></header>
+    <div class="body" id="m2body"></div>
+    <footer><button class="secondary" onclick="closeM2()">Avbryt</button><button onclick="saveM2()">Spara</button></footer>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 "use strict";
-const LS_KEY = "va_projektregister";
+const LS_KEY = "va_projektregister_v2";
 const KATEGORIER = {reningsverk:"Reningsverk", vattenverk:"Vattenverk", ledningsnat:"Ledningsnät", admin:"Admin"};
-let data = {projects:[], updated:null};
-let activeCat = "alla", sortKey = "namn", sortDir = 1;
+const MAX_FIL = 400*1024;
+let data = {projects:[], updated:null, saved:null};
+let activeCat = "alla", sortKey = "namn", sortDir = 1, currentDetail = null, m2cfg = null;
+const $ = id => document.getElementById(id);
 
 function load(){
-  try{ const raw = localStorage.getItem(LS_KEY); if(raw) data = JSON.parse(raw);}catch(e){}
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const old = JSON.parse(raw);
+      if(old && Array.isArray(old.projects)) data = old;
+    }
+  }catch(e){}
+  data.projects.forEach(p=>{
+    p.kontakter = p.kontakter||[]; p.etapper = p.etapper||[];
+    p.anteckningar = p.anteckningar||[]; p.filer = p.filer||[];
+  });
 }
 function persist(){
   data.updated = new Date().toISOString();
-  localStorage.setItem(LS_KEY, JSON.stringify(data));
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+  catch(e){ toast("⚠ Lagringen är full – stora bifogade filer kan orsaka detta. Ta bortfiler/exportera."); }
+  updateSaveInfo();
+}
+function saveAll(){
+  data.saved = new Date().toISOString();
+  persist();
+  toast("💾 Sparat klockan " + new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"}) + ".");
+}
+function autosave(){ persist(); }
+function updateSaveInfo(){
+  const d = data.saved || data.updated;
+  $("saveInfo").textContent = "Senast sparat: " + (d?
+    new Date(d).toLocaleDateString("sv-SE")+" kl. "+new Date(d).toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"}) : "–");
 }
 function toast(msg){
-  const t = document.getElementById("toast");
+  const t = $("toast");
   t.textContent = msg; t.classList.add("show");
-  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2600);
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 3000);
 }
 const fmtKr = n => (n? Number(n).toLocaleString("sv-SE")+" kr" : "–");
+const fmtDate = s => s? new Date(s+"T00:00").toLocaleDateString("sv-SE") : "–";
 const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-
-/* ---------- Render ---------- */
+const uid = () => "p"+Date.now()+Math.random().toString(36).slice(2,6);
 function catOf(p){ return KATEGORIER[p.kategori] || p.kategori; }
-function statusBadge(s){
-  const map = {Planering:"b-plan",Pågående:"b-pagaende",Pausad:"b-paus",Avslutat:"b-klar",Avbrutet:"b-avbruten"};
-  return `<span class="badge ${map[s]||"b-paus"}">${esc(s)}</span>`;
+
+/* ---------- Etappvarningar ---------- */
+function daysLeft(datum){
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((new Date(datum+"T00:00") - today)/86400000);
 }
+function etappWarn(e){
+  if(e.klar || !e.datum) return null;
+  const dl = daysLeft(e.datum);
+  if(dl < 0) return {level:"red", text:`Etappen "${e.namn}" har passerat slutdatumet (${fmtDate(e.datum)})`};
+  if(dl <= 7) return {level:"amber", text:`${dl===0?"Idag":"Endast "+dl+" dag"} kvar: "${e.namn}" (${fmtDate(e.datum)})`};
+  return null;
+}
+function projectWarns(p){ return (p.etapper||[]).map(etappWarn).filter(Boolean); }
+
+/* ---------- Listvy ---------- */
 function renderStats(){
-  const wrap = document.getElementById("stats");
-  wrap.innerHTML = Object.keys(KATEGORIER).map(k=>{
+  $("stats").innerHTML = Object.keys(KATEGORIER).map(k=>{
     const list = data.projects.filter(p=>p.kategori===k);
     const budget = list.reduce((s,p)=>s+(+p.budget||0),0);
     const pagaende = list.filter(p=>p.status==="Pågående").length;
+    const warns = list.reduce((s,p)=>s+projectWarns(p).length,0);
     return `<div class="stat">
       <div class="cat"><span class="dot ${k.slice(0,2)==='re'?'rv':k.slice(0,2)==='va'?'vv':k.slice(0,2)==='le'?'ln':'adm'}"></span>${KATEGORIER[k]}</div>
       <div class="num">${list.length} projekt</div>
-      <div class="budget">${pagaende} pågående · Budget: ${fmtKr(budget)}</div>
+      <div class="budget">${pagaende} pågående · Budget: ${fmtKr(budget)}${warns?`<br><span class="warn-flag">⚠ ${warns} etappvarning${warns>1?"ar":""}</span>`:""}</div>
     </div>`;
   }).join("");
+  const all = data.projects.flatMap(projectWarns);
+  $("globalWarn").innerHTML = all.length? `<div class="banner ${all.some(w=>w.level==="red")?"red":""}">
+    <span style="font-size:1.2rem">⚠️</span>
+    <div><b>${all.length} etapp${all.length>1?"er":""} behöver uppmärksammas</b>
+    <ul>${all.slice(0,8).map(w=>`<li>${esc(w.text)}</li>`).join("")}${all.length>8?`<li>… och ${all.length-8} till</li>`:""}</ul>
+    <span style="font-size:.78rem;color:var(--muted)">Öppna projektet och markera etappen som färdig, eller ändra datumet, för att ta bort varningen.</span></div>
+  </div>` : "";
+}
+function statusBadge(s){
+  const map={Planering:"b-plan",Pågående:"b-pagaende",Pausad:"b-paus",Avslutat:"b-klar",Avbrutet:"b-avbruten"};
+  return `<span class="badge ${map[s]||"b-paus"}">${esc(s)}</span>`;
 }
 function render(){
-  const q = (document.getElementById("search").value||"").toLowerCase();
-  const sf = document.getElementById("statusFilter").value;
-  const pf = document.getElementById("prioFilter").value;
+  const q = ($("search").value||"").toLowerCase();
+  const sf = $("statusFilter").value, pf = $("prioFilter").value;
   let list = data.projects.filter(p=>{
     if(activeCat!=="alla" && p.kategori!==activeCat) return false;
     if(sf && p.status!==sf) return false;
     if(pf && p.prio!==pf) return false;
     if(q){
-      const hay = [p.namn,p.nr,p.pl,p.agare,p.plats,p.beskrivning,catOf(p)].join(" ").toLowerCase();
+      const hay = [p.namn,p.nr,p.pl,p.agare,p.plats,p.beskrivning,catOf(p),
+        ...(p.kontakter||[]).map(c=>(c.namn||"")+" "+(c.epost||""))].join(" ").toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
-  list.sort((a,b)=>{
-    let x=a[sortKey], y=b[sortKey];
-    if(["budget","kostnad"].includes(sortKey)){ x=+x||0; y=+y||0; }
-    return (x>y?1:x<y?-1:0)*sortDir;
-  });
-  document.getElementById("countInfo").textContent = `${list.length} av ${data.projects.length} projekt`;
-  document.getElementById("emptyMsg").style.display = list.length? "none":"block";
-  document.getElementById("tbl").style.display = list.length? "table":"none";
-
-  const cols = [["nr","Nr"],["namn","Projekt"],["kategori","Kategori"],["pl","Projektledare"],["status","Status"],["prio","Prio"],["start","Start"],["slut","Slut"],["budget","Budget"],["kostnad","Kostnad"]];
-  document.querySelector("#tbl thead").innerHTML = "<tr>"+cols.map(([k,label])=>
-    `<th onclick="sortBy('${k}')">${label}${sortKey===k?(sortDir===1?" ▲":" ▼"):""}</th>`).join("")+"<th></th></tr>";
-  document.querySelector("#tbl tbody").innerHTML = list.map(p=>`<tr>
-    <td>${esc(p.nr||"")}</td>
-    <td><b>${esc(p.namn)}</b>${p.beskrivning?`<div style="color:var(--muted);font-size:.78rem;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.beskrivning)}</div>`:""}</td>
-    <td>${esc(catOf(p))}</td>
-    <td>${esc(p.pl||"")}</td>
-    <td>${statusBadge(p.status)}</td>
-    <td class="prio-${(p.prio||"").toLowerCase()}">${esc(p.prio||"")}</td>
-    <td>${esc(p.start||"")}</td>
-    <td>${esc(p.slut||"")}</td>
-    <td>${fmtKr(p.budget)}</td>
-    <td>${fmtKr(p.kostnad)}</td>
-    <td style="white-space:nowrap"><button class="icon-btn" title="Redigera" onclick="openForm('${p.id}')">✏️</button>
-        <button class="icon-btn" title="Duplicera" onclick="duplicate('${p.id}')">⧉</button></td>
-  </tr>`).join("");
+  list.sort((a,b)=>{let x=a[sortKey],y=b[sortKey];
+    if(["budget","kostnad"].includes(sortKey)){x=+x||0;y=+y||0;}
+    return (x>y?1:x<y?-1:0)*sortDir;});
+  $("countInfo").textContent = `${list.length} av ${data.projects.length} projekt`;
+  $("emptyMsg").style.display = list.length? "none":"block";
+  $("tbl").style.display = list.length? "table":"none";
+  const cols = [["nr","Nr"],["namn","Projekt"],["kategori","Kategori"],["pl","Projektledare"],["status","Status"],["prio","Prio"],["slut","Slut"],["budget","Budget"],["kostnad","Kostnad"]];
+  document.querySelector("#tbl thead").innerHTML = "<tr>"+cols.map(([k,l])=>
+    `<th onclick="sortBy('${k}')">${l}${sortKey===k?(sortDir===1?" ▲":" ▼"):""}</th>`).join("")+"<th></th></tr>";
+  document.querySelector("#tbl tbody").innerHTML = list.map(p=>{
+    const w = projectWarns(p);
+    return `<tr onclick="openDetail('${p.id}')" style="cursor:pointer">
+      <td>${esc(p.nr||"")}</td>
+      <td><b>${esc(p.namn)}</b>${w.length?`<div><span class="warn-flag">⚠ ${w.length} varning${w.length>1?"ar":""}</span></div>`:""}</td>
+      <td>${esc(catOf(p))}</td>
+      <td>${esc(p.pl||"–")}</td>
+      <td>${statusBadge(p.status)}</td>
+      <td class="prio-${(p.prio||"").toLowerCase()}">${esc(p.prio||"")}</td>
+      <td>${esc(p.slut||"–")}</td>
+      <td>${fmtKr(p.budget)}</td>
+      <td>${fmtKr(p.kostnad)}</td>
+      <td style="white-space:nowrap">
+        <button class="icon-btn" title="Öppna projekt" onclick="event.stopPropagation();openDetail('${p.id}')">📂</button>
+        <button class="icon-btn" title="Redigera" onclick="event.stopPropagation();openForm('${p.id}',true)">✏️</button>
+        <button class="icon-btn" title="Duplicera" onclick="event.stopPropagation();duplicate('${p.id}')">⧉</button>
+      </td>
+    </tr>`;}).join("");
 }
-function sortBy(k){ if(sortKey===k) sortDir*=-1; else {sortKey=k;sortDir=1;} render(); }
+function sortBy(k){ if(sortKey===k) sortDir*=-1; else{sortKey=k;sortDir=1;} render(); }
 
-/* ---------- Formulär ---------- */
-function openForm(id){
-  const bg = document.getElementById("modalBg");
-  document.getElementById("formTitle").textContent = id? "Redigera projekt" : "Nytt projekt";
-  document.getElementById("deleteBtn").style.display = id? "inline-block":"none";
+/* ---------- Projektdetalj ---------- */
+function getDetail(){ return data.projects.find(x=>x.id===currentDetail); }
+function showList(){
+  currentDetail = null;
+  $("detailView").style.display = "none";
+  $("listView").style.display = "block";
+  $("newBtn").style.display = "";
+  render(); renderStats();
+  window.scrollTo(0,0);
+}
+function openDetail(id){
+  const p = data.projects.find(x=>x.id===id); if(!p) return;
+  currentDetail = id;
+  $("listView").style.display = "none";
+  $("detailView").style.display = "block";
+  $("newBtn").style.display = "none";
+  $("dTitle").textContent = (p.nr? p.nr+" – ":"") + p.namn;
+  $("dMeta").innerHTML = `${esc(catOf(p))} · ${statusBadge(p.status)} · Projektledare: ${esc(p.pl||"–")} · ${esc(p.plats||"")}`;
+  const w = projectWarns(p);
+  $("dWarn").innerHTML = w.length? `<div class="banner ${w.some(x=>x.level==="red")?"red":""}">
+    <span style="font-size:1.3rem">⚠️</span><div><b>Etappvarning</b>
+    <ul>${w.map(x=>`<li>${esc(x.text)}</li>`).join("")}</ul>
+    <span style="font-size:.78rem;color:var(--muted)">Bocka för etappen som färdig eller ändra datumet för att avvisa varningen.</span></div></div>`:"";
+  renderOversikt(p); renderEtapper(p); renderNotes(p); renderFiler(p); renderKontakter(p);
+  window.scrollTo(0,0);
+}
+function renderOversikt(p){
+  $("p-oversikt").innerHTML = `<div class="card"><div class="card-h"><h3>Projektuppgifter</h3>
+    <button class="btn-sm secondary" onclick="openForm('${p.id}',true)">✏️ Redigera</button></div>
+    <div class="body"><div class="grid">
+      <div><b>Beställare:</b> ${esc(p.agare||"–")}</div>
+      <div><b>Prioritet:</b> <span class="prio-${(p.prio||"").toLowerCase()}">${esc(p.prio||"–")}</span></div>
+      <div><b>Period:</b> ${fmtDate(p.start)} – ${fmtDate(p.slut)}</div>
+      <div><b>Lokation:</b> ${esc(p.plats||"–")}</div>
+      <div><b>Budget:</b> ${fmtKr(p.budget)}</div>
+      <div><b>Kostnad hittills:</b> ${fmtKr(p.kostnad)}</div>
+      <div class="full"><b>Beskrivning</b><br>${esc(p.beskrivning||"–").replace(/\n/g,"<br>")}</div>
+    </div></div></div>
+    <div class="card"><div class="card-h"><h3>Etapper</h3></div><div class="body">${
+      (p.etapper||[]).length? p.etapper.map(e=>{
+        const w = etappWarn(e);
+        return `<div class="etapp ${e.klar?"done":w?(w.level==="red"?"overdue":"soon"):""}">
+          <span class="e-namn">${e.klar?"✅ ":""}${esc(e.namn)}</span>
+          <span class="e-datum">${fmtDate(e.datum)}</span>
+          ${w?`<span class="warn-flag">${w.level==="red"?"⚠ Passerad":"⚠ < 1 vecka"}</span>`:""}</div>`;
+      }).join("") : `<span style="color:var(--muted)">Inga etapper registrerade ännu.</span>`
+    }</div></div>`;
+}
+function renderEtapper(p){
+  $("p-etapper").innerHTML = `<div class="card"><div class="card-h"><h3>Etapper &amp; milstolpar</h3>
+      <button class="btn-sm" onclick="etappForm()">＋ Ny etapp</button></div>
+    <div class="body">${ (p.etapper||[]).length? p.etapper.map((e,i)=>{
+      const w = etappWarn(e);
+      return `<div class="etapp ${e.klar?"done":w?(w.level==="red"?"overdue":"soon"):""}">
+        <input type="checkbox" ${e.klar?"checked":""} title="Markera som färdig" onchange="toggleEtapp(${i},this.checked)">
+        <span class="e-namn">${esc(e.namn)}</span>
+        <span class="e-datum">${fmtDate(e.datum)}</span>
+        ${w?`<span class="warn-flag">${w.level==="red"?"⚠ Passerad":"⚠ Mindre än en vecka kvar"}</span>`:""}
+        <button class="icon-btn" title="Redigera" onclick="etappForm(${i})">✏️</button>
+        <button class="icon-btn" title="Ta bort" onclick="delItem('etapper',${i},'etappen')">🗑</button>
+      </div>`;}).join("") : '<span style="color:var(--muted)">Lägg till etapper – en synlig varning visas automatiskt när det är en vecka kvar till datumet och etappen inte är markerad färdig.</span>'
+    }</div></div>`;
+}
+function toggleEtapp(i, klar){
+  const p = getDetail();
+  p.etapper[i].klar = klar;
+  p.etapper[i].klarDatum = klar? new Date().toISOString() : null;
+  autosave(); openDetail(currentDetail); renderStats(); render();
+  if(klar) toast("✅ Etapp markerad som färdig – varningen försvinner.");
+}
+function etappForm(i){
+  const p = getDetail();
+  const e = i!=null? p.etapper[i] : {namn:"",datum:""};
+  m2({title: i!=null? "Redigera etapp":"Ny etapp", key:"etapper", i,
+      fields:[["namn","Etapp / milstolpe *",e.namn,"text"],["datum","Datum *",e.datum,"date"]],
+      required:["namn","datum"]});
+}
+/* ---------- Anteckningar ---------- */
+function renderNotes(p){
+  $("p-anteckningar").innerHTML = `<div class="card"><div class="card-h"><h3>Anteckningar</h3>
+    <button class="btn-sm" onclick="noteForm()">＋ Ny anteckning</button></div>
+    <div class="body">${ (p.anteckningar||[]).length? p.anteckningar.map((n,i)=>`
+      <div class="note"><div style="white-space:pre-wrap">${esc(n.text)}</div>
+        <div class="meta"><span>${esc(n.av||"")} ${n.datum? "· "+new Date(n.datum).toLocaleString("sv-SE"):""}</span>
+        <span><button class="icon-btn" title="Redigera" onclick="noteForm(${i})">✏️</button>
+        <button class="icon-btn" title="Ta bort" onclick="delItem('anteckningar',${i},'anteckningen')">🗑</button></span></div>
+      </div>`).join("") : '<span style="color:var(--muted)">Inga anteckningar ännu.</span>'}
+    </div></div>`;
+}
+function noteForm(i){
+  const p = getDetail();
+  const n = i!=null? p.anteckningar[i] : {text:"",av:""};
+  m2({title: i!=null? "Redigera anteckning":"Ny anteckning", key:"anteckningar", i,
+      fields:[["av","Författare (valfritt)",n.av||"","text"],["text","Anteckning *",n.text||"","textarea"]],
+      required:["text"]});
+}
+/* ---------- Filer & länkar ---------- */
+function renderFiler(p){
+  $("p-filer").innerHTML = `<div class="card"><div class="card-h"><h3>Filer &amp; länkar</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm secondary" onclick="linkForm()">🔗 Ny länk</button>
+        <button class="btn-sm" onclick="m2File()">📎 Bifoga fil</button>
+      </div></div>
+    <div class="body">${ (p.filer||[]).length? p.filer.map((f,i)=>`
+      <div class="file-row"><span>📄 <b>${esc(f.namn)}</b>${f.url?` <span style="color:var(--muted);font-size:.78rem">(länk)</span>`:` <span style="color:var(--muted);font-size:.78rem">${(f.storlek/1024).toFixed(0)} kB</span>`}</span>
+        <span style="display:flex;gap:6px;align-items:center">
+        ${f.url? `<a class="mail-btn" href="${esc(f.url)}" target="_blank">Öppna</a>`:
+          `<a class="mail-btn" href="${f.data}" download="${esc(f.namn)}">Hämta</a>`}
+        <button class="icon-btn" title="Ta bort" onclick="delItem('filer',${i},'filen')">🗑</button></span></div>`).join("")
+      : '<span style="color:var(--muted)">Länka till dokument i SharePoint-mappen eller bifoga små filer (max '+(MAX_FIL/1024)+' kB).</span>'}
+    </div></div>`;
+}
+function linkForm(i){
+  const p = getDetail();
+  const f = i!=null? p.filer[i] : {namn:"",url:""};
+  m2({title: i!=null? "Redigera länk":"Ny länk", key:"filer", i,
+      fields:[["namn","Beskrivning *",f.namn||"","text"],["url","Länk/Webbadress *",f.url||"","text"]],
+      required:["namn","url"], keepUrl:true});
+}
+function m2File(){
+  m2({title:"Bifoga fil", key:"filer", filePick:true,
+      fields:[["fil","Välj fil (max "+(MAX_FIL/1024)+" kB)","","file"]]});
+}
+/* ---------- Kontakter ---------- */
+function renderKontakter(p){
+  $("p-kontakter").innerHTML = `<div class="card"><div class="card-h"><h3>Kontakter</h3>
+    <button class="btn-sm" onclick="kontaktForm()">＋ Ny kontakt</button></div>
+    <div class="body">${ (p.kontakter||[]).length? p.kontakter.map((c,i)=>`
+      <div class="contact">
+        <div class="c-info"><b>${esc(c.namn)}</b><span>${esc(c.roll||"")}${c.foretag?" · "+esc(c.foretag):""}${c.telefon?" · ☎ "+esc(c.telefon):""}</span>
+        <span style="color:var(--primary)">${esc(c.epost||"")}</span></div>
+        <span style="display:flex;gap:6px;align-items:center">
+          ${c.epost? `<a class="mail-btn" href="mailto:${encodeURIComponent(c.epost)}?subject=${encodeURIComponent("["+p.namn+"] "+(p.nr||""))}">✉ Mejla</a>`:""}
+          <button class="icon-btn" title="Redigera" onclick="kontaktForm(${i})">✏️</button>
+          <button class="icon-btn" title="Ta bort" onclick="delItem('kontakter',${i},'kontakten')">🗑</button></span>
+      </div>`).join("") : '<span style="color:var(--muted)">Inga kontakter registrerade.</span>'}
+    </div></div>`;
+}
+function kontaktForm(i){
+  const p = getDetail();
+  const c = i!=null? p.kontakter[i] : {};
+  m2({title: i!=null? "Redigera kontakt":"Ny kontakt", key:"kontakter", i,
+      fields:[["namn","Namn *",c.namn||"","text"],["roll","Roll/Funktion",c.roll||"","text"],
+        ["foretag","Företag/Organisation",c.foretag||"","text"],["epost","E-post",c.epost||"","email"],
+        ["telefon","Telefon",c.telefon||"","text"]],
+      required:["namn"]});
+}
+/* ---------- Generisk item-modal ---------- */
+function m2(cfg){
+  m2cfg = cfg;
+  $("m2title").textContent = cfg.title;
+  $("m2body").innerHTML = cfg.fields.map(([id,label,val,type])=>{
+    if(type==="textarea") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><textarea id="m2_${id}" style="min-height:110px">${esc(val)}</textarea></div>`;
+    if(type==="file") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="file" id="m2_${id}"></div>`;
+    return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="${type}" id="m2_${id}" value="${esc(val)}" style="width:100%"></div>`;
+  }).join("");
+  $("m2bg").classList.add("open");
+  const first = $("m2_"+cfg.fields[0][0]);
+  if(first && first.focus) setTimeout(()=>first.focus(),50);
+}
+function closeM2(){ $("m2bg").classList.remove("open"); m2cfg = null; }
+function saveM2(){
+  const cfg = m2cfg, p = getDetail();
+  if(!cfg || !p) return;
+  const arr = p[cfg.key] || (p[cfg.key]=[]);
+  if(cfg.filePick){
+    const inp = $("m2_fil"), f = inp.files[0];
+    if(!f){ toast("⚠ Välj en fil först."); return; }
+    if(f.size > MAX_FIL){ toast("⚠ Filen är över "+(MAX_FIL/1024)+" kB – länka istället till filen i SharePoint-mappen."); return; }
+    const r = new FileReader();
+    r.onload = ()=>{
+      arr.push({id:uid(), namn:f.name, data:r.result, storlek:f.size, datum:new Date().toISOString()});
+      autosave(); closeM2(); openDetail(currentDetail); renderStats(); render();
+      toast("📎 Filen bifogad: "+f.name);
+    };
+    r.readAsDataURL(f);
+    return;
+  }
+  const obj = {}; let ok = true;
+  cfg.fields.forEach(([id])=>{ obj[id] = ($("m2_"+id).value||"").trim(); });
+  (cfg.required||[]).forEach(k=>{
+    if(!obj[k]){ ok=false; toast("⚠ Fältet måste fyllas i."); $("m2_"+k).focus(); }
+  });
+  if(!ok) return;
+  obj.id = (cfg.i!=null && arr[cfg.i])? arr[cfg.i].id : uid();
+  if(!obj.datum) obj.datum = new Date().toISOString();
+  if(cfg.keepUrl !== true && cfg.key==="filer" && cfg.i==null) obj.datum = new Date().toISOString();
+  if(cfg.i!=null){
+    const prev = (cfg.key==="filer")? {} : arr[cfg.i]; /* fil-länkar: ersätt hela raden */
+    arr[cfg.i] = {...prev, ...obj};
+  } else arr.push(obj);
+  autosave(); closeM2(); openDetail(currentDetail); renderStats(); render();
+  toast("✅ Sparat.");
+}
+function delItem(key, i, what){
+  if(!confirm("Ta bort "+what+"?")) return;
+  const p = getDetail();
+  p[key].splice(i,1);
+  autosave(); openDetail(currentDetail); renderStats(); render();
+  toast("🗑 Borttagen.");
+}
+$("m2bg").addEventListener("click", e=>{ if(e.target===e.currentTarget) closeM2(); });
+
+/* ---------- Projektformulär ---------- */
+function openForm(id, fromDetail){
+  const bg = $("modalBg");
+  $("formTitle").textContent = id? "Redigera projekt" : "Nytt projekt";
+  $("deleteBtn").style.display = id? "inline-block":"none";
   const p = id? data.projects.find(x=>x.id===id) : {};
-  f_id.value = p.id||""; f_cat.value = p.kategori||"reningsverk"; f_nr.value = p.nr||"";
-  f_namn.value = p.namn||""; f_pl.value = p.pl||""; f_agare.value = p.agare||"";
-  f_status.value = p.status||"Planering"; f_prio.value = p.prio||"Medel";
-  f_start.value = p.start||""; f_slut.value = p.slut||"";
-  f_budget.value = p.budget||""; f_kostnad.value = p.kostnad||"";
-  f_plats.value = p.plats||""; f_beskrivning.value = p.beskrivning||"";
+  f_id.value=p.id||""; f_cat.value=p.kategori||"reningsverk"; f_nr.value=p.nr||"";
+  f_namn.value=p.namn||""; f_pl.value=p.pl||""; f_agare.value=p.agare||"";
+  f_status.value=p.status||"Planering"; f_prio.value=p.prio||"Medel";
+  f_start.value=p.start||""; f_slut.value=p.slut||"";
+  f_budget.value=p.budget||""; f_kostnad.value=p.kostnad||"";
+  f_plats.value=p.plats||""; f_beskrivning.value=p.beskrivning||"";
+  bg.dataset.fromDetail = fromDetail? "1":"";
   bg.classList.add("open");
   setTimeout(()=>f_namn.focus(),50);
 }
-function closeForm(){ document.getElementById("modalBg").classList.remove("open"); }
+function closeForm(){ $("modalBg").classList.remove("open"); }
 function saveProject(){
   if(!f_namn.value.trim()){ toast("⚠️ Projektnamn måste anges."); f_namn.focus(); return; }
   const id = f_id.value;
+  const old = id && data.projects.find(x=>x.id===id) || {};
   const obj = {
-    id: id || ("p"+Date.now()+Math.random().toString(36).slice(2,6)),
-    kategori:f_cat.value, nr:f_nr.value.trim(), namn:f_namn.value.trim(),
+    id: id || old.id || uid(), kategori:f_cat.value, nr:f_nr.value.trim(), namn:f_namn.value.trim(),
     pl:f_pl.value.trim(), agare:f_agare.value.trim(), status:f_status.value, prio:f_prio.value,
     start:f_start.value, slut:f_slut.value, budget:+f_budget.value||0, kostnad:+f_kostnad.value||0,
-    plats:f_plats.value.trim(), beskrivning:f_beskrivning.value.trim()
+    plats:f_plats.value.trim(), beskrivning:f_beskrivning.value.trim(),
+    kontakter: old.kontakter||[], etapper: old.etapper||[],
+    anteckningar: old.anteckningar||[], filer: old.filer||[]
   };
-  if(id){
-    const i = data.projects.findIndex(x=>x.id===id);
-    data.projects[i] = obj;
-  } else data.projects.push(obj);
-  persist(); closeForm(); render(); renderStats();
-  toast(id? "✅ Projektet uppdaterat." : "✅ Projektet registrerat.");
+  if(id){ data.projects[data.projects.findIndex(x=>x.id===id)] = obj; }
+  else data.projects.push(obj);
+  autosave(); closeForm();
+  if(currentDetail) openDetail(obj.id); else { render(); }
+  renderStats();
+  toast(id? "✅ Projektet uppdaterat" : "✅ Projektet registrerat");
 }
 function deleteProject(){
   const id = f_id.value;
-  if(!confirm("Ta bort projektet permanent?")) return;
+  if(!confirm("Ta bort projektet med alla etapper, anteckningar, filer och kontakter?")) return;
   data.projects = data.projects.filter(x=>x.id!==id);
-  persist(); closeForm(); render(); renderStats();
+  autosave(); closeForm();
+  showList();
   toast("🗑 Projektet togs bort.");
 }
 function duplicate(id){
   const p = data.projects.find(x=>x.id===id);
-  const copy = {...p, id:"p"+Date.now(), namn: p.namn+" (kopia)", nr:""};
-  data.projects.push(copy);
-  persist(); render(); renderStats();
+  data.projects.push({...p, id:uid(), namn:p.namn+" (kopia)", nr:"",
+    etapper:(p.etapper||[]).map(e=>({...e,id:uid(),klar:false,klarDatum:null})),
+    kontakter:(p.kontakter||[]).map(c=>c), anteckningar:[], filer:(p.filer||[]).map(f=>f)});
+  autosave(); render(); renderStats();
   toast("⧉ Projektet duplicerat.");
 }
-document.getElementById("modalBg").addEventListener("click", e=>{ if(e.target===e.currentTarget) closeForm(); });
-document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeForm(); });
+$("modalBg").addEventListener("click", e=>{ if(e.target===e.currentTarget) closeForm(); });
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){ closeForm(); closeM2(); }
+  if((e.ctrlKey||e.metaKey) && e.key==="s"){ e.preventDefault(); saveAll(); }
+});
 
 /* ---------- Import / Export ---------- */
 function download(filename, text, type){
@@ -315,36 +637,36 @@ function download(filename, text, type){
 function stamp(){ return new Date().toISOString().slice(0,10); }
 function exportJSON(){
   download(`projektdata_${stamp()}.json`, JSON.stringify(data,null,2), "application/json");
-  toast("⬇ JSON-fil exporterad – spara i SharePoint-mappen.");
+  toast("⬇ JSON exporterad – spara i SharePoint-mappen.");
 }
 function exportCSV(){
-  const cols = ["nr","namn","kategori","pl","agare","status","prio","start","slut","budget","kostnad","plats","beskrivning"];
-  const head = ["Projektnr","Namn","Kategori","Projektledare","Ägare","Status","Prio","Start","Slut","Budget","Kostnad","Plats","Beskrivning"];
-  const rows = data.projects.map(p=>cols.map(c=>{
-    let v = c==="kategori"? catOf(p) : (p[c]??"");
-    return `"${String(v).replace(/"/g,'""')}"`;
-  }).join(";"));
-  download(`projektlista_${stamp()}.csv`, "\uFEFF"+head.join(";")+"\n"+rows.join("\n"), "text/csv");
+  const cols = ["nr","namn","kategori","pl","agare","status","prio","start","slut","budget","kostnad","plats"];
+  const head = ["Projektnr","Namn","Kategori","Projektledare","Ägare","Status","Prio","Start","Slut","Budget","Kostnad","Plats","Etappvarningar"];
+  const quote = v => `"${String(v).replace(/"/g,'""')}"`;
+  const rows = data.projects.map(p=>
+    cols.map(c=>quote(c==="kategori"? catOf(p) : (p[c]??""))).concat(quote(projectWarns(p).length+" varning(ar)")).join(";"));
+  download(`projektlista_${stamp()}.csv`, "\uFEFF"+head.map(quote).join(";")+"\n"+rows.join("\n"), "text/csv");
   toast("📄 CSV exporterad (öppnas i Excel).");
 }
 function importJSON(ev){
-  const file = ev.target.files[0];
-  if(!file) return;
+  const file = ev.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = () => {
     try{
       const imported = JSON.parse(reader.result);
-      if(!Array.isArray(imported.projects)) throw new Error();
+      if(!imported || !Array.isArray(imported.projects)) throw new Error();
       const mine = new Set(data.projects.map(p=>p.id));
       let added=0, updated=0;
       imported.projects.forEach(p=>{
         if(!p.id || !p.namn) return;
-        if(mine.has(p.id)){
-          const i = data.projects.findIndex(x=>x.id===p.id);
-          data.projects[i] = p; updated++;
-        } else { data.projects.push(p); added++; }
+        p.kontakter=p.kontakter||[]; p.etapper=p.etapper||[]; p.anteckningar=p.anteckningar||[]; p.filer=p.filer||[];
+        if(mine.has(p.id)){ data.projects[data.projects.findIndex(x=>x.id===p.id)] = p; updated++; }
+        else { data.projects.push(p); added++; }
       });
-      persist(); render(); renderStats();
+      if(imported.saved) data.saved = imported.saved;
+      autosave();
+      if(currentDetail && !getDetail()) showList(); else if(currentDetail) openDetail(currentDetail);
+      render(); renderStats();
       toast(`⬆ Import klar: ${added} nya, ${updated} uppdaterade.`);
     }catch(e){ toast("⚠ Ogiltig fil – endast tidigare exporterade JSON-filer kan importeras."); }
   };
@@ -353,13 +675,19 @@ function importJSON(ev){
 }
 
 /* ---------- Init ---------- */
-document.getElementById("tabs").addEventListener("click", e=>{
+$("tabs").addEventListener("click", e=>{
   const btn = e.target.closest(".tab"); if(!btn) return;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   btn.classList.add("active"); activeCat = btn.dataset.cat; render();
 });
-document.getElementById("statusFilter").id = "statusFilter"; // säkerställ id
-load(); renderStats(); render();
+document.querySelector(".detail-tabs").addEventListener("click", e=>{
+  const btn = e.target.closest(".dtab"); if(!btn) return;
+  document.querySelectorAll(".dtab").forEach(t=>t.classList.remove("active"));
+  btn.classList.add("active");
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  $("p-"+btn.dataset.panel).classList.add("active");
+});
+load(); updateSaveInfo(); renderStats(); render();
 </script>
 </body>
 </html>
