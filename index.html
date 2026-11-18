@@ -240,7 +240,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 "use strict";
 const LS_KEY = "va_projektregister_v2";
 const KATEGORIER = {reningsverk:"Reningsverk", vattenverk:"Vattenverk", ledningsnat:"Ledningsnät", admin:"Admin"};
-const MAX_FIL = 400*1024;
+const MAX_FIL = 2*1024*1024;
 let data = {projects:[], updated:null, saved:null};
 let activeCat = "alla", sortKey = "namn", sortDir = 1, currentDetail = null, m2cfg = null;
 const $ = id => document.getElementById(id);
@@ -566,7 +566,7 @@ function linkForm(i){
 }
 function m2File(){
   m2({title:"Bifoga fil", key:"filer", filePick:true,
-      fields:[["fil","Välj fil (max "+(MAX_FIL/1024)+" kB)","","file"]]});
+      fields:[["fil","Välj fil (max "+(MAX_FIL/(1024*1024))+" MB)","","file"]]});
 }
 /* ---------- Kontakter ---------- */
 function renderKontakter(p){
@@ -614,7 +614,7 @@ function saveM2(){
   if(cfg.filePick){
     const inp = $("m2_fil"), f = inp.files[0];
     if(!f){ toast("⚠ Välj en fil först."); return; }
-    if(f.size > MAX_FIL){ toast("⚠ Filen är över "+(MAX_FIL/1024)+" kB – länka istället till filen i SharePoint-mappen."); return; }
+    if(f.size > MAX_FIL){ toast("⚠ Filen är över "+(MAX_FIL/(1024*1024))+" MB – länka istället till filen i SharePoint-mappen."); return; }
     const r = new FileReader();
     r.onload = ()=>{
       arr.push({id:uid(), namn:f.name, data:r.result, storlek:f.size, datum:new Date().toISOString()});
