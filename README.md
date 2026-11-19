@@ -74,3 +74,15 @@ OBS: flagget `--allow-file-access-from-files` slackter en av Chromes sandlade-re
 5. Kontrollera versionen DIRECT: den star i webblasarens **flik** ("Projektregister vXX") och langst ner pa sidan
 
 Star ratt version dar men gamlaappenvisas: tryck **Ctrl+F5** en gang. Det brukar aldrig behuvas om steg 1-4 foljs - felet brukar bero pa att webblasaren fortfarande hade filen oppnad/minneslagrad nar ersattningen gjordes.
+
+## Nedladdning av ny version - ALLTID via unikt filnamn (v14.5 och framet)
+
+GitHub/CDN och webblasar-cache kan servera gamla versioner aven nar koden ar uppdaterad (detta orsakade tidigare buggen dar man "laddade ner ratt version" men fick en gammal fil, exakt samma storlek som fregende version).
+
+**Routinen (-globalt for detta och framtida projekt):**
+
+1. Varje ny version publiceras utover `index.html` aven som en kopia med **unikt versionsnamn i filnamnet**, ex: `index-v14-5.html`, `index-v15.html`. Namnet har aldrig funnits tidigare och kan darmed aldrig levereras fran cache.
+2. Ladda ner via den versionens unika filnamn (klicka filen i repot -> Download raw file).
+3. **Dubbelkolla direkt efter nedladdning:** filstorleken ska stamma overens med vad GitHub-sidan visar, och dubbelklicka filen -> fliktiteln ska ange ratt version.
+4. Byt namn till `index.html` och ersatt den gamla filen i er SharePoint-mapp.
+5. Alternativ till steg 1-2: anvand den commit-lasta raw-adressen (raw.githubusercontent.com/.../<commit-hash>/index.html) som alltid levererar exakt den versionen.
