@@ -64,3 +64,13 @@ Chrome blockerar normalt lagring av mappbeorigheter for lokala filer, vilket tid
 3. Dubbelklicka bat-filen for att starta appen. Vid start visas appens popup -> klicka **Anslut nu** -> webblasarens behorighetsdialog visas -> tryck **Tillat**. KLART - ingen mappbladdring, och Chrome sparar mappen mellan omstarter.
 
 OBS: flagget `--allow-file-access-from-files` slackter en av Chromes sandlade-regler for lokala filer. Det ar en avvagning mot funktionalitet for interna verktyg. Om er IT-avdelning har policy mot bat-filer kan Chrome genvagen istallet skapas manuellt: hogerklicka pa Chrome-genvagen -> Eigenskaper -> mal: `chrome.exe --allow-file-access-from-files "file:///C:/Users/DITTNAMN/Kommunsamverkan/UPP-SSF-Tekniska-VA/index.html"`.
+
+## Uppdatera appen till en ny version (gor sa - undvik 3-4 min "fel version")
+
+1. **Stang hela webblasaren** (alla fonster, sa att gamla versionen slapper filen och cache rinns ut)
+2. Ersatt index.html i mappen (Kopiera och klistra in / ersatt)
+3. **Vanta pa gront bocke** i OneDrive-kolumnen i Utforskaren (filen ar da uppladdad och klar)
+4. Starta via skrivbordsgenvagen (den med --allow-file-access-from-files)
+5. Kontrollera versionen DIRECT: den star i webblasarens **flik** ("Projektregister vXX") och langst ner pa sidan
+
+Star ratt version dar men gamlaappenvisas: tryck **Ctrl+F5** en gang. Det brukar aldrig behuvas om steg 1-4 foljs - felet brukar bero pa att webblasaren fortfarande hade filen oppnad/minneslagrad nar ersattningen gjordes.
