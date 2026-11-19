@@ -401,6 +401,15 @@ async function connectFolder(){
     try{ namn = localStorage.getItem("va_reg_user") || ""; }catch(e){}
     if(!namn) namn = getUser();
     if(!namn){ toast("\u26a0 Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return; }
+    const saved = await idbGet("sharedDirHandle");
+    if(saved){
+      try{
+        const p = await saved.requestPermission({mode:"readwrite"});
+        if(p === "granted"){
+          if(await finishConnect(saved)) return;
+        }
+      }catch(e){}
+    }
     const dir = await window.showDirectoryPicker({mode:"readwrite", startIn:"documents"});
     if(!(await finishConnect(dir))) return;
     toast("\ud83d\udd17 Ansluten till mappen \"" + dir.name + "\" \u2013 appen skriver bara till " + ownEntryName + " och l\u00e4ser in alla \u00f6vrigas datafiler i mappen. Inga fler konfliktkopior!");
