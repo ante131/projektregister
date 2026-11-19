@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v12</title>
+<title>Projektregister v13</title>
 <style>
 :root{
   --bg:#f8f4ec; --card:#ffffff; --border:#e8decd; --text:#2b2420; --muted:#6f6357;
@@ -23,7 +23,12 @@ button.secondary:hover{background:#f1f5f9}
 button.ghost{background:transparent;color:inherit;opacity:.9;border:1px solid rgba(255,255,255,.4)}
 button.ghost:hover{background:rgba(255,255,255,.15)}
 .btn-sm{padding:5px 10px;font-size:.82rem}
-main{max-width:1280px;margin:0 auto;padding:20px 24px 60px}
+main{max-width:1680px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+#listView,#detailView{grid-column:1;min-width:0}
+@media(min-width:1500px){
+  main{grid-template-columns:minmax(0,1fr) 330px}
+  #sideRail{grid-column:2}
+}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease}
 .stat .cat{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
@@ -110,6 +115,13 @@ button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
 .status-menu{position:fixed;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.18);display:none;z-index:60;min-width:170px;overflow:hidden;padding:4px}
 .status-menu button{display:block;width:100%;text-align:left;background:none;color:var(--text);border:none;border-radius:8px;padding:8px 12px;font-weight:500;box-shadow:none}
 .status-menu button:hover{background:#f1f5f9;transform:none}
+.rail .rw{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(43,36,32,.04),0 8px 24px rgba(43,36,32,.07);margin-bottom:16px;overflow:hidden}
+.rail .rw h4{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px 16px;border-bottom:1px solid var(--border);background:#fbf7ef;margin:0}
+.rail .rw .rb{padding:10px 14px}
+.rail .ri{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;font-size:.85rem;border-bottom:1px dashed var(--border);cursor:pointer;border-radius:6px}
+.rail .ri:hover{background:#fbf7ef;color:var(--primary)}
+.rail .ri b{font-weight:500}
+.rail .none{color:var(--muted);font-size:.82rem;padding:6px 2px}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;z-index:99;font-size:.9rem;max-width:340px}
 .toast.show{opacity:1;transform:none}
 footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted);font-size:.75rem}
@@ -123,7 +135,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="display:inline-flex;align-items:center;background:rgba(255,250,240,.94);padding:7px 9px;border-radius:14px;box-shadow:0 2px 10px rgba(43,36,32,.30)"><img src="data:image/png;base64,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" alt="Uppvidinge kommuns vapen" style="height:54px;display:block"></span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 12</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 13</b></div>
     </div>
   </div>
   <div class="actions">
@@ -207,10 +219,11 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
       <button class="secondary" onclick="saveAll()">💾 Spara</button>
     </div>
   </div>
+  <aside id="sideRail" class="rail"></aside>
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 12 – Uppvidinge-tema</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 13 – sidopanel</span><br>
   Allt sparas i webbläsarens lokala lagring och finns kvar nästa gång du öppnar filen – använd 💾 Spara för att spara direkt (Ctrl+S).
   För SharePoint-delning: exportera JSON-filen till den gemensamma mappen – övriga importerar den.
 </footer>
@@ -684,11 +697,43 @@ function renderStats(){
     <span style="font-size:.78rem;color:var(--muted)">Öppna projektet och markera etappen som färdig, eller ändra datumet, för att ta bort varningen.</span></div>
   </div>` : "";
   renderSummary();
+  renderRail();
 }
 function summaryYears(){
   const ys = new Set();
   data.projects.forEach(p=>{ if(p.start) ys.add(String(p.start).slice(0,4)); });
   return Array.from(ys).sort().reverse();
+}
+function renderRail(){
+  const rail = $("sideRail"); if(!rail) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const om14 = new Date(today.getTime()+14*86400000);
+  const warns = [];
+  const kommande = [];
+  data.projects.forEach(p=>{
+    projectWarns(p).forEach(w=>warns.push({p, text:w.text, red:w.level==="red"}));
+    (p.etapper||[]).forEach(e=>{
+      if(!e.klar && e.datum){
+        const d = new Date(e.datum+"T00:00");
+        if(d >= today && d <= om14) kommande.push({p, namn:e.namn, datum:e.datum});
+      }
+    });
+  });
+  kommande.sort((a,b)=>a.datum.localeCompare(b.datum));
+  const senaste = data.projects.slice().sort((a,b)=>String(b.andrad||"").localeCompare(String(a.andrad||""))).slice(0,5);
+  rail.innerHTML =
+    `<div class="rw"><h4>\u26a0 Etappvarningar</h4><div class="rb">${
+      warns.length? warns.slice(0,8).map(w=>`<div class="ri" onclick="openDetail('${w.p.id}')" style="${w.red?"color:var(--danger)":""}"><b>${esc(w.p.namn)}</b><span style="color:var(--muted);font-size:.76rem">info</span></div><div style="font-size:.76rem;color:var(--muted);padding:0 2px 6px">${esc(w.text)}</div>`).join("")
+      : '<div class="none">Inga varningar – bra läge!</div>'
+    }</div></div>
+    <div class="rw"><h4>\ud83d\udcc5 Kommande etapper (14 dagar)</h4><div class="rb">${
+      kommande.length? kommande.slice(0,8).map(k=>`<div class="ri" onclick="openDetail('${k.p.id}')"><b>${esc(k.namn)}</b><span style="color:var(--muted);font-size:.76rem">${fmtDate(k.datum)}</span></div>`).join("")
+        : '<div class="none">Inget planerat inom 14 dagar.</div>'
+    }</div></div>
+    <div class="rw"><h4>\ud83d\udca1 Senast ändrade</h4><div class="rb">${
+      senaste.length? senaste.map(p=>`<div class="ri" onclick="openDetail('${p.id}')"><b>${esc(p.namn)}</b><span style="color:var(--muted);font-size:.76rem">${catOf(p)}</span></div>`).join("")
+        : '<div class="none">Inga projekt ännu.</div>'
+    }</div></div>`;
 }
 function renderSummary(){
   const body = $("sumBody"); if(!body) return;
@@ -1460,7 +1505,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v12 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v13 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
