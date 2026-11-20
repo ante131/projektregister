@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v19.2</title>
+<title>Projektregister v20</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -136,7 +136,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 19.2</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 20</b></div>
     </div>
   </div>
   <div class="actions">
@@ -224,7 +224,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 19.2 – mötesbokning</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 20 – egen ämnesrad</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -270,6 +270,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
         <div class="field"><label>Kostnad hittills (kr)</label><input type="number" id="f_kostnad" min="0" step="1000" placeholder="0"></div>
         <div class="field full"><label>Lokation / Område</label><input type="text" id="f_plats" placeholder="T.ex. Industrigatan 4"></div>
         <div class="field full"><label>Beskrivning</label><textarea id="f_beskrivning" placeholder="Kort beskrivning av omfattning, syfte, noteringar..."></textarea></div>
+        <div class="field full"><label>Automatisk ämnesrad för mejl</label><input type="text" id="f_amne" placeholder="T.ex. [RV-2025-01] Uppföljning – lämna tomt om mejlen inte ska få någon förifylld ämnesrad"></div>
       </div>
     </div>
     <footer>
@@ -782,7 +783,7 @@ function renderRail(){
     </div></div>`;
 }
 function bokaMoteWeb(){
-  window.open("https://outlook.office.com/owa/?path=/calendar/action/compose&rru=addevent", "_blank");
+  window.open("https://outlook.office.com/calendar/deeplink/compose?path=/calendar/action/compose&rru=addevent", "_blank");
   toast("📅 Outlooks m\u00f6tesbokning \u00f6ppnas \u2013 fyll i \u00e4mne och tid och tryck Spara.");
 }
 function openBilBokning(){
@@ -1379,7 +1380,7 @@ function renderKontakter(p){
         <div class="c-info"><b>${esc(c.namn)}</b><span>${esc(c.roll||"")}${c.foretag?" · "+esc(c.foretag):""}${c.telefon?" · ☎ "+esc(c.telefon):""}</span>
         <span style="color:var(--primary)">${esc(c.epost||"")}</span></div>
         <span style="display:flex;gap:6px;align-items:center">
-          ${c.epost? `<a class="mail-btn" href="mailto:${encodeURIComponent(c.epost)}?subject=${encodeURIComponent("["+p.namn+"] "+(p.nr||""))}">✉ Mejla</a>`:""}
+          ${c.epost? `<a class="mail-btn" href="mailto:${encodeURIComponent(c.epost)}${p.amne? "?subject="+encodeURIComponent(p.amne):""}">✉ Mejla</a>`:""}
           <button class="icon-btn" title="Redigera" onclick="kontaktForm(${i})">✏️</button>
           <button class="icon-btn" title="Ta bort" onclick="delItem('kontakter',${i},'kontakten')">🗑</button></span>
       </div>`).join("") : '<span style="color:var(--muted)">Inga kontakter registrerade.</span>'}
@@ -1623,7 +1624,7 @@ function openForm(id, fromDetail){
   f_status.value=p.status||"Planering"; f_prio.value=p.prio||"Medel";
   f_start.value=p.start||""; f_slut.value=p.slut||"";
   f_budget.value=p.budget||""; f_kostnad.value=p.kostnad||"";
-  f_plats.value=p.plats||""; f_beskrivning.value=p.beskrivning||"";
+  f_plats.value=p.plats||""; f_beskrivning.value=p.beskrivning||""; f_amne.value=p.amne||"";
   bg.dataset.fromDetail = fromDetail? "1":"";
   bg.classList.add("open");
   setTimeout(()=>f_namn.focus(),50);
@@ -1633,14 +1634,15 @@ function saveProject(){
   if(!f_namn.value.trim()){ toast("⚠️ Projektnamn måste anges."); f_namn.focus(); return; }
   const id = f_id.value;
   const old = id && data.projects.find(x=>x.id===id) || {};
-  const obj = {
+  const obj = Object.assign({}, old, {
     id: id || old.id || uid(), kategori:f_cat.value, nr:f_nr.value.trim(), namn:f_namn.value.trim(),
     pl:f_pl.value.trim(), agare:f_agare.value.trim(), status:f_status.value, prio:f_prio.value,
     start:f_start.value, slut:f_slut.value, budget:+f_budget.value||0, kostnad:+f_kostnad.value||0,
     plats:f_plats.value.trim(), beskrivning:f_beskrivning.value.trim(),
+    amne: f_amne.value.trim(),
     kontakter: old.kontakter||[], etapper: old.etapper||[],
     anteckningar: old.anteckningar||[], filer: old.filer||[]
-  };
+  });
   markP(obj);
   if(id){ data.projects[data.projects.findIndex(x=>x.id===id)] = obj; }
   else data.projects.push(obj);
@@ -1797,7 +1799,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v19.2 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v20 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
