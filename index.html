@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v16</title>
+<title>Projektregister v16.1</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -136,7 +136,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 16</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 16.1</b></div>
     </div>
   </div>
   <div class="actions">
@@ -224,9 +224,9 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 16 – öppna i Utforskaren</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 16.1 – mappstruktur</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
-  <b style="color:#2f332b">Hur din information hanteras – ärlig beskrivning:</b><br>
+  <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
   • <b>Projektdata</b> (namn, status, budget, etapper, anteckningar, kontakter) sparas i projektets datafiler i er gemensamma SharePoint-mapp – en fil per användare – samt i webbläsarens lokala lagring på din dator. Data synas automatiskt mellan er via mappen, där OneDrive/SharePoint hanterar kryptering och överföring.<br>
   • <b>Bifogade filer</b> kopieras till undermappen "projektfiler" i samma mapp, eller länkas på plats (ingen kopia, ingen extra spridning).<br>
@@ -307,6 +307,31 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
       <button class="secondary" onclick="closeBrowse()">Avbryt</button>
       <button id="browseMarkedBtn" onclick="linkSelectedFiles()">Länka markerade</button>
       <button id="browseVaeljBtn" style="display:none" onclick="mappChooseCurrent()">📂 Välj denna mapp</button>
+    </footer>
+  </div>
+</div>
+<div class="modal-bg" id="mappBg">
+  <div class="modal" style="width:min(640px,100%)">
+    <header>
+      <h2>📂 Välj projektets mapp i mappstrukturen</h2>
+      <button class="icon-btn" onclick="closeMappVal()">✕</button>
+    </header>
+    <div class="body">
+      <div id="mappPath" style="font-family:Consolas,monospace;font-size:.8rem;background:#eef4e4;padding:6px 8px;border-radius:8px;margin-bottom:8px;word-break:break-all"></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+        <button class="btn-sm secondary" onclick="mappUp()">⬆ Upp ett steg</button>
+        <button class="btn-sm secondary" onclick="mappRender()">🔃 Uppdatera</button>
+      </div>
+      <div id="mappList" style="max-height:320px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input id="mappInput" placeholder="eller skriv/klistra in sökvägen, t.ex. C:\mapp\projekt" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px" onkeydown="if(event.key==='Enter')mappGoInput()">
+        <button class="btn-sm" onclick="mappGoInput()">Gå</button>
+      </div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:6px">Bläddra med upp-steg och mappklick, eller klistra in en sökväg. Tryck sen “Välj denna mapp”.</div>
+    </div>
+    <footer>
+      <button class="secondary" onclick="closeMappVal()">Avbryt</button>
+      <button onclick="mappVald()">📂 Välj denna mapp</button>
     </footer>
   </div>
 </div>
@@ -984,13 +1009,22 @@ function renderFiler(p){
 function mappSokvagKey(id){ return "mappSokvag-"+id; }
 function egenMappSokvag(p){ try{ return localStorage.getItem(mappSokvagKey(p.id)) || ""; }catch(e){ return ""; } }
 function projektMappBlock(p){
+  if(p.mappSokvagAbs){
+    return `<div class="file-row" style="align-items:center;border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:#f2f7ee;flex-wrap:wrap">
+      <span>🗂 <b>Projektmapp:</b> <b>${esc(p.mappNamn||"")}</b> <span style="color:var(--muted);font-size:.75rem">( ${esc(p.mappSokvagAbs)} )</span></span>
+      <span style="display:flex;gap:6px;align-items:center">
+      <button class="mail-btn" style="border:none;cursor:pointer" onclick="openProjektMapp()">📁 Öppna i Utforskaren</button>
+      <button class="btn-sm secondary" onclick="mappValStart()">📂 Byt mapp</button>
+      <button class="icon-btn" title="Ta bort mappkopplingen (mappen påverkas ej)" onclick="taBortProjektMapp()">🗑</button>
+      </span></div>`;
+  }
   const harBladdrad = !(p.mappSokvagRel === undefined || p.mappSokvagRel === null);
   const harSkriven = !!(egenMappSokvag(p) || p.mappSokvag);
   if(!harBladdrad && !harSkriven){
     return `<div class="file-row" style="align-items:center;border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:#f2f7ee">
       <span>🗂 <b>Projektmapp:</b> <span style="color:var(--muted);font-size:.85rem">ingen mapp kopplad än</span></span>
       <span style="display:flex;gap:6px;align-items:center">
-      <button class="btn-sm" onclick="mappChooserForm()" title="Bläddra dig fram till mappen från den gemensamma mappen">📂 Koppla projektmapp (bläddra)</button>
+      <button class="btn-sm" onclick="mappValStart()" title="Bläddra i mappstrukturen från projektregistermappen (du kan även gå uppåt i trädet)">📂 Koppla projektmapp (bläddra)</button>
       </span></div>`;
   }
   if(harBladdrad){
@@ -998,7 +1032,7 @@ function projektMappBlock(p){
       <span>🗂 <b>Projektmapp:</b> <b>${esc(p.mappNamn||"rotmappen")}</b> <span style="color:var(--muted);font-size:.75rem">( ${esc(String(p.mappSokvagRel||"(gemensamma mappen)"))} )</span></span>
       <span style="display:flex;gap:6px;align-items:center">
       <button class="mail-btn" style="border:none;cursor:pointer" onclick="openProjektMapp()" title="Öppnar mappen i Utforskaren (sökvägen räknas ut från den gemensamma mappen på din dator)">📁 Öppna i Utforskaren</button>
-      <button class="btn-sm secondary" onclick="mappChooserForm()">📂 Byt mapp</button>
+      <button class="btn-sm secondary" onclick="mappValStart()">📂 Byt mapp</button>
       <button class="icon-btn" title="Ta bort mappkopplingen (mappen påverkas ej)" onclick="taBortProjektMapp()">🗑</button>
       </span></div>`;
   }
@@ -1010,10 +1044,83 @@ function projektMappBlock(p){
     <button class="btn-sm secondary" onclick="kopplaProjektMapp()">✎ Byt sökväg</button>
     </span></div>`;
 }
+let mappValCur = "", mappChildren = [];
+function closeMappVal(){ $("mappBg").classList.remove("open"); }
+function urlToWinPath(u){
+  try{
+    const nu = new URL(u);
+    let p = decodeURIComponent(nu.pathname);
+    p = p.replace(/^\//, "");
+    if(/^[A-Za-z]:/.test(p)) p = p.slice(0,2) + p.slice(2).replace(/\//g, "\\");
+    return p.replace(/[\\]+$/, "") || nu.pathname;
+  }catch(e){ return ""; }
+}
+function mappValStart(){
+  const p = getDetail(); if(!p) return;
+  mappValCur = appBaseDir() || "C:\\";
+  $("mappBg").classList.add("open");
+  mappRender();
+}
+async function mappRender(){
+  $("mappPath").textContent = mappValCur;
+  const list = $("mappList");
+  list.innerHTML = '<div style="color:var(--muted);padding:4px">Läser mappen ...</div>';
+  try{
+    let url = mappPathToFileUrl(mappValCur);
+    if(!url) throw 0;
+    if(!/\/$/.test(url)) url += "/";
+    const r = await fetch(url, {cache:"no-store"});
+    if(!r.ok) throw 0;
+    const t = await r.text();
+    const doc = new DOMParser().parseFromString(t, "text/html");
+    mappChildren = [];
+    let html = "";
+    doc.querySelectorAll("a[href]").forEach(a=>{
+      let href = a.getAttribute("href") || "";
+      let full = href;
+      try{ full = new URL(href, url).href; }catch(e){}
+      if(!/^file:/i.test(full) || !/\/$/.test(full)) return;
+      const abs = urlToWinPath(full);
+      if(!abs || abs === mappValCur) return;
+      if(!mappChildren.includes(abs)) mappChildren.push(abs);
+    });
+    mappChildren.sort((a,b)=>a.localeCompare(b,"sv"));
+    mappChildren.forEach((abs,i)=>{
+      const namn = abs.replace(/[\\]+$/,"").split("\\").pop() || abs;
+      html += '<div class="browse-item" onclick="mappInto(' + i + ')">📁 ' + esc(namn) + '</div>';
+    });
+    if(!mappChildren.length) html = '<div style="color:var(--muted);padding:4px">Inga undermappar kunde listas här (eller mappen är tom). Använd sökvägsfältet nedan.</div>';
+    list.innerHTML = html;
+  }catch(e){
+    list.innerHTML = '<div style="color:var(--muted);padding:4px">Mappen kunde inte läsas automatiskt här. Skriv eller klistra in sökvägen i fältet nedan och tryck Gå – det fungerar alltid.</div>';
+  }
+}
+function mappInto(i){ if(mappChildren[i]){ mappValCur = mappChildren[i]; mappRender(); } }
+function mappUp(){
+  const c = mappValCur.replace(/[\\\s]+$/,"");
+  if(/^[A-Za-z]:$/.test(c)) return;
+  const ix = c.lastIndexOf("\\");
+  mappValCur = ix > 2? c.slice(0, ix) : c.slice(0,3);
+  mappRender();
+}
+function mappGoInput(){
+  const v = ($("mappInput").value||"").trim().replace(/^"+|"+$/g,"");
+  if(!v) return;
+  mappValCur = v;
+  mappRender();
+}
+function mappVald(){
+  const p = getDetail(); if(!p){ closeMappVal(); return; }
+  const c = mappValCur.replace(/[\\]+$/,"");
+  p.mappSokvagAbs = c;
+  p.mappNamn = c.split("\\").pop() || c;
+  markP(p); saveAll(); closeMappVal(); openDetail(currentDetail);
+  toast("📂 Projektmapp kopplad: «" + p.mappNamn + "». Knappen Öppna i Utforskaren är nu aktiv.");
+}
 function taBortProjektMapp(){
   const p = getDetail(); if(!p) return;
   if(!confirm("Ta bort mappkopplingen för projektet? Själva mappen påverkas ej.")) return;
-  delete p.mappSokvagRel; delete p.mappNamn;
+  delete p.mappSokvagRel; delete p.mappNamn; delete p.mappSokvagAbs;
   try{ localStorage.removeItem(mappSokvagKey(p.id)); }catch(e){}
   markP(p); saveAll(); renderFiler(p);
 }
@@ -1064,6 +1171,13 @@ function kopplaProjektMapp(){
 }
 function openProjektMapp(){
   const p = getDetail(); if(!p) return;
+  if(p.mappSokvagAbs){
+    const uri = "search-ms:crumb=location:" + encodeURIComponent(p.mappSokvagAbs) + "&displayname=" + encodeURIComponent(p.mappNamn || "Projektmapp");
+    window.location.href = uri;
+    toast("📁 Försöker öppna mappen i Utforskaren – godkänn i webbläsarfrågan.");
+    setTimeout(()=>kopieraMappSokvag(p.mappSokvagAbs), 900);
+    return;
+  }
   if(!(p.mappSokvagRel === undefined || p.mappSokvagRel === null)){
     const abs = mappAbsPath(p);
     if(!abs){ toast("⚠ Appen måste ligga i den gemensamma mappen för att sökvägen ska kunna räknas ut."); return; }
@@ -1667,7 +1781,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v16 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v16.1 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
