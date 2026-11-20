@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v18.3</title>
+<title>Projektregister v18.4</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -136,7 +136,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 18.3</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 18.4</b></div>
     </div>
   </div>
   <div class="actions">
@@ -224,7 +224,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 18.3 – tydligare mötesflöde</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 18.4 – två vägar att boka möte</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -778,10 +778,15 @@ function renderRail(){
       <div class="ri" onclick="bytBilUrl(false)" style="color:var(--muted)"><span style="font-size:.8rem">✎ Byt adress / stäng av</span></div>
     </div></div>
     <div class="rw"><h4>📅 Möte</h4><div class="rb">
-      <div class="ri" onclick="bokaMote()"><b>Boka in ett möte</b><span style="color:var(--muted);font-size:.76rem">1 klick här + 1 klick i nedladdningsraden \u2192 mötesformuläret i Outlook-appen</span></div>
+      <div class="ri" onclick="bokaMoteWeb()" title="Snabbast: ett klick – bokningen öppnas i Outlook på webben"><b>Boka möte (snabbast)</b><span style="color:var(--muted);font-size:.76rem">ett klick → mötesbokningen öppnas direkt</span></div>
+      <div class="ri" onclick="bokaMote()" title="Om du hellre bokar i Outlook-programmet på datorn"><b>Boka möte i Outlook-appen</b><span style="color:var(--muted);font-size:.76rem">+ ett klick på filen i nedladdningsraden (Ctrl+J)</span></div>
     </div></div>`;
 }
 function icsEsc(t){ return String(t||"").replace(/\\\s*;/g," ").replace(/;/g,"\;").replace(/,/g,"\,").replace(/\r?\n/g," "); }
+function bokaMoteWeb(){
+  window.open("https://outlook.office.com/owa/?path=/calendar/action/compose&rru=addevent", "_blank");
+  toast("📅 Outlooks mötesbokning öppnas.");
+}
 function bokaMote(){
   const nu = new Date();
   nu.setHours(nu.getHours()+1, 0, 0, 0);
@@ -1810,7 +1815,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v18.3 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v18.4 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
