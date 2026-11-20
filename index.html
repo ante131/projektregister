@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v21</title>
+<title>Projektregister v22</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -136,7 +136,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 21</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 22</b></div>
     </div>
   </div>
   <div class="actions">
@@ -224,7 +224,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 21 – återkommande + etapper utan datum</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 22 – fristående uppgifter + bilder</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -473,6 +473,41 @@ function tombMap(){
   (data.tabort||[]).forEach(t=>{ if(t && t.id && (!m.has(t.id) || String(t.datum||"") > String(m.get(t.id).datum||""))) m.set(t.id, t); });
   return m;
 }
+function migrateUppgifter(){
+  if(!data.aterkommande) { try{ data.aterkommande = JSON.parse(localStorage.getItem("aterkommande")||"null") || {list:[],updated:""}; }catch(e){ data.aterkommande = {list:[],updated:""}; } }
+  data.aterkommande.list = data.aterkommande.list || [];
+  let changed = false;
+  data.projects.forEach(p=>{
+    if(p.uppgifter && p.uppgifter.length){
+      p.uppgifter.forEach(u=>{
+        if(u && u.id && !data.aterkommande.list.some(x=>x.id===u.id))
+          data.aterkommande.list.push({id:u.id, namn:u.namn, intervall:u.intervall});
+      });
+      delete p.uppgifter; changed = true;
+    }
+  });
+  if(changed){ data.aterkommande.updated = new Date().toISOString(); persist(); }
+}
+function aterkommandeSpara(){
+  data.aterkommande.updated = new Date().toISOString();
+  try{ localStorage.setItem("aterkommande", JSON.stringify(data.aterkommande)); }catch(e){}
+  persist(); writeSharedNow(true); updateSaveInfo(); renderRail();
+}
+function nyAterkommande(){
+  const namn = prompt("Namn på den återkommande uppgiften (t.ex. Veckorond VA-anläggningarna, Månadsräkning kemikalier):","");
+  if(!namn || !namn.trim()) return;
+  const iv = prompt("Hur ofta? Skriv 1 = varje dag, 2 = varje vecka, 3 = varje månad, 4 = varje år:","2");
+  const m = {"1":"dag","2":"vecka","3":"manad","4":"ar"}[String(iv||"").trim()];
+  if(!m){ toast("⚠ Skriv 1, 2, 3 eller 4."); return; }
+  data.aterkommande.list.push({id:uid(), namn:namn.trim(), intervall:m});
+  aterkommandeSpara(); renderRail();
+  toast("🔁 Uppgiften tillagd – visas i listan här.");
+}
+function taBortAterkommande(id){
+  if(!confirm("Ta bort den återkommande uppgiften?")) return;
+  data.aterkommande.list = data.aterkommande.list.filter(x=>x.id!==id);
+  aterkommandeSpara(); renderRail();
+}
 function mergeIntoLocal(src){
   data.tabort = data.tabort || [];
   (src.tabort||[]).forEach(st=>{
@@ -486,6 +521,9 @@ function mergeIntoLocal(src){
     const ts = tmap.get(p.id);
     return !(ts && String(ts.datum||"") >= String(p.andrad||""));
   });
+  if(src.aterkommande && String(src.aterkommande.updated||"") > String((data.aterkommande||{}).updated||"")){
+    data.aterkommande = src.aterkommande; try{ localStorage.setItem("aterkommande", JSON.stringify(data.aterkommande)); }catch(e){}
+  }
   if(src.settings && String(src.settings.updated||"") > String((data.settings||{}).updated||"")){
     data.settings = Object.assign({}, data.settings||{}, src.settings);
   }
@@ -508,7 +546,7 @@ async function writeSharedNow(force){
   try{
     if(!force && dataUnchanged()) return;
     const entry = await sharedDir.getFileHandle(ownEntryName, {create:true});
-    const payload = JSON.stringify({projects:data.projects, tabort:data.tabort||[], settings:data.settings||{}, updated:data.updated, saved:data.saved});
+    const payload = JSON.stringify({projects:data.projects, tabort:data.tabort||[], aterkommande:data.aterkommande||{list:[]}, settings:data.settings||{}, updated:data.updated, saved:data.saved});
     if(!force && payload === lastWritten) return;
     const w = await entry.createWritable();
     await w.write(payload);
@@ -746,6 +784,7 @@ function summaryYears(){
 }
 function renderRail(){
   const rail = $("sideRail"); if(!rail) return;
+  migrateUppgifter();
   const today = new Date(); today.setHours(0,0,0,0);
   const om14 = new Date(today.getTime()+14*86400000);
   const warns = [];
@@ -770,13 +809,14 @@ function renderRail(){
       kommande.length? kommande.slice(0,8).map(k=>`<div class="ri" onclick="openDetail('${k.p.id}')"><b>${esc(k.namn)}</b><span style="color:var(--muted);font-size:.76rem">${fmtDate(k.datum)}</span></div>`).join("")
         : '<div class="none">Inget planerat inom 14 dagar.</div>'
     }</div></div>
-    ${(function(){ const re = []; data.projects.forEach(pp=> (pp.uppgifter||[]).forEach(u=> re.push({pp,u})));
-      if(!re.length) return "";
-      return `<div class="rw"><h4>🔁 Återkommande</h4><div class="rb">` +
-        re.map(r=>{ const b=uppgiftBadge(r.u.intervall);
-          return `<div class="ri" onclick="openDetail('${r.pp.id}')" style="padding:3px 2px;font-size:.82rem"><b>${esc(r.u.namn)}</b> <span style="color:var(--muted);font-size:.72rem">${esc(b[0])} – ${esc(r.pp.namn)}</span></div>`;
-        }).join("") + `</div></div>`;
-    })()}
+    <div class="rw"><h4 style="display:flex;justify-content:space-between;align-items:center">🔁 Återkommande uppgifter
+      <button class="btn-sm secondary" onclick="nyAterkommande()" style="margin:0;padding:2px 8px">＋ Ny</button></h4>
+      <div class="rb">${ (data.aterkommande&&data.aterkommande.list||[]).length?
+        data.aterkommande.list.map(u=>{ const b=uppgiftBadge(u.intervall);
+          return `<div class="ri" style="padding:3px 2px;font-size:.84rem;align-items:center;display:flex;justify-content:space-between">
+            <span><b>${esc(u.namn)}</b> <span style="color:var(--muted);font-size:.72rem">• ${esc(b[0])}</span></span>
+            <button class="icon-btn" title="Ta bort" onclick="taBortAterkommande('${esc(u.id)}')">🗑</button></div>`;
+        }).join("") : '<div class="none">Inga återkommande uppgifter ännu.</div>' }</div></div>
     <div class="rw"><h4>\ud83d\udca1 Senast ändrade</h4><div class="rb">${
       senaste.length? senaste.map(p=>`<div class="ri" onclick="openDetail('${p.id}')"><b>${esc(p.namn)}</b><span style="color:var(--muted);font-size:.76rem">${catOf(p)}</span></div>`).join("")
         : '<div class="none">Inga projekt ännu.</div>'
@@ -942,43 +982,10 @@ function renderOversikt(p){
           <span class="e-datum">${fmtDate(e.datum)}</span>
           ${w?`<span class="warn-flag">${w.level==="red"?"⚠ Passerad":"⚠ < 1 vecka"}</span>`:""}</div>`;
       }).join("") : `<span style="color:var(--muted)">Inga etapper registrerade ännu.</span>`
-    }</div></div>
-    <div class="card"><div class="card-h"><h3>🔁 Återkommande uppgifter</h3>
-      <button class="btn-sm secondary" onclick="nyUppgift()">＋ Ny återkommande uppgift</button></div>
-    <div class="body">${uppgifterLista(p)}</div></div>`;
+    }</div></div>`;
 }
 function uppgiftBadge(iv){
   return {dag:["Dagligen",""],vecka:["Veckovis",""],manad:["Månadsvis",""]}[iv] || ["Årsvis",""];
-}
-function uppgifterLista(p){
-  const arr = p.uppgifter||[];
-  if(!arr.length) return '<span style="color:var(--muted);font-size:.85rem">Inga återkommande uppgifter ännu. Klicka på + Ny för sådant som rundor, mätningar eller rapporter som återkommer regelbundet – de visas som stillsamma påminnelser, aldrig som varningar.</span>';
-  return arr.map(u=>{
-    const b = uppgiftBadge(u.intervall);
-    return `<div class="file-row" style="align-items:center">
-      <span>🔁 <b>${esc(u.namn)}</b> <span style="color:var(--muted);font-size:.76rem">• ${esc(b[0])}</span></span>
-      <span style="display:flex;gap:6px;align-items:center">
-      <button class="icon-btn" title="Ta bort den återkommande uppgiften" onclick="taBortUppgift('${esc(u.id)}')">🗑</button></span></div>`;
-  }).join("");
-}
-function nyUppgift(){
-  const p = getDetail(); if(!p) return;
-  const namn = prompt("Namn på den återkommande uppgiften (t.ex. Veckorond, Månadsräkning, Årsrevision):","");
-  if(!namn || !namn.trim()) return;
-  const iv = prompt("Hur ofta? Skriv 1 = varje dag, 2 = varje vecka, 3 = varje månad, 4 = varje år:","2");
-  const m = {"1":"dag","2":"vecka","3":"manad","4":"ar"}[String(iv||"").trim()];
-  if(!m){ toast("⚠ Skriv 1, 2, 3 eller 4."); return; }
-  p.uppgifter = p.uppgifter||[];
-  p.uppgifter.push({id:uid(), namn:namn.trim(), intervall:m});
-  markP(p); saveAll(); renderOversikt(p); renderRail();
-  toast("🔁 Uppgiften tillagd – syns här och som stillsam påminnelse i sidopanelen.");
-}
-function taBortUppgift(id){
-  const p = getDetail(); if(!p) return;
-  const u = (p.uppgifter||[]).find(x=>x.id===id);
-  if(!u || !confirm("Ta bort återkommande uppgiften?")) return;
-  p.uppgifter = p.uppgifter.filter(x=>x.id!==id);
-  markP(p); saveAll(); renderOversikt(p); renderRail();
 }
 function renderEtapper(p){
   $("p-etapper").innerHTML = `<div class="card"><div class="card-h"><h3>Etapper &amp; milstolpar</h3>
@@ -1016,6 +1023,7 @@ function renderNotes(p){
     <button class="btn-sm" onclick="noteForm()">＋ Ny anteckning</button></div>
     <div class="body">${ (p.anteckningar||[]).length? p.anteckningar.map((n,i)=>`
       <div class="note"><div style="white-space:pre-wrap">${esc(n.text)}</div>
+        ${n.bild? `<img src="${esc(n.bild)}" style="max-width:100%;max-height:420px;border-radius:10px;border:1px solid var(--border);margin-top:6px;display:block">`:""}
         <div class="meta"><span>${esc(n.av||"")} ${n.datum? "· "+new Date(n.datum).toLocaleString("sv-SE"):""}</span>
         <span><button class="icon-btn" title="Redigera" onclick="noteForm(${i})">✏️</button>
         <button class="icon-btn" title="Ta bort" onclick="delItem('anteckningar',${i},'anteckningen')">🗑</button></span></div>
@@ -1026,7 +1034,7 @@ function noteForm(i){
   const p = getDetail();
   const n = i!=null? p.anteckningar[i] : {text:"",av:""};
   m2({title: i!=null? "Redigera anteckning":"Ny anteckning", key:"anteckningar", i,
-      fields:[["av","Författare (valfritt)",n.av||"","text"],["text","Anteckning *",n.text||"","textarea"]],
+      fields:[["av","Författare (valfritt)",n.av||"","text"],["bild","Bild (valfri – syns i anteckningen)",n.bild||"","image"],["text","Anteckning *",n.text||"","textarea"]],
       required:["text"]});
 }
 /* ---------- Filer & länkar ---------- */
@@ -1445,12 +1453,40 @@ function m2(cfg){
   $("m2body").innerHTML = cfg.fields.map(([id,label,val,type])=>{
     if(type==="textarea") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><textarea id="m2_${id}" style="min-height:110px">${esc(val)}</textarea></div>`;
     if(type==="file") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="file" id="m2_${id}" multiple></div>`;
+    if(type==="image") return `<div class="field" style="margin-bottom:12px"><label>${label}</label>
+      <input type="file" accept="image/*" id="m2_${id}" onchange="m2BildVald(this, 'm2_${id}_prev')">
+      <div id="m2_${id}_prev" style="margin-top:6px">${val? `<img src="${esc(val)}" style="max-width:180px;border-radius:8px;border:1px solid var(--border)">`: `<span style="color:var(--muted);font-size:.76rem">Ingen bild vald.</span>`}</div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:4px">Bilden minskas automatiskt för att inte fylla lagringen.</div></div>`;
     if(type==="filelist") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><select id="m2_${id}" multiple size="12" style="width:100%">${val}</select><div style="color:var(--muted);font-size:.75rem;margin-top:4px">Håll Ctrl för att välja flera.</div></div>`;
     return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="${type}" id="m2_${id}" value="${esc(val)}" style="width:100%"></div>`;
   }).join("");
   $("m2bg").classList.add("open");
   const first = $("m2_"+cfg.fields[0][0]);
   if(first && first.focus) setTimeout(()=>first.focus(),50);
+}
+function m2BildVald(inp, prevId){
+  const f = inp.files && inp.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let {width:w, height:h} = img;
+      const maxw = 1200;
+      if(w > maxw){ h = Math.round(h*maxw/w); w = maxw; }
+      const cv = document.createElement("canvas");
+      cv.width = w; cv.height = h;
+      cv.getContext("2d").drawImage(img, 0, 0, w, h);
+      let data;
+      try{ data = cv.toDataURL("image/jpeg", 0.82); }catch(e){ data = r.result; }
+      if(data.length > 1.6*1024*1024){ toast("\u26a0 Bilden är för stor även efter minskning – välj en mindre bild."); return; }
+      inp._bild = data;
+      const pv = $(prevId);
+      if(pv) pv.innerHTML = `<img src="${data}" style="max-width:180px;border-radius:8px;border:1px solid var(--border)">`;
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(f);
 }
 function closeM2(){ $("m2bg").classList.remove("open"); m2cfg = null; }
 async function saveM2(){
@@ -1518,7 +1554,10 @@ async function saveM2(){
     return;
   }
   const obj = {}; let ok = true;
-  cfg.fields.forEach(([id])=>{ obj[id] = ($("m2_"+id).value||"").trim(); });
+  cfg.fields.forEach(([id,,val2,type])=>{
+    if(type==="image"){ obj[id] = ($("m2_"+id)._bild !== undefined? $("m2_"+id)._bild : (val2||"")); }
+    else obj[id] = ($("m2_"+id).value||"").trim();
+  });
   (cfg.required||[]).forEach(k=>{
     if(!obj[k]){ ok=false; toast("⚠ Fältet måste fyllas i."); $("m2_"+k).focus(); }
   });
@@ -1842,7 +1881,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v21 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v22 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
