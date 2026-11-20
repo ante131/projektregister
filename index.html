@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v16.1</title>
+<title>Projektregister v17</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -136,7 +136,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 16.1</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 17</b></div>
     </div>
   </div>
   <div class="actions">
@@ -224,7 +224,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 16.1 – mappstruktur</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 17 – mötesbokning + sökväg</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -331,7 +331,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     </div>
     <footer>
       <button class="secondary" onclick="closeMappVal()">Avbryt</button>
-      <button onclick="mappVald()">📂 Välj denna mapp</button>
+      <button id="mappValBtn" onclick="mappVald()">📂 Välj denna mapp</button>
     </footer>
   </div>
 </div>
@@ -776,7 +776,39 @@ function renderRail(){
     <div class="rw"><h4>🚗 Bilbokning</h4><div class="rb">
       <div class="ri" onclick="openBilBokning()"><b>Öppna bokningssidan</b><span style="color:var(--muted);font-size:.76rem">${esc((data.settings||{}).bilUrl||"klicka för att ställa in adressen")}</span></div>
       <div class="ri" onclick="bytBilUrl(false)" style="color:var(--muted)"><span style="font-size:.8rem">✎ Byt adress / stäng av</span></div>
+    </div></div>
+    <div class="rw"><h4>📅 Möte</h4><div class="rb">
+      <div class="ri" onclick="bokaMote()"><b>Boka in ett möte</b><span style="color:var(--muted);font-size:.76rem">skapar en kalenderbokning som öppnas i Outlook</span></div>
     </div></div>`;
+}
+function icsEsc(t){ return String(t||"").replace(/\\\s*;/g," ").replace(/;/g,"\;").replace(/,/g,"\,").replace(/\r?\n/g," "); }
+function bokaMote(){
+  const amne = prompt("Ämne för mötet:", "Möte VA-projekt") || "";
+  if(!amne) return;
+  const datum = prompt("Datum (åååå-mm-dd):", new Date().toISOString().slice(0,10));
+  if(!datum) return;
+  const tid = prompt("Starttid (hh:mm):", "09:00");
+  if(!tid) return;
+  const langd = prompt("Längd i minuter:", "60");
+  if(!langd) return;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(datum).trim());
+  const t = /^(\d{1,2}):(\d{2})$/.exec(String(tid).trim());
+  if(!m || !t){ toast("⚠ Datum/tid kunde inte tolkas (använd åååå-mm-dd och hh:mm)."); return; }
+  const dt = m[1]+m[2]+m[3]+"T"+String(t[1]).padStart(2,"0")+t[2]+"00";
+  const end = new Date(new Date(m[1]+"-"+m[2]+"-"+m[3]+"T"+String(t[1]).padStart(2,"0")+":"+t[2]+":00").getTime() + (parseInt(langd)||60)*60000);
+  const dtEnd = end.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+  const now = new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+  const uid = " mote-"+Date.now()+"@uppvidinge";
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Uppvidinge VA//Projektregister//SV","BEGIN:VEVENT",
+    "UID:"+uid,"DTSTAMP:"+now,"DTSTART:"+dt,"DTEND:"+dtEnd,"SUMMARY:"+icsEsc(amne),
+    "DESCRIPTION:"+icsEsc("Skapad via Projektregister"),"END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const blob = new Blob([ics], {type:"text/calendar;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "mote.ics";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+  toast("📅 Kalenderbokningen hämtas som mote.ics – öppna filen (dubbelklick) så skapas mötet i Outlook/er kalender.");
 }
 function openBilBokning(){
   const s = data.settings || (data.settings = {});
@@ -1031,7 +1063,8 @@ function projektMappBlock(p){
     return `<div class="file-row" style="align-items:center;border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:#f2f7ee;flex-wrap:wrap">
       <span>🗂 <b>Projektmapp:</b> <b>${esc(p.mappNamn||"rotmappen")}</b> <span style="color:var(--muted);font-size:.75rem">( ${esc(String(p.mappSokvagRel||"(gemensamma mappen)"))} )</span></span>
       <span style="display:flex;gap:6px;align-items:center">
-      <button class="mail-btn" style="border:none;cursor:pointer" onclick="openProjektMapp()" title="Öppnar mappen i Utforskaren (sökvägen räknas ut från den gemensamma mappen på din dator)">📁 Öppna i Utforskaren</button>
+      <button class="mail-btn" style="border:none;cursor:pointer" onclick="openProjektMapp()" title="Försöker öppna mappen i Utforskaren automatiskt"> 📁 Öppna i Utforskaren</button>
+      <button class="btn-sm secondary" onclick="mappKopiera()" title="Kopierar sökvägen så du kan klistra in den i Utforskarens adressfält (Ctrl+L) – alltid"> 📋 Kopiera sökväg</button>
       <button class="btn-sm secondary" onclick="mappValStart()">📂 Byt mapp</button>
       <button class="icon-btn" title="Ta bort mappkopplingen (mappen påverkas ej)" onclick="taBortProjektMapp()">🗑</button>
       </span></div>`;
@@ -1063,6 +1096,8 @@ function mappValStart(){
 }
 async function mappRender(){
   $("mappPath").textContent = mappValCur;
+  const vb = $("mappValBtn");
+  if(vb) vb.textContent = "📂 Välj: " + (mappValCur.replace(/[\\]+$/, "").split("\\").pop() || mappValCur);
   const list = $("mappList");
   list.innerHTML = '<div style="color:var(--muted);padding:4px">Läser mappen ...</div>';
   try{
@@ -1108,6 +1143,12 @@ function mappGoInput(){
   if(!v) return;
   mappValCur = v;
   mappRender();
+}
+function mappKopiera(){
+  const p = getDetail(); if(!p) return;
+  const abs = p.mappSokvagAbs || mappAbsPath(p) || p.mappSokvag;
+  if(!abs){ toast("⚠ Ingen mappkoppling att kopiera."); return; }
+  kopieraMappSokvag(abs);
 }
 function mappVald(){
   const p = getDetail(); if(!p){ closeMappVal(); return; }
@@ -1174,7 +1215,7 @@ function openProjektMapp(){
   if(p.mappSokvagAbs){
     const uri = "search-ms:crumb=location:" + encodeURIComponent(p.mappSokvagAbs) + "&displayname=" + encodeURIComponent(p.mappNamn || "Projektmapp");
     window.location.href = uri;
-    toast("📁 Försöker öppna mappen i Utforskaren – godkänn i webbläsarfrågan.");
+    toast("📁 Försöker öppna mappen i Utforskaren – godkänn i webbläsarfrågan. Om fel mapp öppnas: använd «Kopiera sökväg» och klistra in i Utforskarens adressfält (Ctrl+L).");
     setTimeout(()=>kopieraMappSokvag(p.mappSokvagAbs), 900);
     return;
   }
@@ -1781,7 +1822,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v16.1 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v17 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
