@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v23.2</title>
+<title>Projektregister v24</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -137,7 +137,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 23.2</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 24</b></div>
     </div>
   </div>
   <div class="actions">
@@ -225,7 +225,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 23.2 – fix: spara + anteckningar</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 24 – Nu i appen + meddelanden</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -495,6 +495,40 @@ function aterkommandeSpara(){
   persist(); writeSharedNow(true); updateSaveInfo(); renderRail();
 }
 function aterkommandeSparaVsAnnan(){ try{ if(m2cfg && m2cfg.key==="_ingen") aterkommandeSpara(); else autosave(); }catch(e){} }
+function skickaMeddelande(till){
+  const text = prompt("Meddelande till " + till + ":","");
+  if(text === null) return;
+  if(!text.trim()){ toast("\u26a0 Skriv ett meddelande f\u00f6rst."); return; }
+  (data.meddelanden = data.meddelanden||[]).push({id:uid(), fran:(getUser()||"Ok\u00e4nd"), till:till, text:text.trim(), datum:new Date().toISOString()});
+  saveAll();
+  toast("📨 Meddelande skickat till " + till + ".");
+}
+function minaMeddelanden(){
+  const jag = (getUser()||"").trim().toLowerCase();
+  const list = (data.meddelanden||[]).filter(m=>String(m.till||"").trim().toLowerCase() === jag)
+    .sort((a,b)=>String(b.datum||"").localeCompare(String(a.datum||"")));
+  let las = [];
+  try{ las = JSON.parse(localStorage.getItem("lastaMsg")||"[]"); }catch(e){}
+  const nya = list.filter(m=>!las.includes(m.id)).length;
+  const html = list.length? list.slice(0,25).map(m=>`<div class="file-row" style="align-items:flex-start;flex-wrap:wrap">
+      <span>📩 <b>${esc(m.fran)}</b> <span style="color:var(--muted);font-size:.75rem">${new Date(m.datum).toLocaleString("sv-SE")}</span><br>
+      <span style="white-space:pre-wrap">${esc(m.text)}</span></span></div>`).join("") : '<div class="none">Inga meddelanden till dig \u00e4nnu.</div>';
+  $("m2title").textContent = "Meddelanden till dig" + (nya? " \u2013 " + nya + " nya":"");
+  $("m2body").innerHTML = html + '<div style="color:var(--muted);font-size:.72rem;margin-top:8px">Meddelandena f\u00f6ljer med datafilerna \u2013 raderas inte automatiskt, de senaste 25 visas. Svarar du hj\u00e4rifr\u00e5n? Tryck p\u00e5 namnet i "Nu i appen" och skicka ett nytt.</div>';
+  m2cfg = null;
+  $("m2bg").classList.add("open");
+  try{ localStorage.setItem("lastaMsg", JSON.stringify(list.map(m=>m.id))); }catch(e){}
+}
+function kollaNyaMeddelanden(){
+  const jag = (getUser()||"").trim().toLowerCase();
+  let las = [];
+  try{ las = JSON.parse(localStorage.getItem("lastaMsg")||"[]"); }catch(e){}
+  const nya = (data.meddelanden||[]).filter(m=>String(m.till||"").trim().toLowerCase() === jag && !las.includes(m.id));
+  if(nya.length){
+    lastUnread = nya.length;
+    toast("📩 Nytt meddelande fr\u00e5n " + nya[0].fran + " (" + nya.length + " ol\u00e4sta) \u2013 \u00f6ppna Meddelanden.");
+  }
+}
 function nyAterkommande(){ aterkommandeDialog(null); }
 function redigeraAterkommande(id){
   const u = data.aterkommande && data.aterkommande.list.find(x=>x.id===id);
@@ -544,6 +578,9 @@ function mergeIntoLocal(src){
     const ts = tmap.get(p.id);
     return !(ts && String(ts.datum||"") >= String(p.andrad||""));
   });
+  data.meddelanden = data.meddelanden||[];
+  const egnaIds = new Set(data.meddelanden.map(m=>m.id));
+  (src.meddelanden||[]).forEach(m=>{ if(m && m.id && !egnaIds.has(m.id)) data.meddelanden.push(m); });
   if(src.aterkommande && String(src.aterkommande.updated||"") > String((data.aterkommande||{}).updated||"")){
     data.aterkommande = src.aterkommande; try{ localStorage.setItem("aterkommande", JSON.stringify(data.aterkommande)); }catch(e){}
   }
@@ -569,7 +606,7 @@ async function writeSharedNow(force){
   try{
     if(!force && dataUnchanged()) return;
     const entry = await sharedDir.getFileHandle(ownEntryName, {create:true});
-    const payload = JSON.stringify({projects:data.projects, tabort:data.tabort||[], aterkommande:data.aterkommande||{list:[]}, settings:data.settings||{}, updated:data.updated, saved:data.saved});
+    const payload = JSON.stringify({projects:data.projects, tabort:data.tabort||[], aterkommande:data.aterkommande||{list:[]}, settings:data.settings||{}, meddelanden:data.meddelanden||[], updated:data.updated, saved:data.saved});
     if(!force && payload === lastWritten) return;
     const w = await entry.createWritable();
     await w.write(payload);
@@ -744,6 +781,7 @@ async function autoConnect(){
   try{ perm = await dir.queryPermission({mode:"readwrite"}); }catch(e){}
   if(perm === "granted"){
     sharedDir = dir; sharedDirName = dir.name; ownEntryName = namn; sharedErr = 0; lastWritten = null;
+  skrivAktivitet(); lasAktivitet();
     await refreshFromShared(true);
     sharedUI();
     toast("\ud83d\udd17 Automatiskt ansluten till mappen \u2013synkning sker l\u00f6pande.");
@@ -759,6 +797,38 @@ async function autoConnect(){
     $("connectBg").classList.add("open");
   }
 }
+let aktivLista = [];
+let lastUnread = 0;
+async function skrivAktivitet(){
+  if(!sharedDir || !ownEntryName) return;
+  try{
+    const fh = await sharedDir.getFileHandle("aktiv-" + ownEntryName, {create:true});
+    const w = await fh.createWritable();
+    await w.write(JSON.stringify({namn: (getUser()||"Ok\u00e4nd"), sist: new Date().toISOString()}));
+    await w.close();
+  }catch(e){}
+}
+async function lasAktivitet(){
+  if(!sharedDir){ aktivLista = []; return; }
+  const nu = Date.now(); const ut = [];
+  try{
+    for await (const entry of sharedDir.values()){
+      if(entry.kind !== "file" || !/^aktiv-.*\.json$/i.test(entry.name)) continue;
+      try{
+        const f = await entry.getFile();
+        if(!f.size) continue;
+        const a = JSON.parse(await f.text());
+        const alder = nu - new Date(a.sist||0).getTime();
+        if(a.namn && alder < 5*60*1000) ut.push({namn: a.namn, sek: Math.round(alder/1000)});
+      }catch(e){}
+    }
+    ut.sort((a,b)=>a.sek-b.sek);
+    aktivLista = ut;
+    renderRail();
+  }catch(e){}
+}
+setInterval(()=>{ skrivAktivitet(); lasAktivitet(); kollaNyaMeddelanden(); }, 20000);
+skrivAktivitet();
 setInterval(()=>refreshFromShared(false), 20000);
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refreshFromShared(false); });
 
@@ -848,6 +918,13 @@ function renderRail(){
       senaste.length? senaste.map(p=>`<div class="ri" onclick="openDetail('${p.id}')"><b>${esc(p.namn)}</b><span style="color:var(--muted);font-size:.76rem">${catOf(p)}</span></div>`).join("")
         : '<div class="none">Inga projekt ännu.</div>'
     }</div></div>
+    <div class="rw"><h4 style="display:flex;justify-content:space-between;align-items:center">👥 Nu i appen
+      <button class="btn-sm secondary" onclick="minaMeddelanden()" style="margin:0;padding:2px 8px">📩 Meddelanden</button></h4>
+      <div class="rb">${ aktivLista.length?
+        aktivLista.map(a=>`<div class="ri" style="padding:4px 2px;cursor:default;align-items:center;justify-content:space-between">
+          <span><b>${esc(a.namn)}</b> <span style="color:var(--muted);font-size:.72rem">${a.sek<60? "• aktiv nu" : "• för " + Math.round(a.sek/60) + " min sedan"}</span></span>
+          <button class="btn-sm secondary" onclick="skickaMeddelande('${esc(a.namn)}')" style="margin:0;padding:2px 8px" title="Skicka ett meddelande">📨</button></div>`).join("")
+        : '<div class="none">Inga \u00e4r i appen just nu (eller mappen \u00e4r inte ansluten).</div>' }</div></div>
     <div class="rw"><h4>🚗 Bilbokning</h4><div class="rb">
       <div class="ri" onclick="openBilBokning()"><b>Öppna bokningssidan</b><span style="color:var(--muted);font-size:.76rem">${esc((data.settings||{}).bilUrl||"klicka för att ställa in adressen")}</span></div>
       <div class="ri" onclick="bytBilUrl(false)" style="color:var(--muted)"><span style="font-size:.8rem">✎ Byt adress / stäng av</span></div>
@@ -1994,7 +2071,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v23.2 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v24 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
