@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v26</title>
+<title>Projektregister v27</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -137,7 +137,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 26</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 27</b></div>
     </div>
   </div>
   <div class="actions">
@@ -207,12 +207,14 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <nav class="detail-tabs">
       <button class="dtab active" data-panel="oversikt">Översikt</button>
       <button class="dtab" data-panel="etapper">Etapper</button>
+      <button class="dtab" data-panel="schema">📅 Schema</button>
       <button class="dtab" data-panel="anteckningar">Anteckningar</button>
       <button class="dtab" data-panel="filer">Filer &amp; länkar</button>
       <button class="dtab" data-panel="kontakter">Kontakter</button>
     </nav>
     <section class="panel active" id="p-oversikt"></section>
     <section class="panel" id="p-etapper"></section>
+    <section class="panel" id="p-schema"></section>
     <section class="panel" id="p-anteckningar"></section>
     <section class="panel" id="p-filer"></section>
     <section class="panel" id="p-kontakter"></section>
@@ -225,7 +227,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 26 – sortera biblioteket</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 27 – Gantt + Teams-chatt</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -495,6 +497,22 @@ function aterkommandeSpara(){
   persist(); writeSharedNow(true); updateSaveInfo(); renderRail();
 }
 function aterkommandeSparaVsAnnan(){ try{ if(m2cfg && m2cfg.key==="_ingen") aterkommandeSpara(); else autosave(); }catch(e){} }
+function teamsChattNamn(namn){
+  let ep = "";
+  try{ ep = JSON.parse(localStorage.getItem("teamsEpost")||"{}")[namn] || ""; }catch(e){}
+  if(!ep){
+    ep = prompt("E-postadress till " + namn + " (sparas lokalt, frågas bara en gång):","");
+    if(!ep || !ep.trim()) return;
+    try{
+      const m = JSON.parse(localStorage.getItem("teamsEpost")||"{}");
+      m[namn] = ep.trim();
+      localStorage.setItem("teamsEpost", JSON.stringify(m));
+    }catch(e2){}
+    ep = ep.trim();
+  }
+  window.open("https://teams.microsoft.com/l/chat/0/0?users=" + encodeURIComponent(ep), "_blank");
+  toast("💬 Teams-chatten öppnas (behöver Teams på datorn alt. Teams på webben).");
+}
 function skickaMeddelande(till){
   const text = prompt("Meddelande till " + till + ":","");
   if(text === null) return;
@@ -1067,7 +1085,9 @@ function renderRail(){
       <div class="rb">${ aktivLista.length?
         aktivLista.map(a=>`<div class="ri" style="padding:4px 2px;cursor:default;align-items:center;justify-content:space-between">
           <span><b>${esc(a.namn)}</b> <span style="color:var(--muted);font-size:.72rem">${a.sek<60? "• aktiv nu" : "• för " + Math.round(a.sek/60) + " min sedan"}</span></span>
-          <button class="btn-sm secondary" onclick="skickaMeddelande('${esc(a.namn)}')" style="margin:0;padding:2px 8px" title="Skicka ett meddelande">📨</button></div>`).join("")
+          <span style="display:flex;gap:4px">
+          <button class="btn-sm secondary" onclick="skickaMeddelande('${esc(a.namn)}')" style="margin:0;padding:2px 8px" title="Skicka ett meddelande i appen">📨</button>
+          <button class="btn-sm secondary" onclick="teamsChattNamn('${esc(a.namn)}')" style="margin:0;padding:2px 8px" title="Öppna en Teams-chatt med personen">💬</button></span></div>`).join("")
         : '<div class="none">Inga \u00e4r i appen just nu (eller mappen \u00e4r inte ansluten).</div>' }</div></div>
     <div class="rw"><h4>🚗 Bilbokning</h4><div class="rb">
       <div class="ri" onclick="openBilBokning()"><b>Öppna bokningssidan</b><span style="color:var(--muted);font-size:.76rem">${esc((data.settings||{}).bilUrl||"klicka för att ställa in adressen")}</span></div>
@@ -1215,7 +1235,7 @@ function openDetail(id){
     <span style="font-size:1.3rem">⚠️</span><div><b>Etappvarning</b>
     <ul>${w.map(x=>`<li>${esc(x.text)}</li>`).join("")}</ul>
     <span style="font-size:.78rem;color:var(--muted)">Bocka för etappen som färdig eller ändra datumet för att avvisa varningen.</span></div></div>`:"";
-  renderOversikt(p); renderEtapper(p); renderNotes(p); renderFiler(p); renderKontakter(p);
+  renderOversikt(p); renderEtapper(p); renderNotes(p); renderFiler(p); renderKontakter(p); renderSchema(p);
   window.scrollTo(0,0);
 }
 function renderOversikt(p){
@@ -1310,6 +1330,61 @@ function toggleAterkommandeKlar(id){
 }
 function uppgiftBadge(iv){
   return {dag:["Dagligen",""],vecka:["Veckovis",""],manad:["Månadsvis",""]}[iv] || ["Årsvis",""];
+}
+function renderSchema(p){
+  const es = (p.etapper||[]).filter(e=>e.datum).sort((a,b)=>a.datum.localeCompare(b.datum));
+  const box = $("p-schema");
+  if(!es.length){
+    box.innerHTML = '<div class="card"><div class="card-h"><h3>📅 Tidslinje (Gantt)</h3></div><div class="body"><span style="color:var(--muted)">Gantt-schemat byggs av etappernas datum. Lägg till etapper med datum under fliken Etapper – de ritas då upp här automatiskt.</span></div></div>';
+    return;
+  }
+  const start = p.start? new Date(p.start+"T00:00") : new Date(es[0].datum+"T00:00");
+  let slut = p.slut? new Date(p.slut+"T00:00") : new Date(es[es.length-1].datum+"T00:00");
+  slut = new Date(Math.max(slut.getTime(), start.getTime() + 14*86400000));
+  const tid = slut - start || 86400000;
+  const pct = d => Math.max(0, Math.min(100, ((d - start) / tid) * 100));
+  const dag = new Date(es[0].datum+"T00:00");
+  const manga = es.slice(0, 18);
+  const idag = new Date(); idag.setHours(0,0,0,0);
+
+  // manadslinjer
+  let manader = "";
+  for(let dt = new Date(start); dt <= slut; dt.setMonth(dt.getMonth()+1), dt.setDate(1)){
+    if(dt < start) continue;
+    const v = pct(dt);
+    if(v > 1 && v < 99) manader += `<div style="position:absolute;left:${v}%;top:0;bottom:0;border-left:1px dashed var(--border)"></div>`;
+  }
+
+  const rader = manga.map((e,ix)=>{
+    const d0 = new Date(e.datum+"T00:00");
+    const nxt = manga[ix+1]? new Date(manga[ix+1].datum+"T00:00") : null;
+    let d1 = nxt? nxt : new Date(Math.min(slut.getTime(), d0.getTime() + 14*86400000));
+    if(d1 <= d0) d1 = new Date(d0.getTime() + 2*86400000);
+    const left = pct(d0), right = pct(d1);
+    const passerad = !e.klar && d0 < idag;
+    return `<div style="display:flex;align-items:center;gap:8px;margin:7px 0">
+      <div style="flex:0 0 150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem;${e.klar? "opacity:.7":""}" title="${esc(e.namn)} ${e.klar? "(klar)":""}">
+        ${e.klar? "✅ ":""}<b>${esc(e.namn)}</b></div>
+      <div style="flex:1;position:relative;height:22px;background:#f2f7ee;border-radius:11px">
+        ${manader}
+        <div title="${esc(e.namn)}: ${new Date(e.datum).toLocaleDateString("sv-SE")}${e.klar? " – klar":""}"
+          style="position:absolute;left:${left}%;width:${Math.max(1.5, right-left)}%;top:3px;bottom:3px;border-radius:9px;
+          background:${e.klar? "var(--primary)":(passerad? "#c66": "var(--accent)")};${e.klar? "opacity:.75;":""}"></div>
+        <div style="position:absolute;left:${pct(idag)}%;top:-2px;bottom:-2px;border-left:2px solid #333;opacity:.65" title="Idag"></div>
+      </div>
+      <div style="flex:0 0 78px;text-align:right;font-size:.72rem;color:var(--muted)">${new Date(e.datum).toLocaleDateString("sv-SE")}</div>
+    </div>`;
+  }).join("");
+
+  const period = `<div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin:4px 0 2px">
+    <span>${start.toLocaleDateString("sv-SE")}</span><span>Projektets period</span><span>${slut.toLocaleDateString("sv-SE")}</span></div>`;
+
+  box.innerHTML = `<div class="card"><div class="card-h"><h3>📅 Tidslinje – etapper (Gantt)</h3>
+      <span style="font-size:.75rem;color:var(--muted)">streckad linje = idag • grönt = klar • rött = passerat</span></div>
+    <div class="body">${period}
+      <div>${rader}</div>
+      <div style="color:var(--muted);font-size:.74rem;margin-top:8px">Varje etapp sträcker sig till nästa etapp (eller minst två veckor). Diagrammet följer start-/slutdatum och etappernas datum – ändra dem i projektet så uppdateras schemat.</div>
+    </div></div>`;
 }
 function renderEtapper(p){
   $("p-etapper").innerHTML = `<div class="card"><div class="card-h"><h3>Etapper &amp; milstolpar</h3>
@@ -1755,7 +1830,8 @@ function renderKontakter(p){
         <div class="c-info"><b>${esc(c.namn)}</b><span>${esc(c.roll||"")}${c.foretag?" · "+esc(c.foretag):""}${c.telefon?" · ☎ "+esc(c.telefon):""}</span>
         <span style="color:var(--primary)">${esc(c.epost||"")}</span></div>
         <span style="display:flex;gap:6px;align-items:center">
-          ${c.epost? `<a class="mail-btn" href="mailto:${encodeURIComponent(c.epost)}${p.amne? "?subject="+encodeURIComponent(p.amne):""}">✉ Mejla</a>`:""}
+          ${c.epost? `<a class="mail-btn" href="mailto:${encodeURIComponent(c.epost)}${p.amne? "?subject="+encodeURIComponent(p.amne):""}">✉ Mejla</a>
+          <a class="mail-btn" href="https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(c.epost)}" target="_blank" title="Öppnar en Teams-chatt med personen">💬 Teams</a>`:""}
           <button class="icon-btn" title="Redigera" onclick="kontaktForm(${i})">✏️</button>
           <button class="icon-btn" title="Ta bort" onclick="delItem('kontakter',${i},'kontakten')">🗑</button></span>
       </div>`).join("") : '<span style="color:var(--muted)">Inga kontakter registrerade.</span>'}
@@ -2223,7 +2299,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v26 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v27 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
