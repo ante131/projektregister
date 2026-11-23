@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v25</title>
+<title>Projektregister v25.1</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -137,7 +137,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 25</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 25.1</b></div>
     </div>
   </div>
   <div class="actions">
@@ -225,7 +225,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 25 – VA-biblioteket</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 25.1 – dra-och-släpp-PDF</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -571,28 +571,78 @@ function bibliotekDialog(b){
     }
   });
 }
+async function bibDroppa(ev){
+  ev.preventDefault(); ev.stopPropagation();
+  const fs = ev.dataTransfer && ev.dataTransfer.files? Array.from(ev.dataTransfer.files) : [];
+  if(!fs.length){ toast("⚠ Släpp en eller flera filer här."); return; }
+  if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) först."); return; }
+  let n = 0;
+  try{
+    const bas = await sharedDir.getDirectoryHandle("projektfiler", {create:true});
+    const sub = await bas.getDirectoryHandle("bibliotek", {create:true});
+    for(const f of fs){
+      if(f.size > MAX_FIL_MAPP){ toast("⚠ Filen " + f.name + " är större än " + (MAX_FIL_MAPP/(1024*1024)) + " MB."); continue; }
+      const unik = Date.now() + "-" + n + "-" + f.name.replace(/[\\/:*?"<>|]/g,"_");
+      const fh = await sub.getFileHandle(unik, {create:true});
+      const w = await fh.createWritable();
+      await w.write(await f.arrayBuffer());
+      await w.close();
+      data.bibliotek = data.bibliotek||{list:[],updated:""};
+      data.bibliotek.list.push({id:uid(), namn:f.name, mapp:"projektfiler/bibliotek/"+unik, fil:true});
+      n++;
+    }
+    if(n){ bibliotekSpara(); renderRail(); toast("📄 " + n + " fil(er) sparade i biblioteket."); }
+  }catch(e){ toast("⚠ Filerna kunde inte sparas: " + (e.message||"")); }
+}
+function bibDroppaOver(ev){ ev.preventDefault(); }
+async function openBibFil(id){
+  const b = bibliotekLista().find(x=>x.id===id);
+  if(!b || !b.fil) return;
+  try{
+    const parts = String(b.mapp||"").split("/").filter(Boolean);
+    let dh = sharedDir;
+    for(const p of parts.slice(0,-1)) dh = await dh.getDirectoryHandle(p);
+    const fh = await dh.getFileHandle(parts[parts.length-1]);
+    const file = await fh.getFile();
+    const url = URL.createObjectURL(file);
+    window.open(url, "_blank");
+    toast("📄 Öppnar " + b.namn + " i PDF-visaren.");
+    setTimeout(()=>URL.revokeObjectURL(url), 120000);
+  }catch(e){ toast("⚠ Filen kunde inte hämtas – kontrollera att mappen är ansluten."); }
+}
 function nyBibliotek(){ bibliotekDialog(null); }
 function redigeraBibliotek(id){ const b = bibliotekLista().find(x=>x.id===id); if(b) bibliotekDialog(b); }
-function taBortBibliotek(id){
+async function taBortBibliotek(id){
   const b = bibliotekLista().find(x=>x.id===id);
   if(!b || !confirm("Ta bort bibliotekslänken?")) return;
   data.bibliotek.list = data.bibliotek.list.filter(x=>x.id!==id);
+  if(b.fil && b.mapp && sharedDir){
+    try{
+      const parts = String(b.mapp).split("/").filter(Boolean);
+      let dh = sharedDir;
+      for(const p of parts.slice(0,-1)) dh = await dh.getDirectoryHandle(p);
+      await dh.removeEntry(parts[parts.length-1]);
+      toast("🗑 Länken togs bort – filen raderades även ur biblioteksmappen.");
+    }catch(e){ toast("🗑 Länken togs bort (filen kunde inte raderas i mappen)."); }
+  } else toast("🗑 Länken togs bort.");
   bibliotekSpara(); renderRail();
-  toast("🗑 Länken togs bort.");
 }
 function bibSok(id){
   const q = ($(id).value||"").toLowerCase();
   const box = $("bibLista");
   if(!box) return;
   const list = bibliotekLista().filter(b=> !q || (b.namn+" "+(b.kategori||"")+" "+(b.beskrivning||"")).toLowerCase().includes(q));
-  box.innerHTML = list.length? list.map(b=>`
+  box.innerHTML = `
+    <div ondrop="bibDroppa(event)" ondragover="bibDroppaOver(event)" style="border:1.5px dashed var(--border);border-radius:10px;padding:10px;text-align:center;color:var(--muted);font-size:.78rem;margin-bottom:8px;background:#f2f7ee;cursor:copy">
+      📂 <b>Släpp PDF-filer här</b><br>så kopieras de till biblioteket i den gemensamma mappen
+    </div>` + (list.length? list.map(b=>`
     <div class="ri" style="padding:4px 2px;align-items:center;justify-content:space-between">
-      <span onclick="window.open('${esc(b.url)}','_blank')" style="min-width:0;overflow:hidden;text-overflow:ellipsis;cursor:pointer" title="${esc(b.beskrivning||b.url)}">
-        <b>${esc(b.namn)}</b><br><span style="color:var(--muted);font-size:.72rem">${esc(b.kategori||"")}${b.beskrivning? " • "+esc(b.beskrivning.slice(0,40)):""}</span></span>
+      <span ${b.fil? `onclick="openBibFil('${esc(b.id)}')"`: `onclick="window.open('${esc(b.url)}','_blank')"`} style="min-width:0;overflow:hidden;text-overflow:ellipsis;cursor:pointer" title="${esc(b.fil? "PDF i biblioteksmappen – klicka för att öppna":(b.beskrivning||b.url))}">
+        ${b.fil? "📄 ":"🔗 "}<b>${esc(b.namn)}</b><br><span style="color:var(--muted);font-size:.72rem">${esc(b.kategori||"")}${b.beskrivning? " • "+esc(b.beskrivning.slice(0,40)):""}</span></span>
       <span style="display:flex;gap:4px;align-items:center;flex:none">
       <button class="icon-btn" title="Redigera" onclick="redigeraBibliotek('${esc(b.id)}')">✏️</button>
       <button class="icon-btn" title="Ta bort" onclick="taBortBibliotek('${esc(b.id)}')">🗑</button></span></div>`).join("")
-    : (q? '<div class="none">Inget träffade söket.</div>' : '<div class="none">Tryck + Ny för att lägga till länkar.</div>');
+    : (q? '<div class="none">Inget träffade söket.</div>' : '<div class="none">Släpp PDF-filer ovan, eller tryck + Ny för webblänkar.</div>'));
 }
 function nyAterkommande(){ aterkommandeDialog(null); }
 function redigeraAterkommande(id){
@@ -2151,7 +2201,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v25 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v25.1 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
