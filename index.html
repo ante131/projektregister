@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v24.2</title>
+<title>Projektregister v24.3</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -137,7 +137,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 24.2</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 24.3</b></div>
     </div>
   </div>
   <div class="actions">
@@ -225,7 +225,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 24.2 – emoji-fix</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 24.3 – stabilare online-status</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -800,7 +800,7 @@ async function autoConnect(){
   try{ perm = await dir.queryPermission({mode:"readwrite"}); }catch(e){}
   if(perm === "granted"){
     sharedDir = dir; sharedDirName = dir.name; ownEntryName = namn; sharedErr = 0; lastWritten = null;
-  skrivAktivitet(); lasAktivitet();
+  skrivAktivitet().then(()=>lasAktivitet()); lasAktivitet();
     await refreshFromShared(true);
     sharedUI();
     toast("\ud83d\udd17 Automatiskt ansluten till mappen \u2013synkning sker l\u00f6pande.");
@@ -841,12 +841,15 @@ async function lasAktivitet(){
         if(a.namn && alder < 5*60*1000) ut.push({namn: a.namn, sek: Math.round(alder/1000)});
       }catch(e){}
     }
+    const jag = (getUser()||"").trim().toLowerCase();
+    if(jag && !ut.some(a=>String(a.namn||"").trim().toLowerCase() === jag)) ut.push({namn:(getUser()||"").trim(), sek:0});
     ut.sort((a,b)=>a.sek-b.sek);
     aktivLista = ut;
     renderRail();
   }catch(e){}
 }
-setInterval(()=>{ skrivAktivitet(); lasAktivitet(); kollaNyaMeddelanden(); }, 20000);
+setInterval(()=>{ skrivAktivitet(); lasAktivitet(); kollaNyaMeddelanden(); }, 10000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && sharedDir){ skrivAktivitet(); lasAktivitet(); } });
 skrivAktivitet();
 setInterval(()=>refreshFromShared(false), 20000);
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refreshFromShared(false); });
@@ -2090,7 +2093,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v24.2 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v24.3 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
