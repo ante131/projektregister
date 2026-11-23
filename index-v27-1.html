@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v27</title>
+<title>Projektregister v27.1</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -137,7 +137,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 27</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 27.1</b></div>
     </div>
   </div>
   <div class="actions">
@@ -227,7 +227,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 27 – Gantt + Teams-chatt</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 27.1 – snabbvy i listan</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -1192,7 +1192,7 @@ function render(){
     `<th onclick="sortBy('${k}')">${l}${sortKey===k?(sortDir===1?" ▲":" ▼"):""}</th>`).join("")+"<th></th></tr>";
   document.querySelector("#tbl tbody").innerHTML = list.map(p=>{
     const w = projectWarns(p);
-    return `<tr onclick="openDetail('${p.id}')" style="cursor:pointer">
+    return `<tr id="rad-${p.id}" onclick="openDetail('${p.id}')" style="cursor:pointer">
       <td>${esc(p.nr||"")}</td>
       <td><b>${esc(p.namn)}</b>${w.length?`<div><span class="warn-flag">⚠ ${w.length} varning${w.length>1?"ar":""}</span></div>`:""}</td>
       <td>${esc(catOf(p))}</td>
@@ -1203,12 +1203,88 @@ function render(){
       <td>${fmtKr(p.budget)}</td>
       <td>${fmtKr(p.kostnad)}</td>
       <td style="white-space:nowrap">
+        <button class="icon-btn" id="vip-${p.id}" title="Fäll ut snabbvy (utan att öppna projektet)" onclick="event.stopPropagation();vipaRad('${p.id}')">▾</button>
         <button class="icon-btn" title="Öppna projekt" onclick="event.stopPropagation();openDetail('${p.id}')">📂</button>
         <button class="icon-btn" title="Ändra status" onclick="event.stopPropagation();openStatusMenu(event,'${p.id}')">🔄</button>
         <button class="icon-btn" title="Anteckningar" onclick="event.stopPropagation();gotoNotes('${p.id}')">📝</button>
         <button class="icon-btn" title="Redigera" onclick="event.stopPropagation();openForm('${p.id}',true)">✏️</button>
       </td>
     </tr>`;}).join("");
+}
+let expanderade = new Set();
+function vipaRad(id){
+  const rad = $("rad-" + id);
+  if(!rad) return;
+  const exp = rad.nextElementSibling;
+  if(exp && exp.classList && exp.classList.contains("exprow")){
+    exp.remove();
+    $("vip-" + id).textContent = "▾";
+    expanderade.delete(id);
+    return;
+  }
+  const p = data.projects.find(x=>x.id===id);
+  if(!p) return;
+  const tr = document.createElement("tr");
+  tr.className = "exprow";
+  const td = document.createElement("td");
+  td.colSpan = 10;
+  td.style.background = "#f7faf4";
+  td.style.padding = "14px 18px";
+  td.innerHTML = projektMini(p);
+  tr.appendChild(td);
+  rad.after(tr);
+  $("vip-" + id).textContent = "▴";
+  expanderade.add(id);
+}
+function miniGantt(p){
+  const es = (p.etapper||[]).filter(e=>e.datum).sort((a,b)=>a.datum.localeCompare(b.datum)).slice(0,12);
+  if(!es.length) return '<div style="color:var(--muted);font-size:.78rem">Inga etapper med datum ännu – tidslinjen visas när etapper finns.</div>';
+  const start = p.start? new Date(p.start+"T00:00") : new Date(es[0].datum+"T00:00");
+  let slut = p.slut? new Date(p.slut+"T00:00") : new Date(es[es.length-1].datum+"T00:00");
+  slut = new Date(Math.max(slut.getTime(), start.getTime()+14*86400000));
+  const tid = slut - start || 86400000;
+  const pct = d => Math.max(0, Math.min(100, ((d - start)/tid)*100));
+  const idag = new Date(); idag.setHours(0,0,0,0);
+  const rader = es.map((e,ix)=>{
+    const d0 = new Date(e.datum+"T00:00");
+    const nxt = es[ix+1]? new Date(es[ix+1].datum+"T00:00") : null;
+    let d1 = nxt? nxt : new Date(Math.min(slut.getTime(), d0.getTime()+14*86400000));
+    if(d1 <= d0) d1 = new Date(d0.getTime()+2*86400000);
+    const passerad = !e.klar && d0 < idag;
+    return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+      <div style="flex:0 0 150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.76rem">${e.klar? "✅ ":""}${esc(e.namn)}</div>
+      <div style="flex:1;position:relative;height:16px;background:#eef4e4;border-radius:8px">
+        <div style="position:absolute;left:${pct(d0)}%;width:${Math.max(1.5, pct(d1)-pct(d0))}%;top:2px;bottom:2px;border-radius:7px;background:${e.klar? "var(--primary)":(passerad? "#c66":"var(--accent)")};${e.klar? "opacity:.7;":""}" title="${esc(e.namn)} ${new Date(e.datum).toLocaleDateString("sv-SE")}"></div>
+        <div style="position:absolute;left:${pct(idag)}%;top:-3px;bottom:-3px;border-left:2px solid #333;opacity:.6" title="Idag"></div>
+      </div></div>`;
+  }).join("");
+  return `<div style="font-size:.7rem;color:var(--muted);margin-bottom:2px"><b>Tidslinje</b> (streckad linje = idag • grönt = klar • rött = passerat) – ${start.toLocaleDateString("sv-SE")} – ${slut.toLocaleDateString("sv-SE")}</div>` + rader;
+}
+function projektMini(p){
+  const es = p.etapper||[];
+  const klara = es.filter(e=>e.klar).length;
+  const nasta = es.filter(e=>!e.klar && e.datum).sort((a,b)=>a.datum.localeCompare(b.datum))[0];
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px">
+    <div>
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:4px 10px;font-size:.82rem;margin-bottom:8px">
+        <span style="color:var(--muted)">Status:</span><span>${statusBadge(p.status)}</span>
+        <span style="color:var(--muted)">Prioritet:</span><span class="prio-${(p.prio||"").toLowerCase()}">${esc(p.prio||"–")}</span>
+        <span style="color:var(--muted)">Projektledare:</span><span>${esc(p.pl||"–")}</span>
+        <span style="color:var(--muted)">Period:</span><span>${fmtDate(p.start)} – ${fmtDate(p.slut)}</span>
+        <span style="color:var(--muted)">Budget:</span><span>${fmtKr(p.budget)} ${p.kostnad? "(kostnad hittills "+fmtKr(p.kostnad)+")":""}</span>
+        <span style="color:var(--muted)">Etapper:</span><span>${klara} klara av ${es.length}</span>
+        <span style="color:var(--muted)">Nästa etapp:</span><span>${nasta? esc(nasta.namn)+" ("+new Date(nasta.datum).toLocaleDateString("sv-SE")+")" : "–"}</span>
+        <span style="color:var(--muted)">Underlag:</span><span>${(p.anteckningar||[]).length} anteckningar • ${(p.filer||[]).length} filer • ${(p.kontakter||[]).length} kontakter</span>
+        ${p.beskrivning? `<span style="color:var(--muted)">Beskrivning:</span><span>${esc(p.beskrivning.slice(0,150))}${p.beskrivning.length>150? "...":""}</span>`:""}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn-sm" onclick="openDetail('${p.id}')">📂 Öppna projektet</button>
+        <button class="btn-sm secondary" onclick="openForm('${p.id}',true)">✏️ Redigera</button>
+        <button class="btn-sm secondary" onclick="openStatusMenu(event,'${p.id}')">🔄 Status</button>
+      </div>
+    </div>
+    <div>${miniGantt(p)}</div>
+  </div>`;
 }
 function sortBy(k){ if(sortKey===k) sortDir*=-1; else{sortKey=k;sortDir=1;} render(); }
 
@@ -2299,7 +2375,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v27 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v27.1 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
