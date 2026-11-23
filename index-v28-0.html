@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v27.2</title>
+<title>Projektregister v28</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -37,6 +37,10 @@ main{max-width:1680px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-tem
 .stat .budget{font-size:.78rem;color:var(--muted);margin-top:2px}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
 .dot.rv{background:#54783c}.dot.vv{background:#7fa065}.dot.ln{background:#b08928}.dot.adm{background:#8a8474}
+.dot.gp{background:#3e7c8f}.dot.fa{background:#8a6d3b}.dot.ov{background:#6b6f63}
+.subtabs{margin-top:-10px}
+.subtabs .tab{padding:5px 14px;font-size:.86rem;background:#edf2e6;border-radius:7px}
+.subtabs .tab.active{border-radius:7px}
 .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
 .tab{padding:9px 18px;border-radius:8px 8px 0 0;background:#e2e8f0;color:var(--muted);font-weight:500;cursor:pointer;border:none}
 .tab.active{background:var(--card);color:var(--primary);box-shadow:0 -3px 12px rgba(84,120,60,.10);border:1px solid var(--border);border-bottom:2px solid var(--card);font-weight:600}
@@ -137,7 +141,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 27.2</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; VA &middot; Gata Park &middot; Fastighet &middot; &Ouml;vergripande &nbsp;|&nbsp; <b>Version 28</b></div>
     </div>
   </div>
   <div class="actions">
@@ -161,11 +165,12 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <div id="globalWarn"></div>
     <nav class="tabs" id="tabs">
       <button class="tab active" data-cat="alla">Alla projekt</button>
-      <button class="tab" data-cat="reningsverk">Reningsverk</button>
-      <button class="tab" data-cat="vattenverk">Vattenverk</button>
-      <button class="tab" data-cat="ledningsnat">Ledningsnät</button>
-      <button class="tab" data-cat="admin">Admin</button>
+      <button class="tab" data-cat="va">VA</button>
+      <button class="tab" data-cat="gatapark">Gata Park</button>
+      <button class="tab" data-cat="fastighet">Fastighet</button>
+      <button class="tab" data-cat="overgripande">Övergripande</button>
     </nav>
+    <nav class="tabs subtabs" id="subTabs" style="display:none"></nav>
     <div class="toolbar">
       <input type="text" id="search" placeholder="🔍 Sök projekt, nummer, projektledare, kontakt..." oninput="render()">
       <select id="statusFilter" onchange="render()">
@@ -227,7 +232,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 27.2 – ansvariga etapper</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 28 – huvudkategorier</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -251,10 +256,21 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
       <div class="grid">
         <div class="field"><label>Kategori *</label>
           <select id="f_cat">
+            <optgroup label="VA">
             <option value="reningsverk">Reningsverk</option>
             <option value="vattenverk">Vattenverk</option>
             <option value="ledningsnat">Ledningsnät</option>
             <option value="admin">Admin</option>
+            </optgroup>
+            <optgroup label="Gata Park">
+              <option value="gatapark">Gata Park</option>
+            </optgroup>
+            <optgroup label="Fastighet">
+              <option value="fastighet">Fastighet</option>
+            </optgroup>
+            <optgroup label="Övergripande">
+              <option value="overgripande">Övergripande</option>
+            </optgroup>
           </select>
         </div>
         <div class="field"><label>Projektnummer</label><input type="text" id="f_nr" placeholder="RV-2025-01"></div>
@@ -366,11 +382,12 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 <script>
 "use strict";
 const LS_KEY = "va_projektregister_v2";
-const KATEGORIER = {reningsverk:"Reningsverk", vattenverk:"Vattenverk", ledningsnat:"Ledningsnät", admin:"Admin"};
+const KATEGORIER = {reningsverk:"Reningsverk", vattenverk:"Vattenverk", ledningsnat:"Ledningsnät", admin:"Admin", gatapark:"Gata Park", fastighet:"Fastighet", overgripande:"Övergripande"};
+const HUVUD = {va:{namn:"VA", under:["reningsverk","vattenverk","ledningsnat","admin"]}, gatapark:{namn:"Gata Park", under:["gatapark"]}, fastighet:{namn:"Fastighet", under:["fastighet"]}, overgripande:{namn:"Övergripande", under:["overgripande"]}};
 const MAX_FIL = 10*1024*1024;   /* inline-lagring i registret */
 const MAX_FIL_MAPP = 200*1024*1024; /* filer som sparas i gemensam mapp */
 let data = {projects:[], updated:null, saved:null, tabort:[]};
-let activeCat = "alla", sortKey = "namn", sortDir = 1, currentDetail = null, m2cfg = null;
+let activeCat = "alla", activeSub = "alla", sortKey = "namn", sortDir = 1, currentDetail = null, m2cfg = null;
 const $ = id => document.getElementById(id);
 
 function load(){
@@ -419,6 +436,10 @@ const fmtDate = s => s? new Date(s+"T00:00").toLocaleDateString("sv-SE") : "–"
 const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const uid = () => "p"+Date.now()+Math.random().toString(36).slice(2,6);
 function catOf(p){ return KATEGORIER[p.kategori] || p.kategori; }
+function huvudOf(k){ for(const h in HUVUD){ if(HUVUD[h].under.includes(k)) return h; } return "overgripande"; }
+function dotCls(k){ const h = huvudOf(k);
+  if(h==="va") return k.slice(0,2)==="re"?"rv":k.slice(0,2)==="va"?"vv":k.slice(0,2)==="le"?"ln":"adm";
+  return h==="gatapark"?"gp":h==="fastighet"?"fa":"ov"; }
 
 /* ---------- Gemensam mapp i SharePoint: en datafil per anvandare ---------- */
 const canFS = typeof window !== "undefined" && typeof window.showDirectoryPicker === "function";
@@ -1009,14 +1030,14 @@ function projectWarns(p){ return (p.etapper||[]).map(etappWarn).filter(Boolean);
 
 /* ---------- Listvy ---------- */
 function renderStats(){
-  $("stats").innerHTML = Object.keys(KATEGORIER).map(k=>{
-    const list = data.projects.filter(p=>p.kategori===k);
+  $("stats").innerHTML = Object.keys(HUVUD).map(h=>{
+    const list = data.projects.filter(p=>HUVUD[h].under.includes(p.kategori));
     const budget = list.reduce((s,p)=>s+(+p.budget||0),0);
     const pagaende = list.filter(p=>p.status==="Pågående").length;
     const avslutade = list.filter(p=>p.status==="Avslutat").length;
     const warns = list.reduce((s,p)=>s+projectWarns(p).length,0);
     return `<div class="stat">
-      <div class="cat"><span class="dot ${k.slice(0,2)==='re'?'rv':k.slice(0,2)==='va'?'vv':k.slice(0,2)==='le'?'ln':'adm'}"></span>${KATEGORIER[k]}</div>
+      <div class="cat"><span class="dot ${{va:'rv',gatapark:'gp',fastighet:'fa',overgripande:'ov'}[h]}"></span>${HUVUD[h].namn}</div>
       <div class="num">${list.length} projekt</div>
       <div class="budget">${pagaende} pågående · ${avslutade} avslutade · Budget: ${fmtKr(budget)}${warns?`<br><span class="warn-flag">⚠ ${warns} etappvarning${warns>1?"ar":""}</span>`:""}</div>
     </div>`;
@@ -1146,7 +1167,7 @@ function renderSummary(){
     <thead><tr><th>Kategori</th><th>Projekt</th><th>Budget</th><th>Kostnad hittills</th><th>Återstående</th></tr></thead>
     <tbody>
       ${rows.map(r=>`<tr>
-        <td><span class="dot ${r.k.slice(0,2)==='re'?'rv':r.k.slice(0,2)==='va'?'vv':r.k.slice(0,2)==='le'?'ln':'adm'}"></span> ${KATEGORIER[r.k]}</td>
+        <td><span class="dot ${dotCls(r.k)}"></span> ${KATEGORIER[r.k]}</td>
         <td>${r.antal}</td>
         <td>${kr(r.budget)}</td>
         <td>${kr(r.kostnad)}</td>
@@ -1163,6 +1184,7 @@ function statusBadge(s){
   return `<span class="badge ${map[s]||"b-paus"}">${esc(s)}</span>`;
 }
 function render(){
+  renderSubTabs();
   const q = ($("search").value||"").toLowerCase();
   const sf = $("statusFilter").value, pf = $("prioFilter").value;
   const dolda = new Set();
@@ -1171,7 +1193,11 @@ function render(){
   try{ localStorage.setItem("va_reg_dolj", Array.from(dolda).join(",")); }catch(e){}
   let list = data.projects.filter(p=>{
     if(dolda.has(p.status)) return false;
-    if(activeCat!=="alla" && p.kategori!==activeCat) return false;
+    if(activeCat!=="alla"){
+      const hu = HUVUD[activeCat];
+      if(!hu || !hu.under.includes(p.kategori)) return false;
+      if(activeSub!=="alla" && p.kategori!==activeSub) return false;
+    }
     if(sf && p.status!==sf) return false;
     if(pf && p.prio!==pf) return false;
     if(q){
@@ -2365,8 +2391,22 @@ function importJSON(ev){
 $("tabs").addEventListener("click", e=>{
   const btn = e.target.closest(".tab"); if(!btn) return;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  btn.classList.add("active"); activeCat = btn.dataset.cat; render();
+  btn.classList.add("active"); activeCat = btn.dataset.cat; activeSub = "alla"; render();
 });
+$("subTabs").addEventListener("click", e=>{
+  const btn = e.target.closest(".tab"); if(!btn) return;
+  activeSub = btn.dataset.sub; render();
+});
+function renderSubTabs(){
+  const nav = $("subTabs"); if(!nav) return;
+  if(activeCat==="alla" || !HUVUD[activeCat] || HUVUD[activeCat].under.length<2){
+    nav.style.display="none"; nav.innerHTML=""; return;
+  }
+  const hu = HUVUD[activeCat];
+  nav.innerHTML = `<button class="tab${activeSub==="alla"?" active":""}" data-sub="alla">Alla i ${hu.namn}</button>` +
+    hu.under.map(k=>`<button class="tab${activeSub===k?" active":""}" data-sub="${k}">${KATEGORIER[k]}</button>`).join("");
+  nav.style.display="flex";
+}
 document.querySelector(".detail-tabs").addEventListener("click", e=>{
   const btn = e.target.closest(".dtab"); if(!btn) return;
   document.querySelectorAll(".dtab").forEach(t=>t.classList.remove("active"));
@@ -2375,7 +2415,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v27.2 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v28 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
