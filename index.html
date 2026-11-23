@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v24.3</title>
+<title>Projektregister v25</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -137,7 +137,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 24.3</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; Reningsverk &middot; Vattenverk &middot; Ledningsn&auml;t &middot; Admin &nbsp;|&nbsp; <b>Version 25</b></div>
     </div>
   </div>
   <div class="actions">
@@ -225,7 +225,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 24.3 – stabilare online-status</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 25 – VA-biblioteket</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -548,6 +548,52 @@ function kollaNyaMeddelanden(){
     toast("📩 Nytt meddelande fr\u00e5n " + nya[0].fran + " (" + nya.length + " ol\u00e4sta) \u2013 \u00f6ppna Meddelanden.");
   }
 }
+function bibliotekLista(){ return ((data.bibliotek&&data.bibliotek.list)||[]); }
+function bibliotekSpara(){ data.bibliotek = data.bibliotek||{list:[],updated:""}; data.bibliotek.updated = new Date().toISOString(); persist(); writeSharedNow(true); }
+function bibliotekDialog(b){
+  const e = b || {};
+  m2({title: b? "Redigera bibliotekslänk" : "Ny bibliotekslänk", key:"_ingen", i:null,
+    fields:[
+      ["namn","Namn *",e.namn||"","text"],
+      ["url","Länk till PDF/sida (börjar med http/https) *",e.url||"","text"],
+      ["kategori","Ämnesord (gör sökbara, valfritt)",e.kategori||"","text"],
+      ["beskrivning","Kort beskrivning (valfri)",e.beskrivning||"","textarea"]
+    ],
+    required:["namn"],
+    onSave:(obj)=>{
+      if(!/^https?:\/\//i.test(obj.url)){ toast("⚠ Länken måste börja med http:// eller https://"); throw new Error("url"); }
+      data.bibliotek = data.bibliotek||{list:[],updated:""};
+      const it = b || {id:uid()};
+      it.namn = obj.namn.trim(); it.url = obj.url.trim();
+      it.kategori = obj.kategori.trim(); it.beskrivning = obj.beskrivning.trim();
+      if(!b) data.bibliotek.list.push(it);
+      bibliotekSpara();
+    }
+  });
+}
+function nyBibliotek(){ bibliotekDialog(null); }
+function redigeraBibliotek(id){ const b = bibliotekLista().find(x=>x.id===id); if(b) bibliotekDialog(b); }
+function taBortBibliotek(id){
+  const b = bibliotekLista().find(x=>x.id===id);
+  if(!b || !confirm("Ta bort bibliotekslänken?")) return;
+  data.bibliotek.list = data.bibliotek.list.filter(x=>x.id!==id);
+  bibliotekSpara(); renderRail();
+  toast("🗑 Länken togs bort.");
+}
+function bibSok(id){
+  const q = ($(id).value||"").toLowerCase();
+  const box = $("bibLista");
+  if(!box) return;
+  const list = bibliotekLista().filter(b=> !q || (b.namn+" "+(b.kategori||"")+" "+(b.beskrivning||"")).toLowerCase().includes(q));
+  box.innerHTML = list.length? list.map(b=>`
+    <div class="ri" style="padding:4px 2px;align-items:center;justify-content:space-between">
+      <span onclick="window.open('${esc(b.url)}','_blank')" style="min-width:0;overflow:hidden;text-overflow:ellipsis;cursor:pointer" title="${esc(b.beskrivning||b.url)}">
+        <b>${esc(b.namn)}</b><br><span style="color:var(--muted);font-size:.72rem">${esc(b.kategori||"")}${b.beskrivning? " • "+esc(b.beskrivning.slice(0,40)):""}</span></span>
+      <span style="display:flex;gap:4px;align-items:center;flex:none">
+      <button class="icon-btn" title="Redigera" onclick="redigeraBibliotek('${esc(b.id)}')">✏️</button>
+      <button class="icon-btn" title="Ta bort" onclick="taBortBibliotek('${esc(b.id)}')">🗑</button></span></div>`).join("")
+    : (q? '<div class="none">Inget träffade söket.</div>' : '<div class="none">Tryck + Ny för att lägga till länkar.</div>');
+}
 function nyAterkommande(){ aterkommandeDialog(null); }
 function redigeraAterkommande(id){
   const u = data.aterkommande && data.aterkommande.list.find(x=>x.id===id);
@@ -603,6 +649,9 @@ function mergeIntoLocal(src){
   if(src.aterkommande && String(src.aterkommande.updated||"") > String((data.aterkommande||{}).updated||"")){
     data.aterkommande = src.aterkommande; try{ localStorage.setItem("aterkommande", JSON.stringify(data.aterkommande)); }catch(e){}
   }
+  if(src.bibliotek && String(src.bibliotek.updated||"") > String((data.bibliotek||{}).updated||"")){
+    data.bibliotek = src.bibliotek;
+  }
   if(src.settings && String(src.settings.updated||"") > String((data.settings||{}).updated||"")){
     data.settings = Object.assign({}, data.settings||{}, src.settings);
   }
@@ -625,7 +674,7 @@ async function writeSharedNow(force){
   try{
     if(!force && dataUnchanged()) return;
     const entry = await sharedDir.getFileHandle(ownEntryName, {create:true});
-    const payload = JSON.stringify({projects:data.projects, tabort:data.tabort||[], aterkommande:data.aterkommande||{list:[]}, settings:data.settings||{}, meddelanden:data.meddelanden||[], updated:data.updated, saved:data.saved});
+    const payload = JSON.stringify({projects:data.projects, tabort:data.tabort||[], aterkommande:data.aterkommande||{list:[]}, bibliotek:data.bibliotek||{list:[]}, settings:data.settings||{}, meddelanden:data.meddelanden||[], updated:data.updated, saved:data.saved});
     if(!force && payload === lastWritten) return;
     const w = await entry.createWritable();
     await w.write(payload);
@@ -900,6 +949,7 @@ function summaryYears(){
 function renderRail(){
   const rail = $("sideRail"); if(!rail) return;
   migrateUppgifter();
+  setTimeout(()=>{ try{ bibSok("bibSokfalt"); }catch(e){} }, 0);
   const today = new Date(); today.setHours(0,0,0,0);
   const om14 = new Date(today.getTime()+14*86400000);
   const warns = [];
@@ -953,7 +1003,15 @@ function renderRail(){
     </div></div>
     <div class="rw"><h4>📅 Möte</h4><div class="rb">
       <div class="ri" onclick="bokaMoteWeb()"><b>Boka in ett möte</b><span style="color:var(--muted);font-size:.76rem">öppnar Outlooks mötesbokning i kalendern</span></div>
+    </div></div>
+    <div class="rw"><h4 style="display:flex;justify-content:space-between;align-items:center">📚 VA-biblioteket
+      <button class="btn-sm secondary" onclick="nyBibliotek()" style="margin:0;padding:2px 8px">＋ Ny</button></h4>
+      <div class="rb">
+        <input type="text" id="bibSokfalt" placeholder="Sök i biblioteket..." oninput="bibSok('bibSokfalt')" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:.82rem">
+        <div id="bibLista"></div>
+      </div>
     </div></div>`;
+setTimeout(()=>{ try{ bibSok("bibSokfalt"); }catch(e){} }, 300);
 }
 function bokaMoteWeb(){
   window.open("https://outlook.office.com/calendar/deeplink/compose?path=/calendar/action/compose&rru=addevent", "_blank");
@@ -2093,7 +2151,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v24.3 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v25 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
