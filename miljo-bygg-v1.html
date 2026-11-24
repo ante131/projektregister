@@ -1,0 +1,2466 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Miljö och bygg – Projektregister v1</title>
+<style>
+:root{
+  --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
+  --primary:#54783c; --primary-dark:#3f5c2e; --accent:#8aa86f; --gold:#b08928; --uppred:#df2e2f;
+  --ok:#54783c; --warn:#d97706; --danger:#c22b2b; --info:#2563eb;
+  --radius:14px; --radius-btn:11px;
+  --shadow:0 1px 2px rgba(47,51,43,.05),0 10px 28px rgba(47,51,43,.09);
+}
+header{background:linear-gradient(120deg,#54783c 0%,#45622f 60%,#3a5427 100%);color:#fff;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:40;box-shadow:0 6px 24px rgba(63,92,46,.30);border-bottom:4px solid #d8e4cc}header h1{font-size:1.3rem;font-weight:700;letter-spacing:-.01em}
+header .sub{font-size:.8rem;opacity:.85}
+.deptbar{width:100%;display:flex;gap:10px;flex-wrap:wrap;padding-top:6px}
+.dept{padding:10px 22px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:#fff;font-weight:600;cursor:pointer;font-size:.95rem;transition:background .15s,box-shadow .15s;font:inherit;font-weight:600}
+.dept:hover{background:rgba(255,255,255,.26)}
+.dept.active{background:#fff;color:var(--primary);border-color:#fff;box-shadow:0 3px 14px rgba(43,36,32,.20)}
+.dept .cnt{font-weight:500;font-size:.78rem;opacity:.75;margin-left:4px}
+.saveinfo{font-size:.75rem;opacity:.85}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font:inherit;cursor:pointer;border:none;border-radius:var(--radius-btn);padding:9px 15px;background:var(--primary);color:#fff;font-weight:600;transition:all .18s ease;box-shadow:0 2px 6px rgba(84,120,60,.22)}
+button:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 6px 16px rgba(84,120,60,.28)}
+button.secondary{background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none}
+button.secondary:hover{background:#f0f5ec}
+button.ghost{background:transparent;color:inherit;opacity:.9;border:1px solid rgba(255,255,255,.4)}
+button.ghost:hover{background:rgba(255,255,255,.15)}
+.btn-sm{padding:5px 10px;font-size:.82rem}
+main{max-width:1680px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:minmax(0,1fr);gap:24px}
+#listView,#detailView{grid-column:1;min-width:0}
+#sideRail{grid-column:1}
+@media(min-width:1100px){
+  main{grid-template-columns:minmax(0,1fr) 310px}
+  #sideRail{grid-column:2}
+}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease}
+.stat .cat{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.stat .num{font-size:1.55rem;font-weight:700;letter-spacing:-.02em}
+.stat .budget{font-size:.78rem;color:var(--muted);margin-top:2px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dot.rv{background:#54783c}.dot.vv{background:#7fa065}.dot.ln{background:#b08928}.dot.adm{background:#8a8474}
+.dot.m1{background:#54783c}.dot.m2{background:#3e7c8f}.dot.m3{background:#b08928}.dot.m4{background:#7c53a8}.dot.m5{background:#8a6d3b}.dot.ov{background:#6b6f63}
+.subtabs{margin-top:-10px}
+.subtabs .tab{padding:5px 14px;font-size:.86rem;background:#edf2e6;border-radius:7px}
+.subtabs .tab.active{border-radius:7px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:9px 18px;border-radius:8px 8px 0 0;background:#e2e8f0;color:var(--muted);font-weight:500;cursor:pointer;border:none}
+.tab.active{background:var(--card);color:var(--primary);box-shadow:0 -3px 12px rgba(84,120,60,.10);border:1px solid var(--border);border-bottom:2px solid var(--card);font-weight:600}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+input[type=text],input[type=date],input[type=email],input[type=tel],select,textarea,input[type=number]{font:inherit;padding:9px 12px;border:1px solid var(--border);border-radius:11px;background:#fff;color:var(--text);transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(176,137,40,.22)}
+input[type=text]{min-width:180px}
+.toolbar input{min-width:250px}
+table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.07)}
+th{background:#f2f6ee;text-align:left;padding:10px 12px;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
+th:hover{color:var(--primary)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:hover td{background:#f2f6ee}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:600}
+.b-plan{background:#dbeafe;color:#1d4ed8}.b-pagaende{background:#fef3c7;color:#b45309}
+.b-paus{background:#e2e8f0;color:#475569}.b-klar{background:#dcfce7;color:#15803d}.b-avbruten{background:#fee2e2;color:#b91c1c}
+.prio-hog{color:var(--danger);font-weight:600}.prio-medel{color:var(--warn)}.prio-lag{color:var(--muted)}
+.empty{padding:40px;text-align:center;color:var(--muted);background:var(--card);border:1px dashed var(--border);border-radius:var(--radius)}
+.icon-btn{background:none;border:none;color:var(--muted);padding:4px;cursor:pointer;font-size:14px;border-radius:6px}
+.icon-btn:hover{color:var(--primary);background:#f0f5ec}
+.warn-flag{display:inline-flex;align-items:center;gap:5px;background:#fef3c7;color:#b45309;padding:3px 10px;border-radius:999px;font-size:.72rem;font-weight:700}
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:18px;width:min(680px,100%);box-shadow:0 20px 50px rgba(0,0,0,.25);animation:pop .15s ease}
+@keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.modal header{background:#f2f6ee;color:var(--text);padding:16px 22px;border-bottom:1px solid var(--border);border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center}
+.modal header h2{font-size:1.05rem}
+.modal .body{padding:22px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid .full{grid-column:1/-1}
+.field label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%}
+textarea{resize:vertical;min-height:70px}
+.modal footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;background:#f2f6ee;border-radius:0 0 14px 14px}
+button.danger{background:var(--danger)}button.danger:hover{background:#b91c1c}
+.detail-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.detail-tabs{display:flex;gap:6px;margin:18px 0 14px;flex-wrap:wrap}
+.dtab{padding:8px 16px;border-radius:999px;background:#e2e8f0;color:var(--muted);border:none;cursor:pointer;font:inherit;font-weight:500}
+.dtab.active{background:var(--primary);color:#fff;box-shadow:0 6px 16px rgba(84,120,60,.28);transform:translateY(-1px)}
+.panel{display:none}
+.panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.07);margin-bottom:18px;overflow:hidden}
+.card .card-h{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card .card-h h3{font-size:.95rem}
+.card .body{padding:16px 18px}
+.note{border:1px solid var(--border);border-left:4px solid var(--primary);border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#f2f6ee}
+.note .meta{color:var(--muted);font-size:.75rem;margin-top:6px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.contact{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap}
+.contact .c-info b{display:block}
+.contact .c-info{font-size:.88rem}
+.contact .c-info span{color:var(--muted);font-size:.8rem}
+.mail-btn{text-decoration:none;background:var(--primary);color:#fff;border-radius:8px;padding:5px 12px;font-size:.82rem;font-weight:500}
+.mail-btn:hover{background:var(--primary-dark)}
+.etapp{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap}
+.etapp.soon{border-color:var(--warn);background:#fffbeb}
+.etapp.overdue{border-color:var(--danger);background:#fef2f2}
+.etapp.done{opacity:.65}
+.etapp .e-namn{flex:1;font-weight:500}
+.etapp .e-datum{color:var(--muted);font-size:.85rem;white-space:nowrap}
+.etapp input[type=checkbox]{width:18px;height:18px;accent-color:var(--ok);cursor:pointer}
+.banner{display:flex;gap:12px;align-items:flex-start;background:#fef3c7;border:1px solid var(--warn);border-left:6px solid var(--warn);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px}
+.banner.red{background:#fef2f2;border-color:var(--danger);border-left-color:var(--danger)}
+.banner b{display:block;margin-bottom:2px}
+.banner ul{margin:6px 0 0 18px;font-size:.85rem}
+.file-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap;font-size:.9rem}
+.browse-item{display:block;padding:8px 10px;border-radius:8px;cursor:pointer;user-select:none;font-size:.92rem}
+.browse-item:hover{background:#f0f5ec}
+.browse-item input{margin-right:8px;accent-color:var(--primary)}
+.toggle-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;font-size:.82rem;font-weight:600;white-space:nowrap;transition:all .18s ease;user-select:none}
+.toggle-chip:hover{border-color:var(--primary);color:var(--primary)}
+.toggle-chip input{display:none}
+.toggle-chip.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 3px 10px rgba(84,120,60,.25)}
+.drop-zone{border:2px dashed var(--primary);border-radius:16px;padding:26px 18px;text-align:center;cursor:pointer;transition:all .18s ease;background:#f2f7ee;margin-bottom:12px}
+.drop-zone.hover{background:#e4f0e0;transform:scale(1.01);border-style:solid}
+.drop-zone .dz-big{font-size:1.05rem;font-weight:700;color:var(--primary)}
+.drop-zone .dz-small{font-size:.8rem;color:var(--muted);margin-top:6px}
+.status-menu{position:fixed;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.18);display:none;z-index:60;min-width:170px;overflow:hidden;padding:4px}
+.status-menu button{display:block;width:100%;text-align:left;background:none;color:var(--text);border:none;border-radius:8px;padding:8px 12px;font-weight:500;box-shadow:none}
+.status-menu button:hover{background:#f0f5ec;transform:none}
+.rail .rw{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 1px 2px rgba(43,36,32,.04),0 8px 24px rgba(43,36,32,.07);margin-bottom:16px;overflow:hidden}
+.rail .rw h4{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px 16px;border-bottom:1px solid var(--border);background:#f2f7ee;margin:0}
+.rail .rw .rb{padding:10px 14px}
+.rail .ri{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;font-size:.85rem;border-bottom:1px dashed var(--border);cursor:pointer;border-radius:6px}
+.rail .ri:hover{background:#f2f7ee;color:var(--primary)}
+.rail .ri b{font-weight:500}
+.rail .none{color:var(--muted);font-size:.82rem;padding:6px 2px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);transition:.25s;z-index:99;font-size:.9rem;max-width:340px}
+.toast.show{opacity:1;transform:none}
+footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted);font-size:.75rem}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.toolbar input{min-width:160px}}
+</style>
+</head>
+<body>
+
+<header>
+    <div style="display:flex;align-items:center;gap:14px">
+    <span style="display:inline-flex;align-items:center"><img src="data:image/png;base64,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" alt="Uppvidinge kommuns sk&ouml;ld" style="height:56px;width:auto;display:block"></span></span></span></span>
+    <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
+    <div>
+      <h1>Miljö och bygg – Projektregister</h1>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; <b>Miljö och bygg</b> &nbsp;|&nbsp; <b>Version 1</b></div>
+    </div>
+  </div>
+  <div class="actions">
+      <span class="saveinfo" id="saveInfo">Senast sparat: –</span>
+      <button id="sharedBtn" title="Koppla appen mot den gemensamma SharePoint-mappen – du får en egen datafil och läser in kollegors" style="display:none" onclick="connectFolder()">📁 Anslut gemensam mapp</button>
+      <span class="saveinfo" id="sharedStatus" style="display:none"></span>
+      <button id="syncBtn" style="display:none" title="Hämta andras ändringar och spara till filen nu" onclick="syncNow()">🔄 Synka nu</button>
+      <button onclick="saveAll()" title="Spara nu (Ctrl+S)">💾 Spara</button>
+    <button class="ghost" onclick="exportJSON()">⬇ JSON</button>
+    <button class="ghost" onclick="document.getElementById('importFile').click()">⬆ Importera</button>
+    <button class="ghost" onclick="exportCSV()">📄 CSV</button>
+    <button class="ghost" onclick="exportListCSV()" title="Exporterar projekten i exakt det format som passar SharePoint-listan – klistra in i rutnätvyn">📄 Export för SharePoint-lista</button>
+    <button id="newBtn" onclick="openForm()">＋ Nytt projekt</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+  <nav class="deptbar" id="deptBar">
+    <button class="dept active" data-cat="miljobygg" data-label="Miljö och bygg">Miljö och bygg <span class="cnt"></span></button>
+  </nav>
+</header>
+
+<main>
+  <div id="listView">
+    <section class="stats" id="stats"></section>
+    <div id="globalWarn"></div>
+    <nav class="tabs subtabs" id="subTabs" style="display:none;margin-bottom:16px"></nav>
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="🔍 Sök projekt, nummer, projektledare, kontakt..." oninput="render()">
+      <select id="statusFilter" onchange="render()">
+        <option value="">Alla statusar</option>
+        <option>Planering</option><option>Pågående</option><option>Pausad</option>
+        <option>Avslutat</option><option>Avbrutet</option>
+      </select>
+      <select id="prioFilter" onchange="render()">
+        <option value="">Alla prioriteter</option>
+        <option>Hög</option><option>Medel</option><option>Låg</option>
+      </select>
+      <label class="toggle-chip" id="chipAvslutade" title="Dölj avslutade projekt i listan">
+        <input type="checkbox" id="hideAvslutade" onchange="chipToggle(this)"> 🚫 Dölj avslutade
+      </label>
+      <label class="toggle-chip" id="chipAvbrutna" title="Dölj avbrutna projekt i listan">
+        <input type="checkbox" id="hideAvbrutna" onchange="chipToggle(this)"> 🚫 Dölj avbrutna
+      </label>
+      <span style="margin-left:auto;color:var(--muted);font-size:.8rem" id="countInfo"></span>
+    </div>
+    <table id="tbl"><thead></thead><tbody></tbody></table>
+    <div class="empty" id="emptyMsg" style="display:none">
+      Inga projekt matchar filtret. Klicka på <b>＋ Nytt projekt</b> för att registrera ett projekt.
+    </div>
+
+    <div class="card" style="margin-top:26px">
+      <div class="card-h">
+        <h3>Budgetsammanställning per kategori</h3>
+        <select id="yearSel" onchange="renderSummary()" title="Filtrera på projektets startår"></select>
+      </div>
+      <div class="body" id="sumBody"></div>
+    </div>
+  </div>
+
+  <div id="detailView" style="display:none">
+    <button class="secondary btn-sm" onclick="showList()">← Tillbaka till listan</button>
+    <h2 id="dTitle" style="margin:14px 0 2px;font-size:1.35rem"></h2>
+    <div id="dMeta" style="color:var(--muted);font-size:.85rem;margin-bottom:10px"></div>
+    <div id="dWarn"></div>
+    <nav class="detail-tabs">
+      <button class="dtab active" data-panel="oversikt">Översikt</button>
+      <button class="dtab" data-panel="etapper">Etapper</button>
+      <button class="dtab" data-panel="schema">📅 Schema</button>
+      <button class="dtab" data-panel="anteckningar">Anteckningar</button>
+      <button class="dtab" data-panel="filer">Filer &amp; länkar</button>
+      <button class="dtab" data-panel="kontakter">Kontakter</button>
+    </nav>
+    <section class="panel active" id="p-oversikt"></section>
+    <section class="panel" id="p-etapper"></section>
+    <section class="panel" id="p-schema"></section>
+    <section class="panel" id="p-anteckningar"></section>
+    <section class="panel" id="p-filer"></section>
+    <section class="panel" id="p-kontakter"></section>
+    <div class="toolbar" style="margin-top:20px">
+      <button onclick="openForm(currentDetail, true)">✏️ Redigera projektuppgifter</button>
+      <button class="secondary" onclick="saveAll()">💾 Spara</button>
+    </div>
+  </div>
+  <aside id="sideRail" class="rail"></aside>
+</main>
+
+<footer class="app">
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 1 – Miljö och bygg</span><br>
+  <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
+  <b style="color:#2f332b">Hur din information hanteras:</b><br>
+  • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
+  • <b>Projektdata</b> (namn, status, budget, etapper, anteckningar, kontakter) sparas i projektets datafiler i er gemensamma SharePoint-mapp – en fil per användare – samt i webbläsarens lokala lagring på din dator. Data synas automatiskt mellan er via mappen, där OneDrive/SharePoint hanterar kryptering och överföring.<br>
+  • <b>Bifogade filer</b> kopieras till undermappen "projektfiler" i samma mapp, eller länkas på plats (ingen kopia, ingen extra spridning).<br>
+  • <b>Vem kan se data?</b> Samma personer som redan har behörighet till mappen på SharePoint. Appen lägger inget extra skydd utöver mappens behörigheter – data i mappen är okrypterad på filnivå, precis som övriga dokument i mappen. Versionshantering/rensning av filer styrs av er SharePoint.<br>
+  • <b>Radering</b> sker via appens ta bort-funktion; appen försöker förhindra att en radering tas emot som ren från en kollegas äldre fil (tombstones), men säkerst sätt att göra data bortapermanent är att även ta bort i mappen enligt rutin.<br>
+  • <b>Sammanfattning:</b> datas säkerhet = er SharePoint-mapps säkerhet. För extremt känslig information gäller samma regler som för övriga dokument i mappen – välj behörigheter på mappnivå i SharePoint.<br>
+  Använd 💾 Spara för att spara direkt (Ctrl+S). Autosparning sker löpande och synkar till den gemensamma mappen.
+  </div>
+</footer>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <header>
+      <h2 id="formTitle">Nytt projekt</h2>
+      <button class="icon-btn" onclick="closeForm()">✕</button>
+    </header>
+    <div class="body">
+      <input type="hidden" id="f_id">
+      <div class="grid">
+        <div class="field"><label>Kategori *</label>
+          <select id="f_cat">
+            <optgroup label="Miljö och bygg">
+              <option value="miljohalsoskydd">Miljö hälsoskydd</option>
+              <option value="planbygg">Plan och bygg</option>
+              <option value="ekonomiledning">Ekonomi och ledning</option>
+              <option value="verksamhetsutveckling">Verksamhetsutveckling</option>
+              <option value="personalarbetsmiljo">Personal och arbetsmiljö</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field"><label>Projektnummer</label><input type="text" id="f_nr" placeholder="RV-2025-01"></div>
+        <div class="field full"><label>Projektnamn *</label><input type="text" id="f_namn" placeholder="T.ex. Ombyggnad förgäsning"></div>
+        <div class="field"><label>Projektledare</label><input type="text" id="f_pl" placeholder="Namn"></div>
+        <div class="field"><label>Beställare / Ägare</label><input type="text" id="f_agare" placeholder="Avdelning/person"></div>
+        <div class="field"><label>Status</label>
+          <select id="f_status"><option>Planering</option><option>Pågående</option><option>Pausad</option><option>Avslutat</option><option>Avbrutet</option></select>
+        </div>
+        <div class="field"><label>Prioritet</label>
+          <select id="f_prio"><option>Medel</option><option>Hög</option><option>Låg</option></select>
+        </div>
+        <div class="field"><label>Startdatum</label><input type="date" id="f_start"></div>
+        <div class="field"><label>Slutdatum</label><input type="date" id="f_slut"></div>
+        <div class="field"><label>Budget (kr)</label><input type="number" id="f_budget" min="0" step="1000" placeholder="0"></div>
+        <div class="field"><label>Kostnad hittills (kr)</label><input type="number" id="f_kostnad" min="0" step="1000" placeholder="0"></div>
+        <div class="field full"><label>Lokation / Område</label><input type="text" id="f_plats" placeholder="T.ex. Industrigatan 4"></div>
+        <div class="field full"><label>Beskrivning</label><textarea id="f_beskrivning" placeholder="Kort beskrivning av omfattning, syfte, noteringar..."></textarea></div>
+        <div class="field full"><label>Automatisk ämnesrad för mejl</label><input type="text" id="f_amne" placeholder="T.ex. [RV-2025-01] Uppföljning – lämna tomt om mejlen inte ska få någon förifylld ämnesrad"></div>
+      </div>
+    </div>
+    <footer>
+      <button class="danger" id="deleteBtn" style="display:none" onclick="deleteProject()">Ta bort projekt</button>
+      <span style="flex:1"></span>
+      <button class="secondary" onclick="closeForm()">Avbryt</button>
+      <button onclick="saveProject()">Spara projekt</button>
+    </footer>
+  </div>
+</div>
+
+<div class="modal-bg" id="m2bg">
+  <div class="modal" style="width:min(520px,100%)">
+    <header><h2 id="m2title"></h2><button class="icon-btn" onclick="closeM2()">✕</button></header>
+    <div class="body" id="m2body"></div>
+    <footer><button class="secondary" onclick="closeM2()">Avbryt</button><button onclick="saveM2()">Spara</button></footer>
+  </div>
+</div>
+
+<div class="modal-bg" id="browseBg">
+  <div class="modal" style="width:min(580px,100%)">
+    <header>
+      <h2 id="browseTitle">📂 Länka fil i gemensam mapp</h2>
+      <button class="icon-btn" onclick="closeBrowse()">✕</button>
+    </header>
+    <div class="body">
+      <div id="browsePath" style="font-size:.8rem;color:var(--muted);margin-bottom:8px"></div>
+      <button class="secondary btn-sm" id="browseLinkFolder" style="margin-bottom:8px" onclick="linkCurrentFolder()">📁 Länka aktuell mapp</button>
+      <button class="btn-sm" id="browseChooseFolder" style="display:none;margin-bottom:8px" onclick="mappChooseCurrent()">📂 Välj denna mapp som projektmapp</button>
+      <div id="browseSelected" style="font-size:.8rem;color:var(--primary);margin-bottom:6px;font-weight:600"></div>
+      <div id="browseList" style="max-height:380px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px"></div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:8px">Klicka på mappar för att bläddra. Kryssa i filer och tryck "Länka markerade" – länkarna pekar på filernas plats, så uppdateringar följer med automatiskt.</div>
+    </div>
+    <footer>
+      <button class="secondary" onclick="closeBrowse()">Avbryt</button>
+      <button id="browseMarkedBtn" onclick="linkSelectedFiles()">Länka markerade</button>
+      <button id="browseVaeljBtn" style="display:none" onclick="mappChooseCurrent()">📂 Välj denna mapp</button>
+    </footer>
+  </div>
+</div>
+<div class="modal-bg" id="mappBg">
+  <div class="modal" style="width:min(640px,100%)">
+    <header>
+      <h2>📂 Välj projektets mapp i mappstrukturen</h2>
+      <button class="icon-btn" onclick="closeMappVal()">✕</button>
+    </header>
+    <div class="body">
+      <div id="mappPath" style="font-family:Consolas,monospace;font-size:.8rem;background:#eef4e4;padding:6px 8px;border-radius:8px;margin-bottom:8px;word-break:break-all"></div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+        <button class="btn-sm secondary" onclick="mappUp()">⬆ Upp ett steg</button>
+        <button class="btn-sm secondary" onclick="mappRender()">🔃 Uppdatera</button>
+      </div>
+      <div id="mappList" style="max-height:320px;overflow:auto;border:1px solid var(--border);border-radius:10px;padding:6px"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input id="mappInput" placeholder="eller skriv/klistra in sökvägen, t.ex. C:\mapp\projekt" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px" onkeydown="if(event.key==='Enter')mappGoInput()">
+        <button class="btn-sm" onclick="mappGoInput()">Gå</button>
+      </div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:6px">Bläddra med upp-steg och mappklick, eller klistra in en sökväg. Tryck sen “Välj denna mapp”.</div>
+    </div>
+    <footer>
+      <button class="secondary" onclick="closeMappVal()">Avbryt</button>
+      <button id="mappValBtn" onclick="mappVald()">📂 Välj denna mapp</button>
+    </footer>
+  </div>
+</div>
+<div class="modal-bg" id="connectBg">
+  <div class="modal" style="width:min(470px,100%)">
+    <header>
+      <h2>🔗 Anslut till gemensam mapp</h2>
+      <button class="icon-btn" onclick="hideConnectPopup()">✕</button>
+    </header>
+    <div class="body">
+      <p id="connectText" style="margin-bottom:10px"></p>
+      <div id="dropZone" class="drop-zone">
+        <div class="dz-big">📂 Dra in mappen här – direkt från Utforskaren eller Skrivbordet</div>
+        <div class="dz-small">Släpp projektmappen (t.ex. 06. VA-PROJEKT) här – du slipper bläddra och behöver bara godkänna en gång. Det går också bra att klicka här för att välja mappen på vanligt sätt.</div>
+      </div>
+      <div id="connectPathBox" style="margin-bottom:10px"></div>
+      <p style="font-size:.82rem;color:var(--muted)">Klicka på <b>📁 Anslut nu</b> – webbläsaren öppnar en behörighetsdialog där du väljer mappen och trycker <b>Välj mapp</b>. Godkännandet krävs en gång per appstart (webbläsarens säkerhetsregel).</p>
+    </div>
+    <footer>
+      <button class="secondary" onclick="hideConnectPopup()">Senare</button>
+      <button onclick="hideConnectPopup();connectFolder()">📁 Anslut nu</button>
+    </footer>
+  </div>
+</div>
+<div class="status-menu" id="statusMenu"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const LS_KEY = "va_projektregister_v2";
+const KATEGORIER = {miljohalsoskydd:"Miljö hälsoskydd", planbygg:"Plan och bygg", ekonomiledning:"Ekonomi och ledning", verksamhetsutveckling:"Verksamhetsutveckling", personalarbetsmiljo:"Personal och arbetsmiljö"};
+const HUVUD = {miljobygg:{namn:"Miljö och bygg", under:["miljohalsoskydd","planbygg","ekonomiledning","verksamhetsutveckling","personalarbetsmiljo"]}};
+const MAX_FIL = 10*1024*1024;   /* inline-lagring i registret */
+const MAX_FIL_MAPP = 200*1024*1024; /* filer som sparas i gemensam mapp */
+let data = {projects:[], updated:null, saved:null, tabort:[]};
+let activeCat = "miljobygg", activeSub = "alla", sortKey = "namn", sortDir = 1, currentDetail = null, m2cfg = null;
+const $ = id => document.getElementById(id);
+
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const old = JSON.parse(raw);
+      if(old && Array.isArray(old.projects)) data = old;
+    }
+  }catch(e){}
+  data.tabort = data.tabort || [];
+  const grens = new Date(Date.now()-180*86400000).toISOString();
+  data.tabort = data.tabort.filter(t=>t && t.id && String(t.datum||"") > grens);
+  data.projects.forEach(p=>{
+    p.kontakter = p.kontakter||[]; p.etapper = p.etapper||[];
+    p.anteckningar = p.anteckningar||[]; p.filer = p.filer||[];
+  });
+}
+function persist(){
+  data.updated = new Date().toISOString();
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+  catch(e){ toast("⚠ Lagringen är full – stora bifogade filer kan orsaka detta. Exportera data och ta bort bifogade filer."); }
+  scheduleShared();
+  updateSaveInfo();
+}
+function saveAll(){
+  data.saved = new Date().toISOString();
+  for(const pr of data.projects){ if(!pr.andrad) pr.andrad = data.saved; }
+  persist();
+  writeSharedNow();
+  toast("💾 Sparat" + (sharedDir? " till " + ownEntryName : "") + " klockan " + new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"}) + ".");
+}
+function autosave(){ persist(); }
+function updateSaveInfo(){
+  const d = data.saved || data.updated;
+  $("saveInfo").textContent = "Senast sparat: " + (d?
+    new Date(d).toLocaleDateString("sv-SE")+" kl. "+new Date(d).toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"}) : "–");
+}
+function toast(msg){
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 3000);
+}
+const fmtKr = n => (n? Number(n).toLocaleString("sv-SE")+" kr" : "–");
+const fmtDate = s => s? new Date(s+"T00:00").toLocaleDateString("sv-SE") : "–";
+const esc = s => String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => "p"+Date.now()+Math.random().toString(36).slice(2,6);
+function catOf(p){ return KATEGORIER[p.kategori] || p.kategori; }
+function huvudOf(k){ for(const h in HUVUD){ if(HUVUD[h].under.includes(k)) return h; } return "overgripande"; }
+function dotCls(k){ return {miljohalsoskydd:"m1", planbygg:"m2", ekonomiledning:"m3", verksamhetsutveckling:"m4", personalarbetsmiljo:"m5"}[k] || "ov"; }
+function iAktuellHuvud(p){ const mi = minAvdelning()||activeCat; return !!HUVUD[mi] && HUVUD[mi].under.includes(p.kategori); }
+function synligaProjekt(){ const mi = minAvdelning()||activeCat; return HUVUD[mi] ? data.projects.filter(iAktuellHuvud) : data.projects.slice(); }
+
+/* ---------- Gemensam mapp i SharePoint: en datafil per anvandare ---------- */
+const canFS = typeof window !== "undefined" && typeof window.showDirectoryPicker === "function";
+let sharedDir = null, sharedDirName = null, ownEntryName = null, sharedTimer = null, sharedErr = 0, lastWritten = null;
+function ownKey(){ return JSON.stringify([data.projects, data.tabort||[], data.saved]); }
+function dataUnchanged(){ return lastWritten !== null && ownKey() === lastWritten; }
+function markP(p){ if(p) p.andrad = new Date().toISOString(); }
+function normalizeP(p){
+  p.kontakter=p.kontakter||[]; p.etapper=p.etapper||[]; p.uppgifter=p.uppgifter||[];
+  p.anteckningar=p.anteckningar||[]; p.filer=p.filer||[];
+}
+function getUser(){
+  let n = null;
+  try{ n = localStorage.getItem("va_reg_user"); }catch(e){}
+  if(!n){
+    n = (prompt("Ditt namn (anv\u00e4nds f\u00f6r din egen datafil i den gemensamma mappen):","")||"").trim();
+    if(n){ try{ localStorage.setItem("va_reg_user", n); }catch(e){} }
+  }
+  return n;
+}
+function fileNameFor(namn){
+  return "projektdata-" + namn.toLowerCase().replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"") + ".json";
+}
+function sharedUI(){
+  const btn = $("sharedBtn"), st = $("sharedStatus"), sb = $("syncBtn");
+  if(!canFS){ btn.style.display="none"; st.style.display="none"; if(sb) sb.style.display="none"; return; }
+  btn.style.display = sharedDir? "none":"";
+  if(sb) sb.style.display = sharedDir? "":"none";
+  updateSharedStatus();
+}
+async function connectFolder(){
+  if(!canFS){ toast("\u26a0 Din webbl\u00e4sare kan inte spara till mappen. Anv\u00e4nd Chrome/Edge, eller Exportera/Importera."); return; }
+  try{
+    let namn = "";
+    try{ namn = localStorage.getItem("va_reg_user") || ""; }catch(e){}
+    if(!namn) namn = getUser();
+    if(!namn){ toast("\u26a0 Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return; }
+    const saved = await idbGet("sharedDirHandle");
+    if(saved){
+      try{
+        const p = await saved.requestPermission({mode:"readwrite"});
+        if(p === "granted"){
+          if(await finishConnect(saved)) return;
+        }
+      }catch(e){}
+    }
+    const dir = await window.showDirectoryPicker({mode:"readwrite", startIn:"documents"});
+    if(!(await finishConnect(dir))) return;
+    toast("\ud83d\udd17 Ansluten till mappen \"" + dir.name + "\" \u2013 appen skriver bara till " + ownEntryName + " och l\u00e4ser in alla \u00f6vrigas datafiler i mappen. Inga fler konfliktkopior!");
+  }catch(e){ if(e && e.name !== "AbortError"){ toast("\u26a0 Kunde inte ansluta: " + e.message); } }
+  sharedUI();
+}
+function tombMap(){
+  const m = new Map();
+  (data.tabort||[]).forEach(t=>{ if(t && t.id && (!m.has(t.id) || String(t.datum||"") > String(m.get(t.id).datum||""))) m.set(t.id, t); });
+  return m;
+}
+function migrateUppgifter(){
+  if(!data.aterkommande) { try{ data.aterkommande = JSON.parse(localStorage.getItem("aterkommande")||"null") || {list:[],updated:""}; }catch(e){ data.aterkommande = {list:[],updated:""}; } }
+  data.aterkommande.list = data.aterkommande.list || [];
+  let changed = false;
+  data.projects.forEach(p=>{
+    if(p.uppgifter && p.uppgifter.length){
+      p.uppgifter.forEach(u=>{
+        if(u && u.id && !data.aterkommande.list.some(x=>x.id===u.id))
+          data.aterkommande.list.push({id:u.id, namn:u.namn, frekvens:u.intervall, veckodag:5});
+      });
+      delete p.uppgifter; changed = true;
+    }
+  });
+  if(changed){ data.aterkommande.updated = new Date().toISOString(); persist(); }
+}
+function aterkommandeSpara(){
+  data.aterkommande.updated = new Date().toISOString();
+  try{ localStorage.setItem("aterkommande", JSON.stringify(data.aterkommande)); }catch(e){}
+  persist(); writeSharedNow(true); updateSaveInfo(); renderRail();
+}
+function aterkommandeSparaVsAnnan(){ try{ if(m2cfg && m2cfg.key==="_ingen") aterkommandeSpara(); else autosave(); }catch(e){} }
+function teamsChattNamn(namn){
+  let ep = "";
+  try{ ep = JSON.parse(localStorage.getItem("teamsEpost")||"{}")[namn] || ""; }catch(e){}
+  if(!ep){
+    ep = prompt("E-postadress till " + namn + " (sparas lokalt, frågas bara en gång):","");
+    if(!ep || !ep.trim()) return;
+    try{
+      const m = JSON.parse(localStorage.getItem("teamsEpost")||"{}");
+      m[namn] = ep.trim();
+      localStorage.setItem("teamsEpost", JSON.stringify(m));
+    }catch(e2){}
+    ep = ep.trim();
+  }
+  window.open("https://teams.microsoft.com/l/chat/0/0?users=" + encodeURIComponent(ep), "_blank");
+  toast("💬 Teams-chatten öppnas (behöver Teams på datorn alt. Teams på webben).");
+}
+function skickaMeddelande(till){
+  const text = prompt("Meddelande till " + till + ":","");
+  if(text === null) return;
+  if(!text.trim()){ toast("\u26a0 Skriv ett meddelande f\u00f6rst."); return; }
+  (data.meddelanden = data.meddelanden||[]).push({id:uid(), fran:(getUser()||"Ok\u00e4nd"), till:till, text:text.trim(), datum:new Date().toISOString()});
+  saveAll();
+  toast("📨 Meddelande skickat till " + till + ".");
+}
+function minaMeddelanden(){
+  const list = minaMeddLista();
+  const las = lastaMsgIds();
+  const nya = list.filter(m=>!las.includes(m.id)).length;
+  const html = list.length? list.slice(0,25).map(m=>`<div class="file-row" style="align-items:flex-start;flex-wrap:wrap">
+      <span style="flex:1;min-width:0">📩 <b>${esc(m.fran)}</b> <span style="color:var(--muted);font-size:.75rem">${new Date(m.datum).toLocaleString("sv-SE")}</span><br>
+      <span style="white-space:pre-wrap">${esc(m.text)}</span></span>
+      <button class="icon-btn" title="Ta bort meddelandet" onclick="taBortMsg('${esc(m.id)}')">🗑</button></div>`).join("") : '<div class="none">Inga meddelanden till dig ännu.</div>';
+  $("m2title").textContent = "Meddelanden till dig" + (nya? " – " + nya + " nya":"");
+  $("m2body").innerHTML = html + '<div style="color:var(--muted);font-size:.72rem;margin-top:8px">Meddelandena följer med datafilerna – här visas de senaste 25.</div>';
+  m2cfg = null;
+  $("m2bg").classList.add("open");
+  try{ localStorage.setItem("lastaMsg", JSON.stringify(list.map(m=>m.id))); }catch(e){}
+}
+function borttagnaMsgIds(){ try{ return JSON.parse(localStorage.getItem("borttagnaMsg")||"[]"); }catch(e){ return []; } }
+function lastaMsgIds(){ try{ return JSON.parse(localStorage.getItem("lastaMsg")||"[]"); }catch(e){ return []; } }
+function minaMeddLista(){
+  const jag = (getUser()||"").trim().toLowerCase();
+  const bort = new Set(borttagnaMsgIds());
+  return (data.meddelanden||[])
+    .filter(m=>String(m.till||"").trim().toLowerCase() === jag && !bort.has(m.id))
+    .sort((a,b)=>String(b.datum||"").localeCompare(String(a.datum||"")));
+}
+function olastaMedd(){ return minaMeddLista().filter(m=>!lastaMsgIds().includes(m.id)).length; }
+function taBortMsg(id){
+  const m = (data.meddelanden||[]).find(x=>x.id===id);
+  if(!m || !confirm("Ta bort meddelandet?")) return;
+  const bort = borttagnaMsgIds();
+  if(!bort.includes(id)) bort.push(id);
+  try{ localStorage.setItem("borttagnaMsg", JSON.stringify(bort)); }catch(e){}
+  data.meddelanden = data.meddelanden.filter(x=>x.id!==id);
+  minaMeddelanden();
+  renderRail();
+  toast("🗑 Meddelandet togs bort.");
+}
+function kollaNyaMeddelanden(){
+  const jag = (getUser()||"").trim().toLowerCase();
+  let las = [];
+  try{ las = JSON.parse(localStorage.getItem("lastaMsg")||"[]"); }catch(e){}
+  const nya = minaMeddLista().filter(m=>!las.includes(m.id));
+  if(nya.length){
+    lastUnread = nya.length;
+    toast("📩 Nytt meddelande fr\u00e5n " + nya[0].fran + " (" + nya.length + " ol\u00e4sta) \u2013 \u00f6ppna Meddelanden.");
+  }
+}
+function bibliotekLista(){ return ((data.bibliotek&&data.bibliotek.list)||[]); }
+function bibliotekSpara(){ data.bibliotek = data.bibliotek||{list:[],updated:""}; data.bibliotek.updated = new Date().toISOString(); persist(); writeSharedNow(true); }
+function bibliotekDialog(b){
+  const e = b || {};
+  const arFil = !!(b && b.fil);
+  m2({title: b? (arFil? "Redigera PDF-post" : "Redigera biblioteksl\u00e4nk") : "Ny biblioteksl\u00e4nk", key:"_ingen", i:null,
+    fields:[
+      ["namn","Namn *",e.namn||"","text"],
+      ["url","L\u00e4nk till PDF/sida (b\u00f6rjar med http/https) *",e.url||"","text"],
+      ["kategori","\u00c4mnesord (g\u00f6r s\u00f6kbara, valfritt)",e.kategori||"","text"],
+      ["beskrivning","Kort beskrivning (valfri)",e.beskrivning||"","textarea"]
+    ].filter((f,ix)=> !(arFil && ix===1)),
+    required:["namn"],
+    onSave:(obj)=>{
+      if(!arFil && !/^https?:\/\//i.test(obj.url)){ toast("\u26a0 L\u00e4nken m\u00e5ste b\u00f6rja med http:// eller https://"); throw new Error("url"); }
+      data.bibliotek = data.bibliotek||{list:[],updated:""};
+      const it = b || (b = {id:uid(), datum:new Date().toISOString()});
+      it.namn = obj.namn.trim();
+      if(!arFil) it.url = obj.url.trim();
+      it.kategori = obj.kategori.trim(); it.beskrivning = obj.beskrivning.trim();
+      if(!b) data.bibliotek.list.push(it);
+      bibliotekSpara();
+    }
+  });
+}
+async function bibDroppa(ev){
+  ev.preventDefault(); ev.stopPropagation();
+  const fs = ev.dataTransfer && ev.dataTransfer.files? Array.from(ev.dataTransfer.files) : [];
+  if(!fs.length){ toast("⚠ Släpp en eller flera filer här."); return; }
+  if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) först."); return; }
+  let n = 0;
+  try{
+    const bas = await sharedDir.getDirectoryHandle("projektfiler", {create:true});
+    const sub = await bas.getDirectoryHandle("bibliotek", {create:true});
+    for(const f of fs){
+      if(f.size > MAX_FIL_MAPP){ toast("⚠ Filen " + f.name + " är större än " + (MAX_FIL_MAPP/(1024*1024)) + " MB."); continue; }
+      const unik = Date.now() + "-" + n + "-" + f.name.replace(/[\\/:*?"<>|]/g,"_");
+      const fh = await sub.getFileHandle(unik, {create:true});
+      const w = await fh.createWritable();
+      await w.write(await f.arrayBuffer());
+      await w.close();
+      data.bibliotek = data.bibliotek||{list:[],updated:""};
+      data.bibliotek.list.push({id:uid(), namn:f.name, mapp:"projektfiler/bibliotek/"+unik, fil:true, datum:new Date().toISOString()});
+      n++;
+    }
+    if(n){ bibliotekSpara(); renderRail(); toast("📄 " + n + " fil(er) sparade i biblioteket."); }
+  }catch(e){ toast("⚠ Filerna kunde inte sparas: " + (e.message||"")); }
+}
+function bibDroppaOver(ev){ ev.preventDefault(); }
+async function openBibFil(id){
+  const b = bibliotekLista().find(x=>x.id===id);
+  if(!b || !b.fil) return;
+  try{
+    const parts = String(b.mapp||"").split("/").filter(Boolean);
+    let dh = sharedDir;
+    for(const p of parts.slice(0,-1)) dh = await dh.getDirectoryHandle(p);
+    const fh = await dh.getFileHandle(parts[parts.length-1]);
+    const file = await fh.getFile();
+    const url = URL.createObjectURL(file);
+    window.open(url, "_blank");
+    toast("📄 Öppnar " + b.namn + " i PDF-visaren.");
+    setTimeout(()=>URL.revokeObjectURL(url), 120000);
+  }catch(e){ toast("⚠ Filen kunde inte hämtas – kontrollera att mappen är ansluten."); }
+}
+function bibBytSort(v){
+  try{ localStorage.setItem("bibSort", v); }catch(e){}
+  bibSok("bibSokfalt");
+}
+function nyBibliotek(){ bibliotekDialog(null); }
+function redigeraBibliotek(id){ const b = bibliotekLista().find(x=>x.id===id); if(b) bibliotekDialog(b); }
+async function taBortBibliotek(id){
+  const b = bibliotekLista().find(x=>x.id===id);
+  if(!b || !confirm("Ta bort bibliotekslänken?")) return;
+  data.bibliotek.list = data.bibliotek.list.filter(x=>x.id!==id);
+  if(b.fil && b.mapp && sharedDir){
+    try{
+      const parts = String(b.mapp).split("/").filter(Boolean);
+      let dh = sharedDir;
+      for(const p of parts.slice(0,-1)) dh = await dh.getDirectoryHandle(p);
+      await dh.removeEntry(parts[parts.length-1]);
+      toast("🗑 Länken togs bort – filen raderades även ur biblioteksmappen.");
+    }catch(e){ toast("🗑 Länken togs bort (filen kunde inte raderas i mappen)."); }
+  } else toast("🗑 Länken togs bort.");
+  bibliotekSpara(); renderRail();
+}
+function bibSok(id){
+  const q = ($(id).value||"").toLowerCase();
+  const box = $("bibLista");
+  if(!box) return;
+  let sortLage = "az";
+  try{ sortLage = localStorage.getItem("bibSort") || "az"; }catch(e){}
+  const list = bibliotekLista().filter(b=> !q || (b.namn+" "+(b.kategori||"")+" "+(b.beskrivning||"")).toLowerCase().includes(q)).slice().sort((a,b)=>{
+    const jfr = (x,y)=> String(x||"").localeCompare(String(y||""), "sv");
+    if(sortLage === "za") return jfr(b.namn, a.namn);
+    if(sortLage === "kat") return jfr(a.kategori, b.kategori) || jfr(a.namn, b.namn);
+    if(sortLage === "ny") return String(b.datum||"").localeCompare(String(a.datum||"")) || jfr(a.namn, b.namn);
+    return jfr(a.namn, b.namn);
+  });
+  box.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <select id="bibSortera" onchange="bibBytSort(this.value)" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.8rem;background:#fff">${(()=>{const v=(()=>{try{return localStorage.getItem("bibSort")||"az"}catch(e){return "az"}})();const el=$("bibSortera");setTimeout(()=>{try{el.value=v}catch(e){}},0);return "";})()}
+        <option value="az">Sortera: Namn A–Ö</option>
+        <option value="za">Sortera: Namn Ö–A</option>
+        <option value="kat">Sortera: Ämnesord, sedan namn</option>
+        <option value="ny">Sortera: Nyast först</option>
+      </select>
+    </div>
+    <div ondrop="bibDroppa(event)" ondragover="bibDroppaOver(event)" style="border:1.5px dashed var(--border);border-radius:10px;padding:10px;text-align:center;color:var(--muted);font-size:.78rem;margin-bottom:8px;background:#f2f7ee;cursor:copy">
+      📂 <b>Släpp PDF-filer här</b><br>så kopieras de till biblioteket i den gemensamma mappen
+    </div>` + (list.length? list.map(b=>`
+    <div class="ri" style="padding:4px 2px;align-items:center;justify-content:space-between">
+      <span ${b.fil? `onclick="openBibFil('${esc(b.id)}')"`: `onclick="window.open('${esc(b.url)}','_blank')"`} style="min-width:0;overflow:hidden;text-overflow:ellipsis;cursor:pointer" title="${esc(b.fil? "PDF i biblioteksmappen – klicka för att öppna":(b.beskrivning||b.url))}">
+        ${b.fil? "📄 ":"🔗 "}<b>${esc(b.namn)}</b><br><span style="color:var(--muted);font-size:.72rem">${esc(b.kategori||"")}${b.beskrivning? " • "+esc(b.beskrivning.slice(0,40)):""}</span></span>
+      <span style="display:flex;gap:4px;align-items:center;flex:none">
+      <button class="icon-btn" title="Redigera" onclick="redigeraBibliotek('${esc(b.id)}')">✏️</button>
+      <button class="icon-btn" title="Ta bort" onclick="taBortBibliotek('${esc(b.id)}')">🗑</button></span></div>`).join("")
+    : (q? '<div class="none">Inget träffade söket.</div>' : '<div class="none">Släpp PDF-filer ovan, eller tryck + Ny för webblänkar.</div>'));
+}
+function nyAterkommande(){ aterkommandeDialog(null); }
+function redigeraAterkommande(id){
+  const u = data.aterkommande && data.aterkommande.list.find(x=>x.id===id);
+  if(!u) return;
+  aterkommandeDialog(u);
+}
+function aterkommandeDialog(u){
+  const e = u || {};
+  m2({title: u? "Redigera \u00e5terkommande uppgift" : "Ny \u00e5terkommande uppgift", key:"_ingen", i:null,
+    fields:[
+      ["namn","Namn p\u00e5 uppgiften *",e.namn||"","text"],
+      ["frekvens","Hur ofta? *",e.frekvens||"vecka","select",[["dag","Varje dag"],["vecka","Varje vecka (v\u00e4lj veckodag nedan)"],["manad","Varje m\u00e5nad (v\u00e4lj dag i m\u00e5naden)"],["ar","Varje \u00e5r (v\u00e4lj datum nedan)"]]],
+      ["veckodag","Veckodag (vid veckovis)",e.veckodag!=null? String(e.veckodag):"5","select",[["0","S\u00f6ndag"],["1","M\u00e5ndag"],["2","Tisdag"],["3","Onsdag"],["4","Torsdag"],["5","Fredag"],["6","L\u00f6rdag"]]],
+      ["dagIManad","Dag i m\u00e5naden 1\u201328 (vid m\u00e5nadsvis)",e.dagIManad!=null? String(e.dagIManad):"","text"],
+      ["datum","Datum (vid \u00e5rsvis)",e.datum||"","date"],
+      ["anteckning","Anteckning (valfri \u2013 syns i uppgiftens rad)",e.anteckning||"","textarea"],
+      ["avd","Avdelning (vem ser uppgiften)",e.avd||minAvdelning()||"miljobygg","select",
+        [["miljobygg","Milj\u00f6 och bygg"]]]
+    ],
+    required:["namn"],
+    onSave:(obj)=>{
+      const ny = u || {id:uid()};
+      ny.namn = obj.namn.trim();
+      ny.frekvens = obj.frekvens;
+      if(obj.frekvens==="vecka") ny.veckodag = +obj.veckodag;
+      if(obj.frekvens==="manad"){ const d = parseInt(obj.dagIManad); if(!(d>=1 && d<=28)){ toast("\u26a0 Dag i m\u00e5naden m\u00e5ste vara 1\u201328."); throw new Error("dag"); } ny.dagIManad = d; }
+      if(obj.frekvens==="ar"){ if(!obj.datum){ toast("\u26a0 V\u00e4lj ett datum f\u00f6r \u00e5rsvis uppgift."); throw new Error("datum"); } ny.datum = obj.datum; }
+      ny.anteckning = obj.anteckning;
+      ny.avd = obj.avd || minAvdelning() || "va";
+      if(!u) data.aterkommande.list.push(ny);
+      aterkommandeSpara();
+    }
+  });
+}
+function taBortAterkommande(id){
+  if(!confirm("Ta bort den återkommande uppgiften?")) return;
+  data.aterkommande.list = data.aterkommande.list.filter(x=>x.id!==id);
+  aterkommandeSpara(); renderRail();
+}
+function mergeIntoLocal(src){
+  data.tabort = data.tabort || [];
+  (src.tabort||[]).forEach(st=>{
+    if(!st || !st.id) return;
+    const lt = data.tabort.find(x=>x.id===st.id);
+    if(!lt) data.tabort.push(st);
+    else if(String(st.datum||"") > String(lt.datum||"")) data.tabort[data.tabort.indexOf(lt)] = st;
+  });
+  const tmap = tombMap();
+  data.projects = data.projects.filter(p=>{
+    const ts = tmap.get(p.id);
+    return !(ts && String(ts.datum||"") >= String(p.andrad||""));
+  });
+  data.meddelanden = data.meddelanden||[];
+  const egnaIds = new Set(data.meddelanden.map(m=>m.id));
+  (src.meddelanden||[]).forEach(m=>{ if(m && m.id && !egnaIds.has(m.id)) data.meddelanden.push(m); });
+  if(src.aterkommande && String(src.aterkommande.updated||"") > String((data.aterkommande||{}).updated||"")){
+    data.aterkommande = src.aterkommande; try{ localStorage.setItem("aterkommande", JSON.stringify(data.aterkommande)); }catch(e){}
+  }
+  if(src.bibliotek && String(src.bibliotek.updated||"") > String((data.bibliotek||{}).updated||"")){
+    data.bibliotek = src.bibliotek;
+  }
+  if(src.settings && String(src.settings.updated||"") > String((data.settings||{}).updated||"")){
+    data.settings = Object.assign({}, data.settings||{}, src.settings);
+  }
+  const byId = new Map(data.projects.map(p=>[p.id,p]));
+  let added=0, updated=0, localNew=0;
+  src.projects.forEach(sp=>{
+    if(!sp.id || !sp.namn) return;
+    const ts = tmap.get(sp.id);
+    if(ts && String(ts.datum||"") >= String(sp.andrad||"")) return;
+    normalizeP(sp);
+    const lp = byId.get(sp.id);
+    if(!lp){ data.projects.push(sp); added++; }
+    else if(String(sp.andrad||"") > String(lp.andrad||"")){ data.projects[data.projects.indexOf(lp)] = sp; updated++; }
+    else if(lp.andrad){ localNew++; }
+  });
+  return {added, updated, localNew};
+}
+async function writeSharedNow(force){
+  if(!sharedDir || !ownEntryName) return;
+  try{
+    if(!force && dataUnchanged()) return;
+    const entry = await sharedDir.getFileHandle(ownEntryName, {create:true});
+    const payload = JSON.stringify({projects:data.projects, tabort:data.tabort||[], aterkommande:data.aterkommande||{list:[]}, bibliotek:data.bibliotek||{list:[]}, settings:data.settings||{}, meddelanden:data.meddelanden||[], updated:data.updated, saved:data.saved});
+    if(!force && payload === lastWritten) return;
+    const w = await entry.createWritable();
+    await w.write(payload);
+    await w.close();
+    lastWritten = ownKey();
+    sharedErr = 0;
+    updateSharedStatus();
+  }catch(e){
+    sharedErr++;
+    if(sharedErr===1) toast("\u26a0 Kunde inte spara till " + ownEntryName + " \u2013 kontrollera att mappen \u00e4r synkroniserad och inte \u00f6ppnad av annat program.");
+  }
+}
+function updateSharedStatus(){
+  const st = $("sharedStatus");
+  if(!sharedDir){ st.style.display="none"; return; }
+  st.style.display = "";
+  st.textContent = "\ud83d\udd17 Mapp: " + (sharedDirName||"mapp") + " \u00b7 Min fil: " + ownEntryName + " \u00b7 " + data.projects.length + " projekt totalt \u00b7 synk " + new Date().toLocaleTimeString("sv-SE",{hour:"2-digit",minute:"2-digit"});
+}
+async function syncNow(){
+  if(!sharedDir){ toast("\u26a0 Anslut den gemensamma mappen f\u00f6rst (\ud83d\udcc1 Anslut gemensam mapp)."); return; }
+  await refreshFromShared(false);
+  await writeSharedNow(true);
+  toast("\ud83d\udd04 Synkat \u2013 statusraden uppe till h\u00f6ger visar l\u00e4get.");
+}
+function scheduleShared(){
+  if(!sharedDir) return;
+  clearTimeout(sharedTimer);
+  sharedTimer = setTimeout(writeSharedNow, 2500);
+}
+/* Automatisk synkning: las alla datafiler i mappen och sl ihop dem */
+async function refreshFromShared(quiet){
+  if(!sharedDir || !ownEntryName) return;
+  try{
+    let addedTot=0, updTot=0, read=0;
+    for await (const entry of sharedDir.values()){
+      if(entry.kind !== "file" || !/\.json$/i.test(entry.name)) continue;
+      if(entry.name === ownEntryName) continue;
+      let src = null;
+      try{
+        const f = await entry.getFile();
+        if(f.size) src = JSON.parse(await f.text());
+      }catch(e){}
+      if(!src || !Array.isArray(src.projects)) continue;
+      read++;
+      const n = mergeIntoLocal(src);
+      addedTot += n.added; updTot += n.updated;
+    }
+    if(addedTot || updTot){
+      persist();
+      render(); renderStats();
+      if(currentDetail) openDetail(currentDetail);
+      if(!quiet) toast("\ud83d\udd04 H\u00e4mtat fr\u00e5n kollegors filer: " + addedTot + " nya, " + updTot + " uppdaterade projekt.");
+    }
+    updateSharedStatus();
+  }catch(e){}
+}
+/* IndexedDB \u2013 kom ihg den anslutna mappen mellan oppningar */
+function idbOpen(){
+  return new Promise(res=>{
+    let r;
+    try{ r = indexedDB.open("va_projreg", 1); }catch(e){ res(null); return; }
+    r.onupgradeneeded = ()=>{ try{ r.result.createObjectStore("kv"); }catch(e){} };
+    r.onerror = ()=>res(null);
+    r.onsuccess = ()=>res(r.result);
+  });
+}
+async function idbSet(k,v){
+  const db = await idbOpen(); if(!db) return;
+  try{ db.transaction("kv","readwrite").objectStore("kv").put(v,k); }catch(e){}
+}
+async function idbGet(k){
+  const db = await idbOpen(); if(!db) return null;
+  return new Promise(res=>{
+    let q;
+    try{ q = db.transaction("kv","readonly").objectStore("kv").get(k); }
+    catch(e){ res(null); return; }
+    q.onsuccess = ()=>res(q.result || null);
+    q.onerror = ()=>res(null);
+  });
+}
+function hideConnectPopup(){ $("connectBg").classList.remove("open"); }
+async function finishConnect(dir){
+  let namn = "";
+  try{ namn = localStorage.getItem("va_reg_user") || ""; }catch(e){}
+  if(!namn) namn = getUser();
+  if(!namn){ toast("\u26a0\ufe0f Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return false; }
+  sharedDir = dir; sharedDirName = dir.name || (sharedDirName||"mapp"); sharedErr = 0; lastWritten = null;
+  ownEntryName = fileNameFor(namn);
+  try{ localStorage.setItem("va_reg_dir", sharedDirName); localStorage.setItem("va_reg_own", ownEntryName); localStorage.setItem("va_reg_user", namn); }catch(e){}
+  await idbSet("sharedDirHandle", dir);
+  await idbSet("ownEntryName", ownEntryName);
+  hideConnectPopup();
+  await refreshFromShared(true);
+  await writeSharedNow(true);
+  persist(); render(); renderStats();
+  sharedUI();
+  if(currentDetail) openDetail(currentDetail);
+  toast("\ud83d\udd17 Ansluten till mappen \"" + sharedDirName + "\" – allt synkar automatiskt.");
+  return true;
+}
+async function csharpDrop(evt){
+  evt.preventDefault();
+  const dz = $("dropZone");
+  if(dz) dz.classList.remove("hover");
+  const items = evt.dataTransfer && evt.dataTransfer.items;
+  if(!items || !items[0]){ return; }
+  let h = null;
+  try{ h = await items[0].getAsFileSystemHandle(); }catch(e){}
+  if(!h || h.kind !== "directory"){
+    toast("\u26a0 Sl\u00e4pp en mapp (katalog), inte en fil.");
+    return;
+  }
+  let ok = true;
+  try{
+    const perm = await h.requestPermission({mode:"readwrite"});
+    if(perm !== "granted"){ toast("\u26a0 Skriv\u00e5tkomst nekades – f\u00f6rs\u00f6k igen och v\u00e4lj Till\u00e5t."); return; }
+  }catch(e){ ok = false; }
+  if(!ok){ toast("\u26a0 Beh\u00f6righetsdialogen misslyckades – anv\u00e4nd \ud83d\udcc1 Anslut nu ist\u00e4llet."); return; }
+  await finishConnect(h);
+}
+async function idbTest(){
+  try{
+    await idbSet("va_diagnos","ok");
+    const t = await idbGet("va_diagnos");
+    return t === "ok";
+  }catch(e){ return false; }
+}
+function rutMappinfo(mappNamn, diag){
+  let path = "";
+  try{ path = localStorage.getItem("va_reg_path") || ""; }catch(e){}
+  let html = mappNamn? ("<b>Mapp att v\u00e4lja: " + esc(mappNamn) + "</b>") : "";
+  if(path){
+    const url = "file:///" + path.replace(/\\/g,"/").replace(/ /g,"%20").replace(/\u00e5/g,"%C3%A5").replace(/\u00e4/g,"%C3%A4").replace(/\u00f6/g,"%C3%B6").replace(/\u00c5/g,"%C3%85").replace(/\u00c4/g,"%C3%84").replace(/\u00d6/g,"%C3%96");
+    html += '<div style="margin-top:8px;font-size:.85rem">S\u00f6kv\u00e4g: <code>' + esc(path) + '</code> <a href="' + url + '" style="margin-left:8px">\ud83d\udcc2 \u00d6ppna i Utforskaren</a></div>';
+  } else {
+    html += '<div style="margin-top:8px;font-size:.85rem;color:var(--muted)">Tips: spara mappens s\u00f6kv\u00e4g en g\u00e5ng (knappen nedan) s\u00e5 visas den h\u00e4r som hj\u00e4lp vid varje start.</div>';
+  }
+  html += '<div style="margin-top:8px"><button class="secondary btn-sm" onclick="stallMappSokvag()">\u270f\ufe0f ' + (path? "\u00c4ndra mappens s\u00f6kv\u00e4g" : "Spara mappens s\u00f6kv\u00e4g") + '</button></div>';
+  const dl = diag===true? '<span style="color:#16a34a;font-weight:700">aktiv</span>'
+            : diag===false? '<span style="color:#dc2626;font-weight:700">avst\u00e4ngd</span>'
+            : '<span style="color:var(--muted)">?</span>';
+  html += '<div style="margin-top:10px;font-size:.75rem;color:var(--muted)">Minneslagring (beh\u00f6vs f\u00f6r att slippa mappv\u00e4ljaren vid varje start): ' + dl + '</div>';
+  $("connectPathBox").innerHTML = html;
+}
+function stallMappSokvag(){
+  let nu = "";
+  try{ nu = localStorage.getItem("va_reg_path") || ""; }catch(e){}
+  const p = prompt("Skriv mappens fullst\u00e4ndiga s\u00f6kv\u00e4g som hj\u00e4lp vid start (t.ex. C:\\Users\\dittnamn\\Kommunsamverkan\\...\\06. VA-PROJEKT):", nu);
+  if(p === null) return;
+  try{ localStorage.setItem("va_reg_path", p.trim()); }catch(e){}
+  let m = "";
+  try{ m = localStorage.getItem("va_reg_dir") || ""; }catch(e){}
+  rutMappinfo(m);
+}
+async function autoConnect(){
+  if(!canFS) return;
+  const dir = await idbGet("sharedDirHandle");
+  const namn = await idbGet("ownEntryName");
+  if(!dir || !namn){
+    const btn = $("sharedBtn");
+    let sparad = "";
+    try{ sparad = localStorage.getItem("va_reg_dir") || ""; }catch(e){}
+    btn.style.display = "";
+    btn.textContent = sparad? ("\ud83d\udcc1 Anslut: " + sparad) : "\ud83d\udcc1 Anslut gemensam mapp";
+    btn.title = "Webbl\u00e4saren kr\u00e4ver att du godk\u00e4nner mappen en g\u00e5ng per start \u2013 d\u00e4refter sk\u00f6ter appen allt automatiskt.";
+    const dx = await idbTest();
+    rutMappinfo(sparad, dx);
+    $("connectBg").classList.add("open");
+    return;
+  }
+  let perm = "prompt";
+  try{ perm = await dir.queryPermission({mode:"readwrite"}); }catch(e){}
+  if(perm === "granted"){
+    sharedDir = dir; sharedDirName = dir.name; ownEntryName = namn; sharedErr = 0; lastWritten = null;
+  skrivAktivitet().then(()=>lasAktivitet()); lasAktivitet();
+    await refreshFromShared(true);
+    sharedUI();
+    toast("\ud83d\udd17 Automatiskt ansluten till mappen \u2013synkning sker l\u00f6pande.");
+  } else {
+    const btn = $("sharedBtn");
+    btn.style.display = "";
+    let sparad2 = "";
+    try{ sparad2 = localStorage.getItem("va_reg_dir") || ""; }catch(e){}
+    btn.textContent = sparad2? ("\ud83d\udcc1 Anslut: " + sparad2) : "\ud83d\udcc1 Anslut gemensam mapp";
+    $("connectText").innerHTML = "Webbl\u00e4saren beh\u00f6ver f\u00f6rnya \u00e5tkomsten till den gemensamma mappen" + (sparad2? " <b>" + esc(sparad2) + "</b>" : "") + " \u2013 klicka p\u00e5 Anslut nu och godk\u00e4nn.";
+    const dx = await idbTest();
+    rutMappinfo(sparad2, dx);
+    $("connectBg").classList.add("open");
+  }
+}
+let aktivLista = [];
+let lastUnread = 0;
+async function skrivAktivitet(){
+  if(!sharedDir || !ownEntryName) return;
+  try{
+    const fh = await sharedDir.getFileHandle("aktiv-" + ownEntryName, {create:true});
+    const w = await fh.createWritable();
+    await w.write(JSON.stringify({namn: (getUser()||"Ok\u00e4nd"), sist: new Date().toISOString()}));
+    await w.close();
+  }catch(e){}
+}
+async function lasAktivitet(){
+  if(!sharedDir){ aktivLista = []; return; }
+  const nu = Date.now(); const ut = [];
+  try{
+    for await (const entry of sharedDir.values()){
+      if(entry.kind !== "file" || !/^aktiv-.*\.json$/i.test(entry.name)) continue;
+      try{
+        const f = await entry.getFile();
+        if(!f.size) continue;
+        const a = JSON.parse(await f.text());
+        const alder = nu - new Date(a.sist||0).getTime();
+        if(a.namn && alder < 5*60*1000) ut.push({namn: a.namn, sek: Math.round(alder/1000)});
+      }catch(e){}
+    }
+    const jag = (getUser()||"").trim().toLowerCase();
+    if(jag && !ut.some(a=>String(a.namn||"").trim().toLowerCase() === jag)) ut.push({namn:(getUser()||"").trim(), sek:0});
+    ut.sort((a,b)=>a.sek-b.sek);
+    aktivLista = ut;
+    renderRail();
+  }catch(e){}
+}
+setInterval(()=>{ skrivAktivitet(); lasAktivitet(); kollaNyaMeddelanden(); }, 10000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && sharedDir){ skrivAktivitet(); lasAktivitet(); } });
+skrivAktivitet();
+setInterval(()=>refreshFromShared(false), 20000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) refreshFromShared(false); });
+
+/* ---------- Etappvarningar ---------- */
+function daysLeft(datum){
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((new Date(datum+"T00:00") - today)/86400000);
+}
+function etappWarn(e){
+  if(e.klar || !e.datum) return null;
+  const dl = daysLeft(e.datum);
+  if(dl < 0) return {level:"red", text:`Etappen "${e.namn}" har passerat slutdatumet (${fmtDate(e.datum)})`};
+  if(dl <= 7) return {level:"amber", text:`${dl===0?"Idag":"Endast "+dl+" dag"} kvar: "${e.namn}" (${fmtDate(e.datum)})`};
+  return null;
+}
+function projectWarns(p){ return (p.etapper||[]).map(etappWarn).filter(Boolean); }
+
+/* ---------- Listvy ---------- */
+function renderStats(){
+  $("stats").innerHTML = HUVUD.miljobygg.under.map(h=>{
+    const list = data.projects.filter(p=>p.kategori===h);
+    const budget = list.reduce((s,p)=>s+(+p.budget||0),0);
+    const pagaende = list.filter(p=>p.status==="Pågående").length;
+    const avslutade = list.filter(p=>p.status==="Avslutat").length;
+    const warns = list.reduce((s,p)=>s+projectWarns(p).length,0);
+    return `<div class="stat">
+      <div class="cat"><span class="dot ${dotCls(h)}"></span>${KATEGORIER[h]}</div>
+      <div class="num">${list.length} projekt</div>
+      <div class="budget">${pagaende} pågående · ${avslutade} avslutade · Budget: ${fmtKr(budget)}${warns?`<br><span class="warn-flag">⚠ ${warns} etappvarning${warns>1?"ar":""}</span>`:""}</div>
+    </div>`;
+  }).join("");
+  const all = synligaProjekt().flatMap(projectWarns);
+  $("globalWarn").innerHTML = all.length? `<div class="banner ${all.some(w=>w.level==="red")?"red":""}">
+    <span style="font-size:1.2rem">⚠️</span>
+    <div><b>${all.length} etapp${all.length>1?"er":""} behöver uppmärksammas</b>
+    <ul>${all.slice(0,8).map(w=>`<li>${esc(w.text)}</li>`).join("")}${all.length>8?`<li>… och ${all.length-8} till</li>`:""}</ul>
+    <span style="font-size:.78rem;color:var(--muted)">Öppna projektet och markera etappen som färdig, eller ändra datumet, för att ta bort varningen.</span></div>
+  </div>` : "";
+  renderSummary();
+  renderRail();
+}
+function summaryYears(){
+  const ys = new Set();
+  data.projects.forEach(p=>{ if(p.start) ys.add(String(p.start).slice(0,4)); });
+  return Array.from(ys).sort().reverse();
+}
+function renderRail(){
+  const rail = $("sideRail"); if(!rail) return;
+  migrateUppgifter();
+  setTimeout(()=>{ try{ bibSok("bibSokfalt"); }catch(e){} }, 0);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const om14 = new Date(today.getTime()+14*86400000);
+  const warns = [];
+  const kommande = [];
+  synligaProjekt().forEach(p=>{
+    projectWarns(p).forEach(w=>warns.push({p, text:w.text, red:w.level==="red"}));
+    (p.etapper||[]).forEach(e=>{
+      if(!e.klar && e.datum){
+        const d = new Date(e.datum+"T00:00");
+        if(d >= today && d <= om14) kommande.push({p, namn:e.namn, datum:e.datum});
+      }
+    });
+  });
+  kommande.sort((a,b)=>a.datum.localeCompare(b.datum));
+  const senaste = synligaProjekt().slice().sort((a,b)=>String(b.andrad||"").localeCompare(String(a.andrad||""))).slice(0,5);
+  rail.innerHTML =
+    `<div class="rw"><h4>\u26a0 Etappvarningar</h4><div class="rb">${
+      warns.length? warns.slice(0,8).map(w=>`<div class="ri" onclick="openDetail('${w.p.id}')" style="${w.red?"color:var(--danger)":""}"><b>${esc(w.p.namn)}</b><span style="color:var(--muted);font-size:.76rem">info</span></div><div style="font-size:.76rem;color:var(--muted);padding:0 2px 6px">${esc(w.text)}</div>`).join("")
+      : '<div class="none">Inga varningar – bra läge!</div>'
+    }</div></div>
+    <div class="rw"><h4>\ud83d\udcc5 Kommande etapper (14 dagar)</h4><div class="rb">${
+      kommande.length? kommande.slice(0,8).map(k=>`<div class="ri" onclick="openDetail('${k.p.id}')"><b>${esc(k.namn)}</b><span style="color:var(--muted);font-size:.76rem">${fmtDate(k.datum)}</span></div>`).join("")
+        : '<div class="none">Inget planerat inom 14 dagar.</div>'
+    }</div></div>
+    <div class="rw"><h4 style="display:flex;justify-content:space-between;align-items:center">🔁 Återkommande uppgifter
+      <button class="btn-sm secondary" onclick="nyAterkommande()" style="margin:0;padding:2px 8px">＋ Ny</button></h4>
+      <div class="rb">${ (data.aterkommande&&data.aterkommande.list||[]).filter(u=> (u.avd||"va")===(minAvdelning()||activeCat)).length?
+        data.aterkommande.list.filter(u=> (u.avd||"va")===(minAvdelning()||activeCat)).map(u=>{
+          const due = uppgiftDue(u);
+          const klar = u.senastKlar === uppgiftPeriodeNyckel(u);
+          return `<div class="ri" style="padding:5px 2px;font-size:.84rem;align-items:center;justify-content:space-between;${due&&!klar? "background:#f6ecd4;":(klar? "opacity:.8;":"")}">
+            <span style="display:flex;gap:7px;align-items:center;min-width:0">
+            <input type="checkbox" ${klar? "checked":""} onchange="toggleAterkommandeKlar('${esc(u.id)}')" style="width:17px;height:17px;cursor:pointer;flex:none" title="Bocka av när uppgiften är klar – det går även innan dagen den är satt för${u.anteckning? "\nKommentar: "+u.anteckning:""}">
+            <span onclick="redigeraAterkommande('${esc(u.id)}')" style="min-width:0;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline dotted var(--muted)" title="Klicka för att redigera uppgiften${u.anteckning? "\n"+esc(u.anteckning):""}"><b style="${klar? "text-decoration:line-through":""}">${esc(u.namn)}</b><br><span style="color:var(--muted);font-size:.72rem">${esc(uppgiftFreqLabel(u))}${u.anteckning? " • "+esc(u.anteckning.slice(0,40)): ""}${due? (klar? " • klar":" • väntar"):""}</span></span></span>
+            <button class="icon-btn" title="Ta bort" onclick="taBortAterkommande('${esc(u.id)}')">🗑</button></div>`;
+        }).join("") : '<div class="none">Inga återkommande uppgifter ännu. Tryck + Ny.</div>' }</div></div>
+    <div class="rw"><h4>\ud83d\udca1 Senast ändrade</h4><div class="rb">${
+      senaste.length? senaste.map(p=>`<div class="ri" onclick="openDetail('${p.id}')"><b>${esc(p.namn)}</b><span style="color:var(--muted);font-size:.76rem">${catOf(p)}</span></div>`).join("")
+        : '<div class="none">Inga projekt ännu.</div>'
+    }</div></div>
+    <div class="rw"><h4 style="display:flex;justify-content:space-between;align-items:center">👥 Nu i appen
+      <button class="btn-sm secondary" onclick="minaMeddelanden()" style="margin:0;padding:2px 8px">${(()=>{const n=olastaMedd();return "📩 Meddelanden"+(n? " ("+n+")":"");})()}</button></h4>
+      <div class="rb">${ aktivLista.length?
+        aktivLista.map(a=>`<div class="ri" style="padding:4px 2px;cursor:default;align-items:center;justify-content:space-between">
+          <span><b>${esc(a.namn)}</b> <span style="color:var(--muted);font-size:.72rem">${a.sek<60? "• aktiv nu" : "• för " + Math.round(a.sek/60) + " min sedan"}</span></span>
+          <span style="display:flex;gap:4px">
+          <button class="btn-sm secondary" onclick="skickaMeddelande('${esc(a.namn)}')" style="margin:0;padding:2px 8px" title="Skicka ett meddelande i appen">📨</button>
+          <button class="btn-sm secondary" onclick="teamsChattNamn('${esc(a.namn)}')" style="margin:0;padding:2px 8px" title="Öppna en Teams-chatt med personen">💬</button></span></div>`).join("")
+        : '<div class="none">Inga \u00e4r i appen just nu (eller mappen \u00e4r inte ansluten).</div>' }</div></div>
+    <div class="rw"><h4>🚗 Bilbokning</h4><div class="rb">
+      <div class="ri" onclick="openBilBokning()"><b>Öppna bokningssidan</b><span style="color:var(--muted);font-size:.76rem">${esc((data.settings||{}).bilUrl||"klicka för att ställa in adressen")}</span></div>
+      <div class="ri" onclick="bytBilUrl(false)" style="color:var(--muted)"><span style="font-size:.8rem">✎ Byt adress / stäng av</span></div>
+    </div></div>
+    <div class="rw"><h4>📅 Möte</h4><div class="rb">
+      <div class="ri" onclick="bokaMoteWeb()"><b>Boka in ett möte</b><span style="color:var(--muted);font-size:.76rem">öppnar Outlooks mötesbokning i kalendern</span></div>
+    </div></div>
+    <div class="rw"><h4 style="display:flex;justify-content:space-between;align-items:center">📚 VA-biblioteket
+      <button class="btn-sm secondary" onclick="nyBibliotek()" style="margin:0;padding:2px 8px">＋ Ny</button></h4>
+      <div class="rb">
+        <input type="text" id="bibSokfalt" placeholder="Sök i biblioteket..." oninput="bibSok('bibSokfalt')" style="width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:.82rem">
+        <div id="bibLista"></div>
+      </div>
+    </div></div>`;
+setTimeout(()=>{ try{ bibSok("bibSokfalt"); }catch(e){} }, 300);
+}
+function bokaMoteWeb(){
+  window.open("https://outlook.office.com/calendar/deeplink/compose?path=/calendar/action/compose&rru=addevent", "_blank");
+  toast("📅 Outlooks m\u00f6tesbokning \u00f6ppnas \u2013 fyll i \u00e4mne och tid och tryck Spara.");
+}
+function openBilBokning(){
+  const s = data.settings || (data.settings = {});
+  if(!s.bilUrl){ bytBilUrl(true); return; }
+  window.open(s.bilUrl, "_blank");
+}
+function bytBilUrl(oppenaEfter){
+  const s = data.settings || (data.settings = {});
+  const u = prompt("Webbadress till bilbokningen (börjar med http/https):", s.bilUrl || "");
+  if(u === null) return;
+  s.bilUrl = u.trim(); s.updated = new Date().toISOString();
+  saveAll(); renderRail();
+  toast(s.bilUrl? "Bokningsadressen sparad (synkas till kollegorna)." : "Bokningsadressen borttagen.");
+  if(oppenaEfter && s.bilUrl) window.open(s.bilUrl, "_blank");
+}
+function renderSummary(){
+  const body = $("sumBody"); if(!body) return;
+  const sel = $("yearSel");
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Alla år</option>' + summaryYears().map(y=>`<option value="${y}"${cur===y?" selected":""}>${y}</option>`).join("");
+  const y = sel.value;
+  const list = data.projects.filter(p=>!y || String(p.start||"").slice(0,4)===y);
+  const mina = (HUVUD[activeCat] && HUVUD[activeCat].under) || Object.keys(KATEGORIER);
+  const rows = mina.map(k=>{
+    const l = list.filter(p=>p.kategori===k);
+    return {
+      k, antal: l.length,
+      budget: l.reduce((s,p)=>s+(+p.budget||0),0),
+      kostnad: l.reduce((s,p)=>s+(+p.kostnad||0),0)
+    };
+  });
+  const totAntal = rows.reduce((s,r)=>s+r.antal,0);
+  const totBudget = rows.reduce((s,r)=>s+r.budget,0);
+  const totKostnad = rows.reduce((s,r)=>s+r.kostnad,0);
+  const kr = n => Number(n||0).toLocaleString("sv-SE")+" kr";
+  body.innerHTML = `<table>
+    <thead><tr><th>Kategori</th><th>Projekt</th><th>Budget</th><th>Kostnad hittills</th><th>Återstående</th></tr></thead>
+    <tbody>
+      ${rows.map(r=>`<tr>
+        <td><span class="dot ${dotCls(r.k)}"></span> ${KATEGORIER[r.k]}</td>
+        <td>${r.antal}</td>
+        <td>${kr(r.budget)}</td>
+        <td>${kr(r.kostnad)}</td>
+        <td>${kr(r.budget-r.kostnad)}</td>
+      </tr>`).join("")}
+      <tr style="font-weight:700;background:#eef4e4">
+        <td>Totalt ${y?"("+y+")":""}</td><td>${totAntal}</td><td>${kr(totBudget)}</td><td>${kr(totKostnad)}</td><td>${kr(totBudget-totKostnad)}</td>
+      </tr>
+    </tbody></table>
+    <div style="color:var(--muted);font-size:.78rem;margin-top:8px">Årfiltreringen bygger på projektens startår. Endast projektkortets budget/kostnad räknas med.</div>`;
+}
+function statusBadge(s){
+  const map={Planering:"b-plan",Pågående:"b-pagaende",Pausad:"b-paus",Avslutat:"b-klar",Avbrutet:"b-avbruten"};
+  return `<span class="badge ${map[s]||"b-paus"}">${esc(s)}</span>`;
+}
+function render(){
+  const mi = minAvdelning();
+  if(!mi){ valjAvdelning(); }
+  else if(activeCat!==mi){ activeCat = mi; activeSub = "alla"; }
+  renderSubTabs(); renderDeptCounts();
+  const q = ($("search").value||"").toLowerCase();
+  const sf = $("statusFilter").value, pf = $("prioFilter").value;
+  const dolda = new Set();
+  if($("hideAvslutade") && $("hideAvslutade").checked) dolda.add("Avslutat");
+  if($("hideAvbrutna") && $("hideAvbrutna").checked) dolda.add("Avbrutet");
+  try{ localStorage.setItem("va_reg_dolj", Array.from(dolda).join(",")); }catch(e){}
+  let list = data.projects.filter(p=>{
+    if(dolda.has(p.status)) return false;
+    if(activeCat!=="alla"){
+      const hu = HUVUD[activeCat];
+      if(!hu || !hu.under.includes(p.kategori)) return false;
+      if(activeSub!=="alla" && p.kategori!==activeSub) return false;
+    }
+    if(sf && p.status!==sf) return false;
+    if(pf && p.prio!==pf) return false;
+    if(q){
+      const hay = [p.namn,p.nr,p.pl,p.agare,p.plats,p.beskrivning,catOf(p),
+        ...(p.kontakter||[]).map(c=>(c.namn||"")+" "+(c.epost||""))].join(" ").toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  list.sort((a,b)=>{let x=a[sortKey],y=b[sortKey];
+    if(["budget","kostnad"].includes(sortKey)){x=+x||0;y=+y||0;}
+    return (x>y?1:x<y?-1:0)*sortDir;});
+  $("countInfo").textContent = `${list.length} av ${data.projects.length} projekt`;
+  $("emptyMsg").style.display = list.length? "none":"block";
+  $("tbl").style.display = list.length? "table":"none";
+  const cols = [["nr","Nr"],["namn","Projekt"],["kategori","Kategori"],["pl","Projektledare"],["status","Status"],["prio","Prio"],["slut","Slut"],["budget","Budget"],["kostnad","Kostnad"]];
+  document.querySelector("#tbl thead").innerHTML = "<tr>"+cols.map(([k,l])=>
+    `<th onclick="sortBy('${k}')">${l}${sortKey===k?(sortDir===1?" ▲":" ▼"):""}</th>`).join("")+"<th></th></tr>";
+  document.querySelector("#tbl tbody").innerHTML = list.map(p=>{
+    const w = projectWarns(p);
+    return `<tr id="rad-${p.id}" onclick="openDetail('${p.id}')" style="cursor:pointer">
+      <td>${esc(p.nr||"")}</td>
+      <td><b>${esc(p.namn)}</b>${w.length?`<div><span class="warn-flag">⚠ ${w.length} varning${w.length>1?"ar":""}</span></div>`:""}</td>
+      <td>${esc(catOf(p))}</td>
+      <td>${esc(p.pl||"–")}</td>
+      <td>${statusBadge(p.status)}</td>
+      <td class="prio-${(p.prio||"").toLowerCase()}">${esc(p.prio||"")}</td>
+      <td>${esc(p.slut||"–")}</td>
+      <td>${fmtKr(p.budget)}</td>
+      <td>${fmtKr(p.kostnad)}</td>
+      <td style="white-space:nowrap">
+        <button class="icon-btn" id="vip-${p.id}" title="Fäll ut snabbvy (utan att öppna projektet)" onclick="event.stopPropagation();vipaRad('${p.id}')">▾</button>
+        <button class="icon-btn" title="Öppna projekt" onclick="event.stopPropagation();openDetail('${p.id}')">📂</button>
+        <button class="icon-btn" title="Ändra status" onclick="event.stopPropagation();openStatusMenu(event,'${p.id}')">🔄</button>
+        <button class="icon-btn" title="Anteckningar" onclick="event.stopPropagation();gotoNotes('${p.id}')">📝</button>
+        <button class="icon-btn" title="Redigera" onclick="event.stopPropagation();openForm('${p.id}',true)">✏️</button>
+      </td>
+    </tr>`;}).join("");
+}
+let expanderade = new Set();
+function vipaRad(id){
+  const rad = $("rad-" + id);
+  if(!rad) return;
+  const exp = rad.nextElementSibling;
+  if(exp && exp.classList && exp.classList.contains("exprow")){
+    exp.remove();
+    $("vip-" + id).textContent = "▾";
+    expanderade.delete(id);
+    return;
+  }
+  const p = data.projects.find(x=>x.id===id);
+  if(!p) return;
+  const tr = document.createElement("tr");
+  tr.className = "exprow";
+  const td = document.createElement("td");
+  td.colSpan = 10;
+  td.style.background = "#f7faf4";
+  td.style.padding = "14px 18px";
+  td.innerHTML = projektMini(p);
+  tr.appendChild(td);
+  rad.after(tr);
+  $("vip-" + id).textContent = "▴";
+  expanderade.add(id);
+}
+function miniGantt(p){
+  const es = (p.etapper||[]).filter(e=>e.datum).sort((a,b)=>a.datum.localeCompare(b.datum)).slice(0,12);
+  if(!es.length) return '<div style="color:var(--muted);font-size:.78rem">Inga etapper med datum ännu – tidslinjen visas när etapper finns.</div>';
+  const start = p.start? new Date(p.start+"T00:00") : new Date(es[0].datum+"T00:00");
+  let slut = p.slut? new Date(p.slut+"T00:00") : new Date(es[es.length-1].datum+"T00:00");
+  slut = new Date(Math.max(slut.getTime(), start.getTime()+14*86400000));
+  const tid = slut - start || 86400000;
+  const pct = d => Math.max(0, Math.min(100, ((d - start)/tid)*100));
+  const idag = new Date(); idag.setHours(0,0,0,0);
+  const rader = es.map((e,ix)=>{
+    const d0 = new Date(e.datum+"T00:00");
+    const nxt = es[ix+1]? new Date(es[ix+1].datum+"T00:00") : null;
+    let d1 = nxt? nxt : new Date(Math.min(slut.getTime(), d0.getTime()+14*86400000));
+    if(d1 <= d0) d1 = new Date(d0.getTime()+2*86400000);
+    const passerad = !e.klar && d0 < idag;
+    return `<div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+      <div style="flex:0 0 150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.76rem" title="${esc(e.namn)}${e.ansvarig? " – "+esc(e.ansvarig):""}">${e.klar? "✅ ":""}${esc(e.namn)}</div>
+      <div style="flex:1;position:relative;height:16px;background:#eef4e4;border-radius:8px">
+        <div style="position:absolute;left:${pct(d0)}%;width:${Math.max(1.5, pct(d1)-pct(d0))}%;top:2px;bottom:2px;border-radius:7px;background:${e.klar? "var(--primary)":(passerad? "#c66":"var(--accent)")};${e.klar? "opacity:.7;":""}" title="${esc(e.namn)} ${new Date(e.datum).toLocaleDateString("sv-SE")}"></div>
+        <div style="position:absolute;left:${pct(idag)}%;top:-3px;bottom:-3px;border-left:2px solid #333;opacity:.6" title="Idag"></div>
+      </div></div>`;
+  }).join("");
+  return `<div style="font-size:.7rem;color:var(--muted);margin-bottom:2px"><b>Tidslinje</b> (streckad linje = idag • grönt = klar • rött = passerat) – ${start.toLocaleDateString("sv-SE")} – ${slut.toLocaleDateString("sv-SE")}</div>` + rader;
+}
+function projektMini(p){
+  const es = p.etapper||[];
+  const klara = es.filter(e=>e.klar).length;
+  const nasta = es.filter(e=>!e.klar && e.datum).sort((a,b)=>a.datum.localeCompare(b.datum))[0];
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px">
+    <div>
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:4px 10px;font-size:.82rem;margin-bottom:8px">
+        <span style="color:var(--muted)">Status:</span><span>${statusBadge(p.status)}</span>
+        <span style="color:var(--muted)">Prioritet:</span><span class="prio-${(p.prio||"").toLowerCase()}">${esc(p.prio||"–")}</span>
+        <span style="color:var(--muted)">Projektledare:</span><span>${esc(p.pl||"–")}</span>
+        <span style="color:var(--muted)">Period:</span><span>${fmtDate(p.start)} – ${fmtDate(p.slut)}</span>
+        <span style="color:var(--muted)">Budget:</span><span>${fmtKr(p.budget)} ${p.kostnad? "(kostnad hittills "+fmtKr(p.kostnad)+")":""}</span>
+        <span style="color:var(--muted)">Etapper:</span><span>${klara} klara av ${es.length}</span>
+        <span style="color:var(--muted)">Nästa etapp:</span><span>${nasta? esc(nasta.namn)+" ("+new Date(nasta.datum).toLocaleDateString("sv-SE")+")" : "–"}</span>
+        <span style="color:var(--muted)">Underlag:</span><span>${(p.anteckningar||[]).length} anteckningar • ${(p.filer||[]).length} filer • ${(p.kontakter||[]).length} kontakter</span>
+        ${p.beskrivning? `<span style="color:var(--muted)">Beskrivning:</span><span>${esc(p.beskrivning.slice(0,150))}${p.beskrivning.length>150? "...":""}</span>`:""}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn-sm" onclick="openDetail('${p.id}')">📂 Öppna projektet</button>
+        <button class="btn-sm secondary" onclick="openForm('${p.id}',true)">✏️ Redigera</button>
+        <button class="btn-sm secondary" onclick="openStatusMenu(event,'${p.id}')">🔄 Status</button>
+      </div>
+    </div>
+    <div>${miniGantt(p)}</div>
+  </div>`;
+}
+function sortBy(k){ if(sortKey===k) sortDir*=-1; else{sortKey=k;sortDir=1;} render(); }
+
+/* ---------- Projektdetalj ---------- */
+function getDetail(){ return data.projects.find(x=>x.id===currentDetail); }
+function showList(){
+  currentDetail = null;
+  $("detailView").style.display = "none";
+  $("listView").style.display = "block";
+  $("newBtn").style.display = "";
+  render(); renderStats();
+  window.scrollTo(0,0);
+}
+function openDetail(id){
+  const p = data.projects.find(x=>x.id===id); if(!p) return;
+  currentDetail = id;
+  $("listView").style.display = "none";
+  $("detailView").style.display = "block";
+  $("newBtn").style.display = "none";
+  $("dTitle").textContent = (p.nr? p.nr+" – ":"") + p.namn;
+  $("dMeta").innerHTML = `${esc(catOf(p))} · ${statusBadge(p.status)} · Projektledare: ${esc(p.pl||"–")} · ${esc(p.plats||"")}`;
+  const w = projectWarns(p);
+  $("dWarn").innerHTML = w.length? `<div class="banner ${w.some(x=>x.level==="red")?"red":""}">
+    <span style="font-size:1.3rem">⚠️</span><div><b>Etappvarning</b>
+    <ul>${w.map(x=>`<li>${esc(x.text)}</li>`).join("")}</ul>
+    <span style="font-size:.78rem;color:var(--muted)">Bocka för etappen som färdig eller ändra datumet för att avvisa varningen.</span></div></div>`:"";
+  renderOversikt(p); renderEtapper(p); renderNotes(p); renderFiler(p); renderKontakter(p); renderSchema(p);
+  window.scrollTo(0,0);
+}
+function renderOversikt(p){
+  $("p-oversikt").innerHTML = `<div class="card"><div class="card-h"><h3>Projektuppgifter</h3>
+    <button class="btn-sm secondary" onclick="openForm('${p.id}',true)">✏️ Redigera</button></div>
+    <div class="body"><div class="grid">
+      <div><b>Beställare:</b> ${esc(p.agare||"–")}</div>
+      <div><b>Prioritet:</b> <span class="prio-${(p.prio||"").toLowerCase()}">${esc(p.prio||"–")}</span></div>
+      <div><b>Period:</b> ${fmtDate(p.start)} – ${fmtDate(p.slut)}</div>
+      <div><b>Lokation:</b> ${esc(p.plats||"–")}</div>
+      <div><b>Budget:</b> ${fmtKr(p.budget)}</div>
+      <div><b>Kostnad hittills:</b> ${fmtKr(p.kostnad)}</div>
+      <div class="full"><b>Beskrivning</b><br>${esc(p.beskrivning||"–").replace(/\n/g,"<br>")}</div>
+    </div></div></div>
+    <div class="card"><div class="card-h"><h3>Etapper</h3></div><div class="body">${
+      (p.etapper||[]).length? p.etapper.map(e=>{
+        const w = etappWarn(e);
+        return `<div class="etapp ${e.klar?"done":w?(w.level==="red"?"overdue":"soon"):""}">
+          <span class="e-namn">${e.klar?"✅ ":""}${esc(e.namn)}${e.ansvarig? ` <span style="color:var(--muted);font-size:.78rem">– ${esc(e.ansvarig)}</span>`:""}</span>
+          <span class="e-datum">${fmtDate(e.datum)}</span>
+          ${w?`<span class="warn-flag">${w.level==="red"?"⚠ Passerad":"⚠ < 1 vecka"}</span>`:""}</div>`;
+      }).join("") : `<span style="color:var(--muted)">Inga etapper registrerade ännu.</span>`
+    }</div></div>
+    ${ (p.anteckningar||[]).some(n=>n.bild)? `
+    <div class="card"><div class="card-h"><h3>🖼 Bilder från anteckningar</h3></div>
+    <div class="body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+      ${(p.anteckningar||[]).filter(n=>n.bild).map(n=>`
+        <figure style="margin:0;cursor:pointer" onclick="visaBild('${esc(n.bild)}', '${esc((n.av||""))}')">
+          <img src="${esc(n.bild)}" alt="${esc((n.text||"").slice(0,60))}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+          <figcaption style="color:var(--muted);font-size:.72rem;margin-top:3px;line-height:1.25">${esc((n.text||n.av||"").slice(0,60))}${(n.text||n.av||"").length>60? "...":""}</figcaption>
+        </figure>`).join("")}
+    </div></div>`:""}`;
+}
+function visaBild(src, av){
+  let o = $("bildOverlay");
+  if(!o){
+    o = document.createElement("div");
+    o.id = "bildOverlay";
+    o.style.cssText = "position:fixed;inset:0;background:rgba(30,35,28,.92);display:none;align-items:center;justify-content:center;z-index:999;cursor:zoom-out;padding:20px";
+    o.innerHTML = '<img style="max-width:96%;max-height:92%;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5)">';
+    o.addEventListener("click", ()=>{ o.style.display="none"; });
+    document.body.appendChild(o);
+  }
+  o.querySelector("img").src = src;
+  o.title = av || "";
+  o.style.display = "flex";
+}
+function veckoDagNamn(n){ return ["Söndag","Måndag","Tisdag","Onsdag","Torsdag","Fredag","Lördag"][+n] || ""; }
+function uppgiftFreqLabel(u){
+  if(!u) return "";
+  const f = u.frekvens || u.intervall;
+  if(f==="dag") return "Varje dag";
+  if(f==="vecka") return "Varje " + veckoDagNamn(u.veckodag!=null? +u.veckodag : new Date().getDay()).toLowerCase();
+  if(f==="manad") return (u.dagIManad? "Dag " + u.dagIManad + " varje månad" : "En gång per månad");
+  if(f==="ar") return u.datum? "Årsvis " + new Date(u.datum+"T00:00").toLocaleDateString("sv-SE",{day:"numeric",month:"long"}) : "En gång per år";
+  return f || "";
+}
+function isoVecka(d){
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dag = dt.getUTCDay() || 7;
+  dt.setUTCDate(dt.getUTCDate() + 4 - dag);
+  const arstart = new Date(Date.UTC(dt.getUTCFullYear(),0,1));
+  const vecka = Math.ceil((((dt - arstart) / 86400000) + 1) / 7);
+  return dt.getUTCFullYear() + "-v" + String(vecka).padStart(2,"0");
+}
+function uppgiftPeriodeNyckel(u){
+  const nu = new Date();
+  const f = u.frekvens || u.intervall;
+  if(f==="dag") return "d" + nu.toISOString().slice(0,10);
+  if(f==="vecka") return "v" + isoVecka(nu);
+  if(f==="manad") return "m" + nu.toISOString().slice(0,7);
+  return "a" + String(nu.getFullYear());
+}
+function uppgiftDue(u){
+  const nu = new Date();
+  const f = u.frekvens || u.intervall;
+  if(f==="dag") return true;
+  if(f==="vecka") return nu.getDay() === (+u.veckodag || nu.getDay());
+  if(f==="manad") return nu.getDate() === (+u.dagIManad || nu.getDate());
+  if(f==="ar"){ if(!u.datum) return true; const d = new Date(u.datum+"T00:00"); return nu.getDate()===d.getDate() && nu.getMonth()===d.getMonth(); }
+  return false;
+}
+function toggleAterkommandeKlar(id){
+  const u = data.aterkommande.list.find(x=>x.id===id);
+  if(!u) return;
+  const nyckel = uppgiftPeriodeNyckel(u);
+  if(u.senastKlar === nyckel){ delete u.senastKlar; aterkommandeSpara(); toast("⚠ Bocken togs bort – uppgiften är oklar igen."); }
+  else {
+    u.senastKlar = nyckel; aterkommandeSpara();
+    toast(uppgiftDue(u)? "✅ Klart! Återkommer nästa period." : "✅ Bockad i förväg – räknas som klar för den kommande perioden.");
+  }
+}
+function uppgiftBadge(iv){
+  return {dag:["Dagligen",""],vecka:["Veckovis",""],manad:["Månadsvis",""]}[iv] || ["Årsvis",""];
+}
+function renderSchema(p){
+  const es = (p.etapper||[]).filter(e=>e.datum).sort((a,b)=>a.datum.localeCompare(b.datum));
+  const box = $("p-schema");
+  if(!es.length){
+    box.innerHTML = '<div class="card"><div class="card-h"><h3>📅 Tidslinje (Gantt)</h3></div><div class="body"><span style="color:var(--muted)">Gantt-schemat byggs av etappernas datum. Lägg till etapper med datum under fliken Etapper – de ritas då upp här automatiskt.</span></div></div>';
+    return;
+  }
+  const start = p.start? new Date(p.start+"T00:00") : new Date(es[0].datum+"T00:00");
+  let slut = p.slut? new Date(p.slut+"T00:00") : new Date(es[es.length-1].datum+"T00:00");
+  slut = new Date(Math.max(slut.getTime(), start.getTime() + 14*86400000));
+  const tid = slut - start || 86400000;
+  const pct = d => Math.max(0, Math.min(100, ((d - start) / tid) * 100));
+  const dag = new Date(es[0].datum+"T00:00");
+  const manga = es.slice(0, 18);
+  const idag = new Date(); idag.setHours(0,0,0,0);
+
+  // manadslinjer
+  let manader = "";
+  for(let dt = new Date(start); dt <= slut; dt.setMonth(dt.getMonth()+1), dt.setDate(1)){
+    if(dt < start) continue;
+    const v = pct(dt);
+    if(v > 1 && v < 99) manader += `<div style="position:absolute;left:${v}%;top:0;bottom:0;border-left:1px dashed var(--border)"></div>`;
+  }
+
+  const rader = manga.map((e,ix)=>{
+    const d0 = new Date(e.datum+"T00:00");
+    const nxt = manga[ix+1]? new Date(manga[ix+1].datum+"T00:00") : null;
+    let d1 = nxt? nxt : new Date(Math.min(slut.getTime(), d0.getTime() + 14*86400000));
+    if(d1 <= d0) d1 = new Date(d0.getTime() + 2*86400000);
+    const left = pct(d0), right = pct(d1);
+    const passerad = !e.klar && d0 < idag;
+    return `<div style="display:flex;align-items:center;gap:8px;margin:7px 0">
+      <div style="flex:0 0 150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem;${e.klar? "opacity:.7":""}" title="${esc(e.namn)} ${e.klar? "(klar)":""}">
+        ${e.klar? "✅ ":""}<b>${esc(e.namn)}</b>${e.ansvarig? `<span style="color:var(--muted);font-size:.72rem"> • ${esc(e.ansvarig)}</span>`:""}</div>
+      <div style="flex:1;position:relative;height:22px;background:#f2f7ee;border-radius:11px">
+        ${manader}
+        <div title="${esc(e.namn)}: ${new Date(e.datum).toLocaleDateString("sv-SE")}${e.klar? " – klar":""}"
+          style="position:absolute;left:${left}%;width:${Math.max(1.5, right-left)}%;top:3px;bottom:3px;border-radius:9px;
+          background:${e.klar? "var(--primary)":(passerad? "#c66": "var(--accent)")};${e.klar? "opacity:.75;":""}"></div>
+        <div style="position:absolute;left:${pct(idag)}%;top:-2px;bottom:-2px;border-left:2px solid #333;opacity:.65" title="Idag"></div>
+      </div>
+      <div style="flex:0 0 78px;text-align:right;font-size:.72rem;color:var(--muted)">${new Date(e.datum).toLocaleDateString("sv-SE")}</div>
+    </div>`;
+  }).join("");
+
+  const period = `<div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin:4px 0 2px">
+    <span>${start.toLocaleDateString("sv-SE")}</span><span>Projektets period</span><span>${slut.toLocaleDateString("sv-SE")}</span></div>`;
+
+  box.innerHTML = `<div class="card"><div class="card-h"><h3>📅 Tidslinje – etapper (Gantt)</h3>
+      <span style="font-size:.75rem;color:var(--muted)">streckad linje = idag • grönt = klar • rött = passerat</span></div>
+    <div class="body">${period}
+      <div>${rader}</div>
+      <div style="color:var(--muted);font-size:.74rem;margin-top:8px">Varje etapp sträcker sig till nästa etapp (eller minst två veckor). Diagrammet följer start-/slutdatum och etappernas datum – ändra dem i projektet så uppdateras schemat.</div>
+    </div></div>`;
+}
+function renderEtapper(p){
+  $("p-etapper").innerHTML = `<div class="card"><div class="card-h"><h3>Etapper &amp; milstolpar</h3>
+      <button class="btn-sm" onclick="etappForm()">＋ Ny etapp</button></div>
+    <div class="body">${ (p.etapper||[]).length? p.etapper.map((e,i)=>{
+      const w = etappWarn(e);
+      return `<div class="etapp ${e.klar?"done":w?(w.level==="red"?"overdue":"soon"):""}">
+        <input type="checkbox" ${e.klar?"checked":""} title="Markera som färdig" onchange="toggleEtapp(${i},this.checked)">
+        <span class="e-namn">${esc(e.namn)}${e.ansvarig? ` <span style="color:var(--muted);font-weight:400;font-size:.78rem">– ${esc(e.ansvarig)}</span>`:""}</span>
+        <span class="e-datum">${fmtDate(e.datum)}</span>
+        ${w?`<span class="warn-flag">${w.level==="red"?"⚠ Passerad":"⚠ Mindre än en vecka kvar"}</span>`:""}
+        <button class="icon-btn" title="Redigera" onclick="etappForm(${i})">✏️</button>
+        <button class="icon-btn" title="Ta bort" onclick="delItem('etapper',${i},'etappen')">🗑</button>
+      </div>`;}).join("") : '<span style="color:var(--muted)">Lägg till etapper – en synlig varning visas automatiskt när det är en vecka kvar till datumet och etappen inte är markerad färdig.</span>'
+    }</div></div>`;
+}
+function toggleEtapp(i, klar){
+  const p = getDetail();
+  p.etapper[i].klar = klar;
+  p.etapper[i].klarDatum = klar? new Date().toISOString() : null;
+  markP(p);
+  autosave(); openDetail(currentDetail); renderStats(); render();
+  if(klar) toast("✅ Etapp markerad som färdig – varningen försvinner.");
+}
+function etappForm(i){
+  const p = getDetail();
+  const e = i!=null? p.etapper[i] : {namn:"",datum:""};
+  m2({title: i!=null? "Redigera etapp":"Ny etapp", key:"etapper", i,
+      fields:[["namn","Etapp / milstolpe *",e.namn,"text"],["ansvarig","Ansvarig (namn, valfritt) – syns i etapplistan och Gantt-schemat",e.ansvarig||"","text"],["datum","Datum (valfritt – lämna tomt för etapp utan fast datum)",e.datum,"date"]],
+      required:["namn"]});
+}
+/* ---------- Anteckningar ---------- */
+function renderNotes(p){
+  $("p-anteckningar").innerHTML = `<div class="card"><div class="card-h"><h3>Anteckningar</h3>
+    <button class="btn-sm" onclick="noteForm()">＋ Ny anteckning</button></div>
+    <div class="body">${ (p.anteckningar||[]).length? p.anteckningar.map((n,i)=>`
+      <div class="note"><div style="white-space:pre-wrap">${esc(n.text)}</div>
+        ${n.bild? `<img src="${esc(n.bild)}" style="max-width:100%;max-height:420px;border-radius:10px;border:1px solid var(--border);margin-top:6px;display:block">`:""}
+        <div class="meta"><span>${esc(n.av||"")} ${n.datum? "· "+new Date(n.datum).toLocaleString("sv-SE"):""}</span>
+        <span><button class="icon-btn" title="Redigera" onclick="noteForm(${i})">✏️</button>
+        <button class="icon-btn" title="Ta bort" onclick="delItem('anteckningar',${i},'anteckningen')">🗑</button></span></div>
+      </div>`).join("") : '<span style="color:var(--muted)">Inga anteckningar ännu.</span>'}
+    </div></div>`;
+}
+function noteForm(i){
+  const p = getDetail();
+  const n = i!=null? p.anteckningar[i] : {text:"",av:""};
+  m2({title: i!=null? "Redigera anteckning":"Ny anteckning", key:"anteckningar", i,
+      fields:[["av","Författare (valfritt)",n.av||"","text"],["bild","Bild (valfri – syns i anteckningen)",n.bild||"","image"],["text","Anteckning *",n.text||"","textarea"]],
+      required:["text"]});
+}
+/* ---------- Filer & länkar ---------- */
+function renderFiler(p){
+  $("p-filer").innerHTML = `<div class="card"><div class="card-h"><h3>Filer &amp; länkar</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm secondary" onclick="linkForm()">🔗 Ny länk (URL)</button>
+        <button class="btn-sm secondary" onclick="linkInFolderForm()">📂 Länka fil i mappen</button>
+        <button class="btn-sm secondary" onclick="linkExternalFolder()" title="Välj en mapp var som helst på datorn – t.ex. en annan SharePoint-plats som projektmapp">🌐 Länka projektmapp (annan plats)</button>
+        <button class="btn-sm" onclick="m2File()">📎 Bifoga fil(er)</button>
+      </div></div>
+    <div class="body">${projektMappBlock(p)}${ (p.filer||[]).length? p.filer.map((f,i)=>`
+      ${f.externMapp? `<div class="file-row"><span>🌐 <b>${esc(f.namn)}</b> <span style="color:var(--muted);font-size:.78rem">(extern projektmapp – innehållet visas live; kräver återanslutning en gång per öppning)</span></span>
+        <span style="display:flex;gap:6px;align-items:center">
+        <button class="mail-btn" style="border:none;cursor:pointer" onclick="toggleFolderFiles('${esc(f.id)}')">Visa filer</button>
+        <button class="icon-btn" title="Ta bort länken (mappen påverkas ej)" onclick="delItem('filer',${i},'mapp_lanken')">🗑</button></span></div>
+        <div id="fold-${esc(f.id)}" style="display:none;padding-left:26px"></div>`:
+      f.folderLink? `<div class="file-row"><span>📁 <b>${esc(f.namn)}</b> <span style="color:var(--muted);font-size:.78rem">(mapplänk – innehållet hämtas live, nya filer syns automatiskt)</span></span>
+        <span style="display:flex;gap:6px;align-items:center">
+        <button class="mail-btn" style="border:none;cursor:pointer" onclick="toggleFolderFiles('${esc(f.id)}')">Visa filer</button>
+        <button class="icon-btn" title="Ta bort länken (mappen raderas ej)" onclick="delItem('filer',${i},'mapp_lanken')">🗑</button></span></div>
+        <div id="fold-${esc(f.id)}" style="display:none;padding-left:26px"></div>`:`<div class="file-row"><span>📄 <b>${esc(f.namn)}</b>${f.mapp?` <span style="color:var(--muted);font-size:.78rem">${f.lankFil?"(direktlänk – alltid senaste version)":"(kopia i mappen – "+((f.storlek||0)/1024).toFixed(0)+" kB)"}</span>`:f.url?` <span style="color:var(--muted);font-size:.78rem">(länk)</span>`:` <span style="color:var(--muted);font-size:.78rem">${((f.storlek||0)/1024).toFixed(0)} kB</span>`}</span>
+        <span style="display:flex;gap:6px;align-items:center">
+        ${f.url? `<a class="mail-btn" href="${esc(f.url)}" target="_blank">Öppna</a>`:
+          f.mapp? `<button class="mail-btn" style="border:none;cursor:pointer" onclick="openAttached(${i})">Hämta/Öppna</button>`:
+          `<a class="mail-btn" href="${f.data}" download="${esc(f.namn)}">Hämta</a>`}
+        <button class="icon-btn" title="Ta bort" onclick="delItem('filer',${i},'filen')">🗑</button></span></div>`}`).join("")
+      : '<span style="color:var(--muted)">Länka till dokument i SharePoint-mappen eller bifoga flera filer samtidigt (max '+(MAX_FIL/(1024*1024))+' MB).</span>'}
+    </div></div>`;
+}
+function mappSokvagKey(id){ return "mappSokvag-"+id; }
+function egenMappSokvag(p){ try{ return localStorage.getItem(mappSokvagKey(p.id)) || ""; }catch(e){ return ""; } }
+function projektMappBlock(p){
+  if(p.mappSokvagAbs){
+    return `<div class="file-row" style="align-items:center;border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:#f2f7ee;flex-wrap:wrap">
+      <span>🗂 <b>Projektmapp:</b> <b>${esc(p.mappNamn||"")}</b> <span style="color:var(--muted);font-size:.75rem">( ${esc(p.mappSokvagAbs)} )</span></span>
+      <span style="display:flex;gap:6px;align-items:center">
+      <button class="mail-btn" style="border:none;cursor:pointer" onclick="openProjektMapp()">📁 Öppna i Utforskaren</button>
+      <button class="btn-sm secondary" onclick="mappValStart()">📂 Byt mapp</button>
+      <button class="icon-btn" title="Ta bort mappkopplingen (mappen påverkas ej)" onclick="taBortProjektMapp()">🗑</button>
+      </span></div>`;
+  }
+  const harBladdrad = !(p.mappSokvagRel === undefined || p.mappSokvagRel === null);
+  const harSkriven = !!(egenMappSokvag(p) || p.mappSokvag);
+  if(!harBladdrad && !harSkriven){
+    return `<div class="file-row" style="align-items:center;border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:#f2f7ee">
+      <span>🗂 <b>Projektmapp:</b> <span style="color:var(--muted);font-size:.85rem">ingen mapp kopplad än</span></span>
+      <span style="display:flex;gap:6px;align-items:center">
+      <button class="btn-sm" onclick="mappValStart()" title="Bläddra i mappstrukturen från projektregistermappen (du kan även gå uppåt i trädet)">📂 Koppla projektmapp (bläddra)</button>
+      </span></div>`;
+  }
+  if(harBladdrad){
+    return `<div class="file-row" style="align-items:center;border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:#f2f7ee;flex-wrap:wrap">
+      <span>🗂 <b>Projektmapp:</b> <b>${esc(p.mappNamn||"rotmappen")}</b> <span style="color:var(--muted);font-size:.75rem">( ${esc(String(p.mappSokvagRel||"(gemensamma mappen)"))} )</span></span>
+      <span style="display:flex;gap:6px;align-items:center">
+      <button class="mail-btn" style="border:none;cursor:pointer" onclick="mappKopiera()" title="Kopiera sökvägen – klistra in i Utforskarens adressfält (Ctrl+L). Alltid korrekt mapp."> 📋 Kopiera sökväg → Utforskaren</button>
+      <button class="btn-sm" onclick="openProjektMapp()" title="Försöker öppna Utforskaren automatiskt på mappen"> 📁 Automatiskt</button>
+      <button class="btn-sm secondary" onclick="mappValStart()">📂 Byt mapp</button>
+      <button class="icon-btn" title="Ta bort mappkopplingen (mappen påverkas ej)" onclick="taBortProjektMapp()">🗑</button>
+      </span></div>`;
+  }
+  const path = egenMappSokvag(p) || p.mappSokvag;
+  return `<div class="file-row" style="align-items:center;border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;background:#f2f7ee">
+    <span>🗂 <b>Projektmapp:</b> <span style="font-family:Consolas,monospace;font-size:.8rem">${esc(path)}</span></span>
+    <span style="display:flex;gap:6px;align-items:center">
+    <button class="mail-btn" style="border:none;cursor:pointer" onclick="openProjektMapp()">Öppna mapp</button>
+    <button class="btn-sm secondary" onclick="kopplaProjektMapp()">✎ Byt sökväg</button>
+    </span></div>`;
+}
+let mappValCur = "", mappChildren = [];
+function closeMappVal(){ $("mappBg").classList.remove("open"); }
+function urlToWinPath(u){
+  try{
+    const nu = new URL(u);
+    let p = decodeURIComponent(nu.pathname);
+    p = p.replace(/^\//, "");
+    if(/^[A-Za-z]:/.test(p)) p = p.slice(0,2) + p.slice(2).replace(/\//g, "\\");
+    return p.replace(/[\\]+$/, "") || nu.pathname;
+  }catch(e){ return ""; }
+}
+function mappValStart(){
+  const p = getDetail(); if(!p) return;
+  mappValCur = appBaseDir() || "C:\\";
+  $("mappBg").classList.add("open");
+  mappRender();
+}
+async function mappRender(){
+  $("mappPath").textContent = mappValCur;
+  const vb = $("mappValBtn");
+  if(vb) vb.textContent = "📂 Välj: " + (mappValCur.replace(/[\\]+$/, "").split("\\").pop() || mappValCur);
+  const list = $("mappList");
+  list.innerHTML = '<div style="color:var(--muted);padding:4px">Läser mappen ...</div>';
+  try{
+    let url = mappPathToFileUrl(mappValCur);
+    if(!url) throw 0;
+    if(!/\/$/.test(url)) url += "/";
+    const r = await fetch(url, {cache:"no-store"});
+    if(!r.ok) throw 0;
+    const t = await r.text();
+    const doc = new DOMParser().parseFromString(t, "text/html");
+    mappChildren = [];
+    let html = "";
+    doc.querySelectorAll("a[href]").forEach(a=>{
+      let href = a.getAttribute("href") || "";
+      let full = href;
+      try{ full = new URL(href, url).href; }catch(e){}
+      if(!/^file:/i.test(full) || !/\/$/.test(full)) return;
+      const abs = urlToWinPath(full);
+      if(!abs || abs === mappValCur) return;
+      if(!mappChildren.includes(abs)) mappChildren.push(abs);
+    });
+    mappChildren.sort((a,b)=>a.localeCompare(b,"sv"));
+    mappChildren.forEach((abs,i)=>{
+      const namn = abs.replace(/[\\]+$/,"").split("\\").pop() || abs;
+      html += '<div class="browse-item" onclick="mappInto(' + i + ')">📁 ' + esc(namn) + '</div>';
+    });
+    if(!mappChildren.length) html = '<div style="color:var(--muted);padding:4px">Inga undermappar kunde listas här (eller mappen är tom). Använd sökvägsfältet nedan.</div>';
+    list.innerHTML = html;
+  }catch(e){
+    list.innerHTML = '<div style="color:var(--muted);padding:4px">Mappen kunde inte läsas automatiskt här. Skriv eller klistra in sökvägen i fältet nedan och tryck Gå – det fungerar alltid.</div>';
+  }
+}
+function mappInto(i){ if(mappChildren[i]){ mappValCur = mappChildren[i]; mappRender(); } }
+function mappUp(){
+  const c = mappValCur.replace(/[\\\s]+$/,"");
+  if(/^[A-Za-z]:$/.test(c)) return;
+  const ix = c.lastIndexOf("\\");
+  mappValCur = ix > 2? c.slice(0, ix) : c.slice(0,3);
+  mappRender();
+}
+function mappGoInput(){
+  const v = ($("mappInput").value||"").trim().replace(/^"+|"+$/g,"");
+  if(!v) return;
+  mappValCur = v;
+  mappRender();
+}
+function mappKopiera(){
+  const p = getDetail(); if(!p) return;
+  const abs = p.mappSokvagAbs || mappAbsPath(p) || p.mappSokvag;
+  if(!abs){ toast("⚠ Ingen mappkoppling att kopiera."); return; }
+  kopieraMappSokvag(abs);
+}
+function mappVald(){
+  const p = getDetail(); if(!p){ closeMappVal(); return; }
+  const c = mappValCur.replace(/[\\]+$/,"");
+  p.mappSokvagAbs = c;
+  p.mappNamn = c.split("\\").pop() || c;
+  markP(p); saveAll(); closeMappVal(); openDetail(currentDetail);
+  toast("📂 Projektmapp kopplad: «" + p.mappNamn + "». Knappen Öppna i Utforskaren är nu aktiv.");
+}
+function taBortProjektMapp(){
+  const p = getDetail(); if(!p) return;
+  if(!confirm("Ta bort mappkopplingen för projektet? Själva mappen påverkas ej.")) return;
+  delete p.mappSokvagRel; delete p.mappNamn; delete p.mappSokvagAbs;
+  try{ localStorage.removeItem(mappSokvagKey(p.id)); }catch(e){}
+  markP(p); saveAll(); renderFiler(p);
+}
+function appBaseDir(){
+  try{
+    let d = decodeURIComponent(window.location.pathname);
+    d = d.replace(/^\//, "");
+    const parts = d.split("/"); parts.pop();
+    return parts.join("\\");
+  }catch(e){ return ""; }
+}
+function mappAbsPath(p){
+  const base = appBaseDir(); if(!base) return null;
+  const rel = String(p.mappSokvagRel === undefined || p.mappSokvagRel === null? "" : p.mappSokvagRel);
+  if(!rel) return base;
+  return base + "\\" + rel.split("/").filter(Boolean).join("\\");
+}
+function kopieraMappSokvag(abs){
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(abs).then(()=>toast("📋 Sökvägen är kopierad – klistra in i Utforskarens adressfält (Ctrl+L) om fönstret inte öppnades."));
+      return;
+    }
+  }catch(e){}
+  prompt("Kopiera sökvägen:", abs);
+}
+function mappPathToFileUrl(path){
+  const parts = String(path||"").replace(/\\/g,"/").split("/").filter(Boolean);
+  if(!parts.length) return null;
+  return "file:///" + parts.map((seg,i)=> i===0? seg : encodeURIComponent(seg)).join("/");
+}
+function kopplaProjektMapp(){
+  const p = getDetail(); if(!p) return;
+  const cur = egenMappSokvag(p) || p.mappSokvag || "";
+  const sok = prompt("Klistra in sökvägen till projektets mapp på DIN dator.\n\nTips 1: öppna mappen i Utforskaren, klicka på adressfältet längst upp, kopiera och klistra in här.\nTips 2: sökvägen sparas även i projektet så kollegor ser vilken mapp det gäller.", cur);
+  if(sok === null) return;
+  const v = sok.trim().replace(/^"+|"+$/g,"");
+  if(v === ""){
+    if(confirm("Ta bort mappkopplingen för projektet?")){
+      p.mappSokvag = ""; try{ localStorage.removeItem(mappSokvagKey(p.id)); }catch(e){}
+      markP(p); saveAll(); renderFiler(p);
+    }
+    return;
+  }
+  p.mappSokvag = v; try{ localStorage.setItem(mappSokvagKey(p.id), v); }catch(e){}
+  markP(p); saveAll(); renderFiler(p);
+  toast("🗂 Projektmapp kopplad – knappen »Öppna mapp« är nu aktiv.");
+}
+function openProjektMapp(){
+  const p = getDetail(); if(!p) return;
+  if(p.mappSokvagAbs){
+    const uri = "search-ms:query=*&crumb=location:" + encodeURIComponent(p.mappSokvagAbs) + "&displayname=" + encodeURIComponent(p.mappNamn || "Projektmapp");
+    window.location.href = uri;
+    toast("📁 Utforskaren öppnas på mappens plats (sökvy visar filerna). Sökvägen kopieras också – om det inte stämmer: Ctrl+L i Utforskaren och klistra in.");
+    setTimeout(()=>kopieraMappSokvag(p.mappSokvagAbs), 900);
+    return;
+  }
+  if(!(p.mappSokvagRel === undefined || p.mappSokvagRel === null)){
+    const abs = mappAbsPath(p);
+    if(!abs){ toast("⚠ Appen måste ligga i den gemensamma mappen för att sökvägen ska kunna räknas ut."); return; }
+    const uri = "search-ms:query=*&crumb=location:" + encodeURIComponent(abs) + "&displayname=" + encodeURIComponent(p.mappNamn || "Projektmapp");
+    window.location.href = uri;
+    toast("📁 Försöker öppna mappen i Utforskaren – godkänn med knappen i webbläsarfrågan (en gång per session, som vanligt).");
+    setTimeout(()=>kopieraMappSokvag(abs), 900);
+    return;
+  }
+  const path = egenMappSokvag(p) || p.mappSokvag;
+  if(!path){ toast("⚠ Koppla en mapp först (✎ Koppla projektmapp)."); return; }
+  const url = mappPathToFileUrl(path);
+  if(!url){ toast("⚠ Ogiltig sökväg."); return; }
+  window.open(url, "_blank");
+  if(!egenMappSokvag(p)) toast("📁 Öppnar mappen. Stämmer den inte på din dator (sökvägen innehåller en kollegas användarnamn)? Tryck ✎ Byt sökväg och klistra in DIN sökväg.");
+}
+
+async function listFolderFiles(dir, prefix, ut, djup){
+  if(djup > 3) return;
+  try{
+    for await (const entry of dir.values()){
+      if(entry.kind === "file"){
+        if(/^projektdata.*\.json$/i.test(entry.name)) continue;
+        ut.push({path: prefix + entry.name, namn: entry.name});
+      } else if(entry.kind === "directory"){
+        await listFolderFiles(entry, prefix + entry.name + "/", ut, djup+1);
+      }
+    }
+  }catch(e){}
+}
+let browseDir = null, browseStack = [], browseSel = new Map(), browseDirs = [], browseFiles = [];
+function closeBrowse(){ $("browseBg").classList.remove("open"); }
+let browseMode = "link";
+function browseSetLage(mode){
+  browseMode = mode;
+  const t = $("browseTitle"), lf = $("browseLinkFolder"), cf = $("browseChooseFolder"), mb = $("browseMarkedBtn"), vb = $("browseVaeljBtn");
+  if(mode === "projektmapp"){
+    if(t) t.innerHTML = "📂 Välj projektets mapp";
+    if(lf) lf.style.display = "none"; if(cf) cf.style.display = "";
+    if(mb) mb.style.display = "none"; if(vb) vb.style.display = "";
+  } else {
+    if(t) t.innerHTML = "📂 Länka fil i gemensam mapp";
+    if(lf) lf.style.display = ""; if(cf) cf.style.display = "none";
+    if(mb) mb.style.display = ""; if(vb) vb.style.display = "none";
+  }
+}
+async function mappChooserForm(){
+  const p = getDetail(); if(!p) return;
+  if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) först, så kan du bläddra från Projectregistermappen."); return; }
+  browseSetLage("projektmapp");
+  browseDir = sharedDir; browseStack = []; browseSel = new Map();
+  $("browseBg").classList.add("open");
+  await browseRender();
+}
+async function mappChooseCurrent(){
+  const p = getDetail(); if(!p){ closeBrowse(); return; }
+  p.mappSokvagRel = browseStack.join("/");
+  p.mappNamn = browseStack.length? browseStack[browseStack.length-1] : (sharedDirName || "rotmappen");
+  markP(p); saveAll(); closeBrowse(); openDetail(currentDetail);
+  toast("📂 Projektmapp kopplad: «" + p.mappNamn + "». Knappen Öppna i Utforskaren är nu aktiv.");
+}
+async function linkInFolderForm(){
+  if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) först."); return; }
+  browseSetLage("link");
+  browseDir = sharedDir; browseStack = []; browseSel = new Map();
+  $("browseBg").classList.add("open");
+  await browseRender();
+}
+function browseUp(){
+  if(!browseStack.length) return;
+  browseStack.pop();
+  browseWalk().then(()=>browseRender());
+}
+function browseInto(i){
+  const namn = browseDirs[i];
+  browseDir.getDirectoryHandle(namn).then(h=>{
+    browseDir = h; browseStack.push(namn);
+    browseRender();
+  }).catch(()=>toast("⚠ Kunde inte öppna mappen."));
+  return false;
+}
+function browseToggle(cb, i){
+  const f = browseFiles[i];
+  if(cb.checked) browseSel.set(f.path, f.namn);
+  else browseSel.delete(f.path);
+  $("browseSelected").textContent = browseSel.size? ("Markerade: " + browseSel.size + " st") : "";
+}
+async function browseWalk(){
+  browseDir = sharedDir;
+  for(const namn of browseStack){ browseDir = await browseDir.getDirectoryHandle(namn); }
+}
+async function browseRender(){
+  const prefix = browseStack.join("/");
+  $("browsePath").textContent = "Sökväg: /" + (prefix || "(mappens rot)");
+  const bf = $("browseLinkFolder");
+  if(bf) bf.textContent = browseStack.length? ("📁 Länka mappen \"" + browseStack[browseStack.length-1] + "\" som helhet") : "📁 Länka hela rotmappen som helhet";
+  browseDirs = []; browseFiles = [];
+  try{
+    for await (const entry of browseDir.values()){
+      if(entry.kind === "directory") browseDirs.push(entry.name);
+      else{
+        if(/^projektdata.*\.json$/i.test(entry.name)) continue;
+        browseFiles.push({namn: entry.name, path: (prefix? prefix + "/" : "") + entry.name});
+      }
+    }
+  }catch(e){}
+  browseDirs.sort((a,b)=>a.localeCompare(b,"sv"));
+  browseFiles.sort((a,b)=>a.namn.localeCompare(b.namn,"sv"));
+  let html = "";
+  if(browseStack.length) html += `<div class="browse-item" onclick="browseUp()">📁 <b>.. upp ett steg</b></div>`;
+  if(!browseDirs.length && !browseFiles.length) html += `<div class="browse-item" style="color:var(--muted)">Tom mapp</div>`;
+  browseDirs.forEach((d,i)=>{
+    html += `<div class="browse-item" onclick="browseInto(${i})">📁 ${esc(d)}</div>`;
+  });
+  browseFiles.forEach((f,i)=>{
+    const checked = browseSel.has(f.path)? " checked":"";
+    html += `<label class="browse-item"><input type="checkbox"${checked} onchange="browseToggle(this,${i})">📄 ${esc(f.namn)}</label>`;
+  });
+  $("browseList").innerHTML = html;
+  $("browseSelected").textContent = browseSel.size? ("Markerade: " + browseSel.size + " st") : "";
+}
+async function linkCurrentFolder(){
+  const p = getDetail(); if(!p){ closeBrowse(); return; }
+  const path = browseStack.join("/");
+  const namm = browseStack.length? browseStack[browseStack.length-1] : (sharedDirName || "rotmappen");
+  const arr = p.filer || (p.filer=[]);
+  if(arr.some(f=>f.folderLink && (f.mapp||"")===path)){ toast("Mappen är redan länkad till projektet."); return; }
+  arr.push({id:uid(), namn:namm, mapp:path, datum:new Date().toISOString(), lankFil:true, folderLink:true});
+  markP(p);
+  autosave(); closeBrowse(); openDetail(currentDetail); renderStats(); render();
+  toast("📁 Mappen \"" + namm + "\" länkad – filerna listar upp automatiskt och nya filer syns direkt.");
+}
+async function linkExternalFolder(){
+  if(!canFS){ toast("⚠ Din webbläsare stödjer inte mappval – använd Chrome/Edge."); return; }
+  const p = getDetail(); if(!p) return;
+  try{
+    const dir = await window.showDirectoryPicker({mode:"readwrite"});
+    const arr = p.filer || (p.filer=[]);
+    arr.push({id:uid(), namn:dir.name, datum:new Date().toISOString(), externMapp:true});
+    const ny = arr[arr.length-1];
+    projMappHandles[ny.id] = dir;
+    markP(p);
+    autosave(); openDetail(currentDetail); renderStats(); render();
+    toast("🌐 Projektmappen \"" + dir.name + "\" länkad till projektet – filerna hämtas live från mappen.");
+  }catch(e){ if(e && e.name !== "AbortError"){ toast("⚠ Kunde inte länka mappen: " + e.message); } }
+}
+async function linkSelectedFiles(){
+  if(!browseSel.size){ toast("⚠ Kryssa i minst en fil i listan."); return; }
+  const p = getDetail(); if(!p){ closeBrowse(); return; }
+  const arr = p.filer || (p.filer=[]);
+  let n = 0;
+  browseSel.forEach((namn, path)=>{
+    if(arr.some(f=>f.mapp===path)) return;
+    arr.push({id:uid(), namn:namn, mapp:path, datum:new Date().toISOString(), lankFil:true});
+    n++;
+  });
+  markP(p);
+  autosave(); closeBrowse(); openDetail(currentDetail); renderStats(); render();
+  toast("📂 " + n + " fil(er) länkade till projektet.");
+}
+function linkForm(i){
+  const p = getDetail();
+  const f = i!=null? p.filer[i] : {namn:"",url:""};
+  m2({title: i!=null? "Redigera länk":"Ny länk", key:"filer", i,
+      fields:[["namn","Beskrivning *",f.namn||"","text"],["url","Länk/Webbadress *",f.url||"","text"]],
+      required:["namn","url"], keepUrl:true});
+}
+function m2File(){
+  if(sharedDir){
+    m2({title:"Bifoga filer (sparas i mappen)", key:"filer", filePick:true, mappMode:true,
+      fields:[["fil","Välj fil(er) – flera kan väljas samtidigt (max "+(MAX_FIL_MAPP/(1024*1024))+" MB per fil). Filerna sparas i undermappen projektfiler i den gemensamma mappen och tar ingen plats i registret.","","file"]]});
+  } else {
+    m2({title:"Bifoga filer", key:"filer", filePick:true,
+      fields:[["fil","Välj fil(er) – max "+(MAX_FIL/(1024*1024))+" MB per fil. Tips: klicka på 📁 Anslut gemensam mapp överst – då sparas bifogade filer i SharePoint-mappen utan storleksbegränsning i registret.","","file"]]});
+  }
+}
+/* ---------- Kontakter ---------- */
+function renderKontakter(p){
+  $("p-kontakter").innerHTML = `<div class="card"><div class="card-h"><h3>Kontakter</h3>
+    <button class="btn-sm" onclick="kontaktForm()">＋ Ny kontakt</button></div>
+    <div class="body">${ (p.kontakter||[]).length? p.kontakter.map((c,i)=>`
+      <div class="contact">
+        <div class="c-info"><b>${esc(c.namn)}</b><span>${esc(c.roll||"")}${c.foretag?" · "+esc(c.foretag):""}${c.telefon?" · ☎ "+esc(c.telefon):""}</span>
+        <span style="color:var(--primary)">${esc(c.epost||"")}</span></div>
+        <span style="display:flex;gap:6px;align-items:center">
+          ${c.epost? `<a class="mail-btn" href="mailto:${encodeURIComponent(c.epost)}${p.amne? "?subject="+encodeURIComponent(p.amne):""}">✉ Mejla</a>
+          <a class="mail-btn" href="https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(c.epost)}" target="_blank" title="Öppnar en Teams-chatt med personen">💬 Teams</a>`:""}
+          <button class="icon-btn" title="Redigera" onclick="kontaktForm(${i})">✏️</button>
+          <button class="icon-btn" title="Ta bort" onclick="delItem('kontakter',${i},'kontakten')">🗑</button></span>
+      </div>`).join("") : '<span style="color:var(--muted)">Inga kontakter registrerade.</span>'}
+    </div></div>`;
+}
+function kontaktForm(i){
+  const p = getDetail();
+  const c = i!=null? p.kontakter[i] : {};
+  m2({title: i!=null? "Redigera kontakt":"Ny kontakt", key:"kontakter", i,
+      fields:[["namn","Namn *",c.namn||"","text"],["roll","Roll/Funktion",c.roll||"","text"],
+        ["foretag","Företag/Organisation",c.foretag||"","text"],["epost","E-post",c.epost||"","email"],
+        ["telefon","Telefon",c.telefon||"","text"]],
+      required:["namn"]});
+}
+/* ---------- Generisk item-modal ---------- */
+function m2(cfg){
+  m2cfg = cfg;
+  $("m2title").textContent = cfg.title;
+  $("m2body").innerHTML = cfg.fields.map(([id,label,val,type,f4])=>{
+    if(type==="textarea") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><textarea id="m2_${id}" style="min-height:110px">${esc(val)}</textarea></div>`;
+    if(type==="file") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="file" id="m2_${id}" multiple></div>`;
+    if(type==="select"){ const opts=(f4)||[];
+      return `<div class="field" style="margin-bottom:12px"><label>${label}</label>
+      <select id="m2_${id}" style="width:100%;padding:8px">${opts.map(([v,l])=>`<option value="${esc(v)}"${String(val)===String(v)?" selected":""}>${esc(l)}</option>`).join("")}</select></div>`; }
+    if(type==="image") return `<div class="field" style="margin-bottom:12px"><label>${label}</label>
+      <input type="file" accept="image/*" id="m2_${id}" onchange="m2BildVald(this, 'm2_${id}_prev')">
+      <div id="m2_${id}_prev" style="margin-top:6px">${val? `<img src="${esc(val)}" style="max-width:180px;border-radius:8px;border:1px solid var(--border)">`: `<span style="color:var(--muted);font-size:.76rem">Ingen bild vald.</span>`}</div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:4px">Bilden minskas automatiskt för att inte fylla lagringen.</div></div>`;
+    if(type==="filelist") return `<div class="field" style="margin-bottom:12px"><label>${label}</label><select id="m2_${id}" multiple size="12" style="width:100%">${val}</select><div style="color:var(--muted);font-size:.75rem;margin-top:4px">Håll Ctrl för att välja flera.</div></div>`;
+    return `<div class="field" style="margin-bottom:12px"><label>${label}</label><input type="${type}" id="m2_${id}" value="${esc(val)}" style="width:100%"></div>`;
+  }).join("");
+  $("m2bg").classList.add("open");
+  const first = $("m2_"+cfg.fields[0][0]);
+  if(first && first.focus) setTimeout(()=>first.focus(),50);
+}
+function m2BildVald(inp, prevId){
+  const f = inp.files && inp.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let {width:w, height:h} = img;
+      const maxw = 1200;
+      if(w > maxw){ h = Math.round(h*maxw/w); w = maxw; }
+      const cv = document.createElement("canvas");
+      cv.width = w; cv.height = h;
+      cv.getContext("2d").drawImage(img, 0, 0, w, h);
+      let data;
+      try{ data = cv.toDataURL("image/jpeg", 0.82); }catch(e){ data = r.result; }
+      if(data.length > 1.6*1024*1024){ toast("\u26a0 Bilden är för stor även efter minskning – välj en mindre bild."); return; }
+      inp._bild = data;
+      const pv = $(prevId);
+      if(pv) pv.innerHTML = `<img src="${data}" style="max-width:180px;border-radius:8px;border:1px solid var(--border)">`;
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(f);
+}
+function closeM2(){ $("m2bg").classList.remove("open"); m2cfg = null; }
+async function saveM2(){
+  const cfg = m2cfg;
+  if(!cfg) return;
+  if(cfg.onSave){
+    const obj = {}; let ok = true;
+    cfg.fields.forEach(([id,,val2,type])=>{
+      if(type==="image"){ obj[id] = ($("m2_"+id)._bild !== undefined? $("m2_"+id)._bild : (val2||"")); }
+      else obj[id] = ($("m2_"+id).value||"").trim();
+    });
+    (cfg.required||[]).forEach(k=>{ if(!obj[k]){ ok=false; toast("\u26a0 F\u00e4ltet m\u00e5ste fyllas i."); $("m2_"+k).focus(); } });
+    if(!ok) return;
+    try{ cfg.onSave(obj); }
+    catch(e){ toast("\u26a0 " + (e.message||"Kunde inte spara.")); return; }
+    aterkommandeSparaVsAnnan(); closeM2(); renderRail();
+    toast("\u2705 Sparat.");
+    return;
+  }
+  const p = getDetail(); if(!p) return;
+  markP(p);
+  const arr = p[cfg.key] || (p[cfg.key]=[]);
+  if(cfg.folderPick){
+    const sel = $("m2_valj");
+    const valda = Array.from(sel.selectedOptions||[]).map(o=>o.value).filter(Boolean);
+    if(!valda.length){ toast("⚠ Välj minst en fil i listan."); return; }
+    valda.forEach(path=>{
+      const nm = path.split("/").pop();
+      arr.push({id:uid(), namn:nm, mapp:path, datum:new Date().toISOString(), lankFil:true});
+    });
+    markP(p);
+    autosave(); closeM2(); openDetail(currentDetail); renderStats(); render();
+    toast("📂 "+valda.length+" fil(er) länkade – referensen pekar på filen i mappen, så uppdateringar följer med automatiskt.");
+    return;
+  }
+  if(cfg.filePick && cfg.mappMode){
+    const inp = $("m2_fil");
+    const files = inp.files ? Array.from(inp.files) : [];
+    if(!files.length){ toast("⚠ Välj minst en fil först."); return; }
+    const forStora2 = files.filter(f=>f.size > MAX_FIL_MAPP);
+    if(forStora2.length){ toast("⚠ "+forStora2.length+" fil(er) är över "+(MAX_FIL_MAPP/(1024*1024))+" MB."); return; }
+    try{
+      const sub = await sharedDir.getDirectoryHandle("projektfiler", {create:true});
+      let n = 0;
+      for(const f of files){
+        const unik = currentDetail + "-" + Date.now() + "-" + n + "-" + f.name.replace(/[\\/:*?"<>|]/g,"_");
+        const fh = await sub.getFileHandle(unik, {create:true});
+        const w = await fh.createWritable();
+        await w.write(await f.arrayBuffer());
+        await w.close();
+        arr.push({id:uid(), namn:f.name, mapp:"projektfiler/"+unik, storlek:f.size, datum:new Date().toISOString()});
+        n++;
+      }
+      markP(p);
+      autosave(); closeM2(); openDetail(currentDetail); renderStats(); render();
+      toast("📎 "+n+" fil(er) sparade i undermappen projektfiler i den gemensamma mappen.");
+    }catch(e){ toast("⚠ Kunde inte spara filerna i mappen: " + (e.message||"")); }
+    return;
+  }
+  if(cfg.filePick){
+    const inp = $("m2_fil");
+    const files = inp.files ? Array.from(inp.files) : [];
+    if(!files.length){ toast("⚠ Välj minst en fil först."); return; }
+    const forStora = files.filter(f=>f.size > MAX_FIL);
+    if(forStora.length){ toast("⚠ "+forStora.length+" fil(er) är över "+(MAX_FIL/(1024*1024))+" MB – länka istället till dem i SharePoint-mappen."); return; }
+    let kvar = files.length, bifogade = 0;
+    files.forEach(f=>{
+      const r = new FileReader();
+      r.onload = ()=>{
+        arr.push({id:uid(), namn:f.name, data:r.result, storlek:f.size, datum:new Date().toISOString()});
+        bifogade++;
+        if(--kvar === 0){
+          try{ autosave(); }catch(e){ toast("⚠ Lagringen kan vara full – stora bifogade filer tar plats. Överväg länkar för stora filer."); }
+          closeM2(); openDetail(currentDetail); renderStats(); render();
+          toast("📎 "+bifogade+" fil(er) bifogade.");
+        }
+      };
+      r.readAsDataURL(f);
+    });
+    return;
+  }
+  const obj = {}; let ok = true;
+  cfg.fields.forEach(([id,,val2,type])=>{
+    if(type==="image"){ obj[id] = ($("m2_"+id)._bild !== undefined? $("m2_"+id)._bild : (val2||"")); }
+    else obj[id] = ($("m2_"+id).value||"").trim();
+  });
+  (cfg.required||[]).forEach(k=>{
+    if(!obj[k]){ ok=false; toast("⚠ Fältet måste fyllas i."); $("m2_"+k).focus(); }
+  });
+  if(!ok) return;
+  obj.id = (cfg.i!=null && arr[cfg.i])? arr[cfg.i].id : uid();
+  if(!obj.datum) obj.datum = new Date().toISOString();
+  if(cfg.keepUrl !== true && cfg.key==="filer" && cfg.i==null) obj.datum = new Date().toISOString();
+  if(cfg.i!=null){
+    const prev = (cfg.key==="filer")? {} : arr[cfg.i]; /* fil-länkar: ersätt hela raden */
+    arr[cfg.i] = {...prev, ...obj};
+  } else arr.push(obj);
+  autosave(); closeM2(); openDetail(currentDetail); renderStats(); render();
+  toast("✅ Sparat.");
+}
+let folderItems = {};
+let projMappHandles = {};   /* externa projektmappar: f.id -> handle (inte bestandiga mellan sessioner) */
+async function resolveDir(path){
+  let dh = sharedDir;
+  for(const part of String(path||"").split("/").filter(Boolean)){ dh = await dh.getDirectoryHandle(part); }
+  return dh;
+}
+async function downloadByParts(parts, namn){
+  let dh = sharedDir;
+  for(let i=0;i<parts.length-1;i++){ dh = await dh.getDirectoryHandle(parts[i]); }
+  const fh = await dh.getFileHandle(parts[parts.length-1]);
+  const file = await fh.getFile();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = namn;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+}
+async function openAttachedPath(path, namn){
+  if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) för att nå filen."); return; }
+  try{
+    await downloadByParts(String(path||"").split("/").filter(Boolean), namn);
+    toast("📄 Hämtar \"" + namn + "\".");
+  }catch(e){ toast("⚠ Filen hittades inte – den kanske inte synkats till din dator än."); }
+}
+async function toggleFolderFiles(fid){
+  const p = getDetail(); if(!p) return;
+  const f = (p.filer||[]).find(x=>x.id===fid); if(!f || (!f.folderLink && !f.externMapp)) return;
+  const box = $("fold-"+fid); if(!box) return;
+  if(box.dataset.open === "1"){ box.style.display = "none"; box.dataset.open = ""; return; }
+  if(!f.externMapp && !sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) först."); return; }
+  try{
+    let dh;
+    if(f.externMapp){
+      if(!projMappHandles[f.id]){
+        const dir = await window.showDirectoryPicker({mode:"readwrite"});
+        projMappHandles[f.id] = dir;
+        toast("🔌 Projektmappen återansluten: " + dir.name);
+      }
+      dh = projMappHandles[f.id];
+    } else {
+      dh = await resolveDir(f.mapp);
+    }
+    const bas = (f.externMapp || !f.mapp)? "" : (f.mapp + "/");
+    const it = [];
+    async function ga(node, pref, djup){
+      if(djup > 3) return;
+      for await (const e of node.values()){
+        if(e.kind === "file"){
+          if(/^projektdata.*\.json$/i.test(e.name)) continue;
+          it.push({path: bas + pref + e.name, namn: pref + e.name, filnamn: e.name});
+        } else if(e.kind === "directory"){
+          try{ await ga(await node.getDirectoryHandle(e.name), pref + e.name + "/", djup+1); }catch(e){}
+        }
+      }
+    }
+    await ga(dh, "", 0);
+    it.sort((a,b)=>a.namn.localeCompare(b.namn,"sv"));
+    it.forEach(x=>{ if(f.externMapp) x.ext = fid; });
+    folderItems[fid] = it;
+    box.innerHTML = it.length? it.map((x,ix)=>`<div class="file-row" style="margin:4px 0">${x.namn.includes("/")?"🗂":"📄"} ${esc(x.namn)} <button class="mail-btn" style="border:none;cursor:pointer;float:right" onclick="openFolderItem('${esc(fid)}',${ix})">Hämta</button></div>`).join("")
+      : '<div style="color:var(--muted);font-size:.85rem;margin:4px 0">Inga filer i mappen ännu.</div>';
+    box.innerHTML += `<div style="color:var(--muted);font-size:.75rem;margin:4px 0 0">Listan läses live från mappen – tryck "Visa filer" igen efter nya filer lagts till.</div>`;
+    box.style.display = "block"; box.dataset.open = "1";
+  }catch(e){ toast("⚠ Mappen kunde inte läsas – den kanske inte synkats till din dator än."); }
+}
+async function downloadFromDir(dh, namn, visaNamn){
+  const fh = await dh.getFileHandle(namn);
+  const file = await fh.getFile();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = visaNamn || namn;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+}
+async function openFolderItem(fid, ix){
+  const it = folderItems[fid];
+  if(!it || !it[ix]) return;
+  const x = it[ix];
+  if(x.ext){
+    try{
+      const dh0 = projMappHandles[x.ext];
+      if(!dh0){ toast("⚠ Projektmappen måste återanslutas – tryck \"Visa filer\" igen."); return; }
+      const parts = String(x.path||x.namn).split("/").filter(Boolean);
+      let dh = dh0;
+      for(let i=0;i<parts.length-1;i++){ dh = await dh.getDirectoryHandle(parts[i]); }
+      await downloadFromDir(dh, parts[parts.length-1], x.filnamn || x.namn);
+      toast("📄 Hämtar \"" + (x.filnamn || x.namn) + "\".");
+    }catch(e){ toast("⚠ Filen kunde inte hämtas från projektmappen."); }
+  } else openAttachedPath(x.path, x.filnamn || x.namn);
+}
+async function openAttached(i){
+  const p = getDetail(); if(!p) return;
+  const f = (p.filer||[])[i];
+  if(!f) return;
+  if(!sharedDir){ toast("⚠ Anslut den gemensamma mappen (📁) för att nå filen."); return; }
+  try{
+    const parts = String(f.mapp||"").split("/").filter(Boolean);
+    if(!f.lankFil && parts.length === 1) parts.unshift("projektfiler");
+    await downloadByParts(parts, f.namn);
+    toast("📄 Hämtar \"" + f.namn + "\" – öppnas/laddas ner via webbläsaren.");
+  }catch(e){ toast("⚠ Filen hittades inte i mappen – den kanske inte synkats till din dator än."); }
+}
+async function delItem(key, i, what){
+  if(!confirm("Ta bort "+what+"?")) return;
+  const p = getDetail();
+  markP(p);
+  const f = p[key][i];
+  if(key === "filer" && f && f.mapp && sharedDir && !f.lankFil){
+    try{
+      const parts2 = String(f.mapp||"").split("/").filter(Boolean);
+      if(parts2.length === 1) parts2.unshift("projektfiler");
+      let dh2 = sharedDir;
+      for(let i=0;i<parts2.length-1;i++){ dh2 = await dh2.getDirectoryHandle(parts2[i], {create:false}); }
+      await dh2.removeEntry(parts2[parts2.length-1]);
+    }catch(e){}
+  }
+  p[key].splice(i,1);
+  autosave(); openDetail(currentDetail); renderStats(); render();
+  toast("🗑 Borttagen.");
+}
+
+
+/* ---------- Projektformulär ---------- */
+function openForm(id, fromDetail){
+  const bg = $("modalBg");
+  $("formTitle").textContent = id? "Redigera projekt" : "Nytt projekt";
+  $("deleteBtn").style.display = id? "inline-block":"none";
+  const p = id? data.projects.find(x=>x.id===id) : {};
+  f_id.value=p.id||""; f_cat.value = p.kategori || (HUVUD[minAvdelning()]? HUVUD[minAvdelning()].under[0] : "reningsverk"); f_nr.value=p.nr||"";
+  f_namn.value=p.namn||""; f_pl.value=p.pl||""; f_agare.value=p.agare||"";
+  f_status.value=p.status||"Planering"; f_prio.value=p.prio||"Medel";
+  f_start.value=p.start||""; f_slut.value=p.slut||"";
+  f_budget.value=p.budget||""; f_kostnad.value=p.kostnad||"";
+  f_plats.value=p.plats||""; f_beskrivning.value=p.beskrivning||""; f_amne.value=p.amne||"";
+  bg.dataset.fromDetail = fromDetail? "1":"";
+  bg.classList.add("open");
+  setTimeout(()=>f_namn.focus(),50);
+}
+function closeForm(){ $("modalBg").classList.remove("open"); }
+function saveProject(){
+  if(!f_namn.value.trim()){ toast("⚠️ Projektnamn måste anges."); f_namn.focus(); return; }
+  const id = f_id.value;
+  const old = id && data.projects.find(x=>x.id===id) || {};
+  const obj = Object.assign({}, old, {
+    id: id || old.id || uid(), kategori:f_cat.value, nr:f_nr.value.trim(), namn:f_namn.value.trim(),
+    pl:f_pl.value.trim(), agare:f_agare.value.trim(), status:f_status.value, prio:f_prio.value,
+    start:f_start.value, slut:f_slut.value, budget:+f_budget.value||0, kostnad:+f_kostnad.value||0,
+    plats:f_plats.value.trim(), beskrivning:f_beskrivning.value.trim(),
+    amne: f_amne.value.trim(),
+    kontakter: old.kontakter||[], etapper: old.etapper||[],
+    anteckningar: old.anteckningar||[], filer: old.filer||[]
+  });
+  markP(obj);
+  if(id){ data.projects[data.projects.findIndex(x=>x.id===id)] = obj; }
+  else data.projects.push(obj);
+  autosave(); closeForm();
+  if(currentDetail) openDetail(obj.id); else { render(); }
+  renderStats();
+  toast(id? "✅ Projektet uppdaterat" : "✅ Projektet registrerat");
+}
+function deleteProject(){
+  const id = f_id.value;
+  if(!confirm("Ta bort projektet med alla etapper, anteckningar, filer och kontakter?")) return;
+  data.tabort = data.tabort||[];
+  data.tabort.push({id:id, datum:new Date().toISOString()});
+  data.projects = data.projects.filter(x=>x.id!==id);
+  autosave(); closeForm();
+  showList();
+  toast("🗑 Projektet togs bort.");
+}
+const STATUSLISTA = ["Planering","Pågående","Pausad","Avslutat","Avbrutet"];
+function openStatusMenu(evt, id){
+  const meny = $("statusMenu");
+  if(meny.style.display === "block" && meny.dataset.pid === id){ meny.style.display = "none"; return; }
+  meny.dataset.pid = id;
+  meny.innerHTML = STATUSLISTA.map(st=>{
+    const p = data.projects.find(x=>x.id===id);
+    const mark = p && p.status===st? " ✔":"";
+    return `<button onclick="setStatus('${id}','${st}')">${st}${mark}</button>`;
+  }).join("");
+  meny.style.display = "block";
+  const x = Math.min(evt.clientX, window.innerWidth-190);
+  const y = Math.min(evt.clientY, window.innerHeight-240);
+  meny.style.left = x+"px";
+  meny.style.top = y+"px";
+}
+function setStatus(id, st){
+  const p = data.projects.find(x=>x.id===id);
+  if(!p) return;
+  p.status = st;
+  markP(p);
+  autosave();
+  $("statusMenu").style.display = "none";
+  render(); renderStats();
+  if(currentDetail) openDetail(currentDetail);
+  toast("🔄 Status för \""+p.namn+"\": "+st);
+}
+function gotoNotes(id){
+  currentDetail = id;
+  openDetail(id);
+  document.querySelectorAll(".dtab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  const flik = document.querySelector('.dtab[data-panel="anteckningar"]');
+  if(flik) flik.classList.add("active");
+  $("p-anteckningar").classList.add("active");
+}
+document.addEventListener("click", e=>{
+  const meny = $("statusMenu");
+  if(meny && meny.style.display==="block" && !meny.contains(e.target)) meny.style.display="none";
+}, true);
+
+function formDirty(){
+  if(!("modalBg" in window)) return true;
+  return f_namn.value.trim() !== "" || f_nr.value.trim() !== "" || f_beskrivning.value.trim() !== "" || f_budget.value !== "";
+}
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){
+    if($("modalBg").classList.contains("open")){
+      if(!formDirty() || confirm("St\u00e4nga utan att spara? Osparade uppgifter g\u00e5r f\u00f6rlorade.")) closeForm();
+    } else if($("m2bg").classList.contains("open")){
+      closeM2();
+    }
+  }
+  if((e.ctrlKey||e.metaKey) && e.key==="s"){ e.preventDefault(); saveAll(); }
+});
+
+/* ---------- Import / Export ---------- */
+function download(filename, text, type){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text],{type}));
+  a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+}
+function stamp(){ return new Date().toISOString().slice(0,10); }
+function exportJSON(){
+  download(`projektdata_${stamp()}.json`, JSON.stringify(data,null,2), "application/json");
+  toast("⬇ JSON exporterad – spara i SharePoint-mappen.");
+}
+function exportListCSV(){
+  const quote = v => `"${String(v??"").replace(/"/g,'""')}"`;
+  const head = ["Projektnamn","Projektnummer","Kategori","Projektledare","Beställare/Ägare","Status","Prioritet","Startdatum","Slutdatum","Budget","Kostnad hittills","Plats","Beskrivning","Etapp-namn","Etapp-datum","Etapp klar","Anteckningar","Fil-länkar"];
+  const rows = data.projects.map(p=>{
+    const etapp = (p.etapper||[]).find(e=>!e.klar) || (p.etapper||[])[0] || {};
+    const datum = etapp.datum? etapp.datum : "";
+    const klar = etapp.klar? "Ja" : (etapp.datum? "Nej":"");
+    const notes = (p.anteckningar||[]).map(n=>((n.av?n.av+": ":"")+(n.text||""))).join("\n");
+    const lank = (p.filer||[]).map(f=>f.namn).join(", ");
+    return [
+      p.namn, p.nr, catOf(p), p.pl, p.agare, p.status, p.prio,
+      p.start, p.slut, p.budget, p.kostnad, p.plats,
+      p.beskrivning, etapp.namn||"", datum, klar, notes, lank
+    ].map(quote).join(";");
+  });
+  download(`sharepoint-import-${stamp()}.csv`, "\uFEFF"+head.map(quote).join(";")+"\n"+rows.join("\n"), "text/csv");
+  toast("\ud83d\udcc4 Export klar: \u00f6ppna filen i Excel, markera dataomr\u00e5det, kopiera och klistra in i listans rutn\u00e4tvy.");
+}
+function exportCSV(){
+  const cols = ["nr","namn","kategori","pl","agare","status","prio","start","slut","budget","kostnad","plats"];
+  const head = ["Projektnr","Namn","Kategori","Projektledare","Ägare","Status","Prio","Start","Slut","Budget","Kostnad","Plats","Etappvarningar"];
+  const quote = v => `"${String(v).replace(/"/g,'""')}"`;
+  const rows = data.projects.map(p=>
+    cols.map(c=>quote(c==="kategori"? catOf(p) : (p[c]??""))).concat(quote(projectWarns(p).length+" varning(ar)")).join(";"));
+  download(`projektlista_${stamp()}.csv`, "\uFEFF"+head.map(quote).join(";")+"\n"+rows.join("\n"), "text/csv");
+  toast("📄 CSV exporterad (öppnas i Excel).");
+}
+function importJSON(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const imported = JSON.parse(reader.result);
+      if(!imported || !Array.isArray(imported.projects)) throw new Error();
+      const mine = new Set(data.projects.map(p=>p.id));
+      let added=0, updated=0;
+      imported.tabort = imported.tabort||[];
+      const tm = tombMap();
+      imported.projects.forEach(p=>{
+        if(!p.id || !p.namn) return;
+        const ts2 = tm.get(p.id);
+        if(ts2 && String(ts2.datum||"") >= String(p.andrad||"")) return;
+        p.kontakter=p.kontakter||[]; p.etapper=p.etapper||[]; p.uppgifter=p.uppgifter||[]; p.anteckningar=p.anteckningar||[]; p.filer=p.filer||[];
+        if(mine.has(p.id)){ data.projects[data.projects.findIndex(x=>x.id===p.id)] = p; updated++; }
+        else { data.projects.push(p); added++; }
+      });
+      if(imported.saved) data.saved = imported.saved;
+      autosave();
+      if(currentDetail && !getDetail()) showList(); else if(currentDetail) openDetail(currentDetail);
+      render(); renderStats();
+      toast(`⬆ Import klar: ${added} nya, ${updated} uppdaterade.`);
+    }catch(e){ toast("⚠ Ogiltig fil – endast tidigare exporterade JSON-filer kan importeras."); }
+  };
+  reader.readAsText(file);
+  ev.target.value = "";
+}
+
+/* ---------- Init ---------- */
+$("deptBar").addEventListener("click", e=>{
+  const btn = e.target.closest(".dept"); if(!btn) return;
+  document.querySelectorAll(".dept").forEach(d=>d.classList.remove("active"));
+  btn.classList.add("active"); activeCat = btn.dataset.cat; activeSub = "alla"; render();
+});
+$("subTabs").addEventListener("click", e=>{
+  const btn = e.target.closest(".tab"); if(!btn) return;
+  activeSub = btn.dataset.sub; render();
+});
+function renderSubTabs(){
+  const nav = $("subTabs"); if(!nav) return;
+  if(activeCat==="alla" || !HUVUD[activeCat] || HUVUD[activeCat].under.length<2){
+    nav.style.display="none"; nav.innerHTML=""; return;
+  }
+  const hu = HUVUD[activeCat];
+  nav.innerHTML = `<button class="tab${activeSub==="alla"?" active":""}" data-sub="alla">Alla i ${hu.namn}</button>` +
+    hu.under.map(k=>`<button class="tab${activeSub===k?" active":""}" data-sub="${k}">${KATEGORIER[k]}</button>`).join("");
+  nav.style.display="flex";
+}
+function renderDeptCounts(){
+  const mi = minAvdelning();
+  document.querySelectorAll(".dept").forEach(d=>{
+    if(!d.dataset.cat){ d.style.display=""; return; }
+    const c = d.dataset.cat;
+    d.style.display = (!mi || c===mi) ? "" : "none";
+    const n = data.projects.filter(p=>HUVUD[c] && HUVUD[c].under.includes(p.kategori)).length;
+    d.innerHTML = `${d.dataset.label} <span class="cnt">${n}</span>`;
+  });
+}
+function minAvdelning(){ return "miljobygg"; }
+function valjAvdelning(){
+  if($("m2bg") && $("m2bg").classList.contains("open")) return;
+  m2({title:"V\u00e4lj din avdelning", key:"_ingen", i:null,
+    fields:[["avd","Vilken avdelning tillh\u00f6r du? Appen \u00f6ppnas alltid direkt i din avdelning h\u00e4danefter \u2013 \u00e4ndra senare via \u201dByt avdelning\u201d.","","select",
+      [["va","VA"],["gatapark","Gata Park"],["fastighet","Fastighet"],["overgripande","\u00d6vergripande"]]]],
+    onSave:(o)=>{
+      if(!o.avd) throw new Error("V\u00e4lj en avdelning.");
+      try{ localStorage.setItem("minAvdelning", o.avd); }catch(e){}
+      activeCat = o.avd; activeSub = "alla"; render();
+      toast("\u2705 Din avdelning \u00e4r sparad p\u00e5 denna datorn \u2013 appen \u00f6ppnas nu alltid d\u00e4r.");
+    }
+  });
+}
+function byteAvdelning(){ valjAvdelning(); }
+document.querySelector(".detail-tabs").addEventListener("click", e=>{
+  const btn = e.target.closest(".dtab"); if(!btn) return;
+  document.querySelectorAll(".dtab").forEach(t=>t.classList.remove("active"));
+  btn.classList.add("active");
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  $("p-"+btn.dataset.panel).classList.add("active");
+});
+try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
+console.log('Projektregister Miljö och bygg v1 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+function chipToggle(cb){
+  const chip = cb.parentElement;
+  if(chip) chip.classList.toggle("on", cb.checked);
+  render();
+}
+try{
+  const d = (localStorage.getItem("va_reg_dolj")||"").split(",").filter(Boolean);
+  if(d.includes("Avslutat") && $("hideAvslutade")){ $("hideAvslutade").checked = true; $("chipAvslutade").classList.add("on"); }
+  if(d.includes("Avbrutet") && $("hideAvbrutna")){ $("hideAvbrutna").checked = true; $("chipAvbrutna").classList.add("on"); }
+  if(d.length) render();
+}catch(e){}
+(function setupDrop(){
+  const dz = $("dropZone");
+  if(!dz) return;
+  ["dragenter","dragover"].forEach(evname=>dz.addEventListener(evname, e=>{ e.preventDefault(); e.stopPropagation(); dz.classList.add("hover"); }));
+  ["dragleave","drop"].forEach(evname=>dz.addEventListener(evname, e=>{ if(evname==="drop"){ csharpDrop(e); } else { dz.classList.remove("hover"); } }));
+  dz.addEventListener("click", ()=>connectFolder());
+})();
+autoConnect();
+if(canFS && !data.hintShared){ setTimeout(()=>{ toast("💡 Tips: klicka på 📁 Anslut gemensam mapp (överst) och välj er SharePoint-mapp – du får en egen datafil (projektdata-dittnamn.json) och appen läser automatiskt in kollegors filer. Konfliktkopior skapas inte."); data.hintShared = true; persist(); }, 1500); }
+</script>
+</body>
+</html>
