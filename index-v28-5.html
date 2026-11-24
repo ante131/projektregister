@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Projektregister v28.4</title>
+<title>Projektregister v28.5</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -146,7 +146,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; VA &middot; Gata Park &middot; Fastighet &middot; &Ouml;vergripande &nbsp;|&nbsp; <b>Version 28.4</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; VA &middot; Gata Park &middot; Fastighet &middot; &Ouml;vergripande &nbsp;|&nbsp; <b>Version 28.5</b></div>
     </div>
   </div>
   <div class="actions">
@@ -237,7 +237,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 28.4 – budgetsammanställning per egen avdelning</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 28.5 – etappvarningar och återkommande per avdelning</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -445,8 +445,8 @@ function huvudOf(k){ for(const h in HUVUD){ if(HUVUD[h].under.includes(k)) retur
 function dotCls(k){ const h = huvudOf(k);
   if(h==="va") return k.slice(0,2)==="re"?"rv":k.slice(0,2)==="va"?"vv":k.slice(0,2)==="le"?"ln":"adm";
   return h==="gatapark"?"gp":h==="fastighet"?"fa":"ov"; }
-function iAktuellHuvud(p){ return !!HUVUD[activeCat] && HUVUD[activeCat].under.includes(p.kategori); }
-function synligaProjekt(){ return HUVUD[activeCat] ? data.projects.filter(iAktuellHuvud) : data.projects.slice(); }
+function iAktuellHuvud(p){ const mi = minAvdelning()||activeCat; return !!HUVUD[mi] && HUVUD[mi].under.includes(p.kategori); }
+function synligaProjekt(){ const mi = minAvdelning()||activeCat; return HUVUD[mi] ? data.projects.filter(iAktuellHuvud) : data.projects.slice(); }
 
 /* ---------- Gemensam mapp i SharePoint: en datafil per anvandare ---------- */
 const canFS = typeof window !== "undefined" && typeof window.showDirectoryPicker === "function";
@@ -727,7 +727,9 @@ function aterkommandeDialog(u){
       ["veckodag","Veckodag (vid veckovis)",e.veckodag!=null? String(e.veckodag):"5","select",[["0","S\u00f6ndag"],["1","M\u00e5ndag"],["2","Tisdag"],["3","Onsdag"],["4","Torsdag"],["5","Fredag"],["6","L\u00f6rdag"]]],
       ["dagIManad","Dag i m\u00e5naden 1\u201328 (vid m\u00e5nadsvis)",e.dagIManad!=null? String(e.dagIManad):"","text"],
       ["datum","Datum (vid \u00e5rsvis)",e.datum||"","date"],
-      ["anteckning","Anteckning (valfri \u2013 syns i uppgiftens rad)",e.anteckning||"","textarea"]
+      ["anteckning","Anteckning (valfri \u2013 syns i uppgiftens rad)",e.anteckning||"","textarea"],
+      ["avd","Avdelning (vem ser uppgiften)",e.avd||minAvdelning()||"va","select",
+        [["va","VA"],["gatapark","Gata Park"],["fastighet","Fastighet"],["overgripande","\u00d6vergripande"]]]
     ],
     required:["namn"],
     onSave:(obj)=>{
@@ -738,6 +740,7 @@ function aterkommandeDialog(u){
       if(obj.frekvens==="manad"){ const d = parseInt(obj.dagIManad); if(!(d>=1 && d<=28)){ toast("\u26a0 Dag i m\u00e5naden m\u00e5ste vara 1\u201328."); throw new Error("dag"); } ny.dagIManad = d; }
       if(obj.frekvens==="ar"){ if(!obj.datum){ toast("\u26a0 V\u00e4lj ett datum f\u00f6r \u00e5rsvis uppgift."); throw new Error("datum"); } ny.datum = obj.datum; }
       ny.anteckning = obj.anteckning;
+      ny.avd = obj.avd || minAvdelning() || "va";
       if(!u) data.aterkommande.list.push(ny);
       aterkommandeSpara();
     }
@@ -1094,8 +1097,8 @@ function renderRail(){
     }</div></div>
     <div class="rw"><h4 style="display:flex;justify-content:space-between;align-items:center">🔁 Återkommande uppgifter
       <button class="btn-sm secondary" onclick="nyAterkommande()" style="margin:0;padding:2px 8px">＋ Ny</button></h4>
-      <div class="rb">${ (data.aterkommande&&data.aterkommande.list||[]).length?
-        data.aterkommande.list.map(u=>{
+      <div class="rb">${ (data.aterkommande&&data.aterkommande.list||[]).filter(u=> (u.avd||"va")===(minAvdelning()||activeCat)).length?
+        data.aterkommande.list.filter(u=> (u.avd||"va")===(minAvdelning()||activeCat)).map(u=>{
           const due = uppgiftDue(u);
           const klar = u.senastKlar === uppgiftPeriodeNyckel(u);
           return `<div class="ri" style="padding:5px 2px;font-size:.84rem;align-items:center;justify-content:space-between;${due&&!klar? "background:#f6ecd4;":(klar? "opacity:.8;":"")}">
@@ -2451,7 +2454,7 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister v28.4 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister v28.5 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
