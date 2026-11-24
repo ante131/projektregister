@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Miljö och bygg – Projektregister v1</title>
+<title>Miljö och bygg – Projektregister v1.1</title>
 <style>
 :root{
   --bg:#f4f7f1; --card:#ffffff; --border:#dde6d5; --text:#2f332b; --muted:#68735f;
@@ -146,7 +146,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
     <span style="margin-left:12px;line-height:1.15;font-weight:800;letter-spacing:.16em;font-size:.78rem;color:#fff">UPPVIDINGE<br>KOMMUN</span>
     <div>
       <h1>Miljö och bygg – Projektregister</h1>
-      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; <b>Miljö och bygg</b> &nbsp;|&nbsp; <b>Version 1</b></div>
+      <div class="sub">Uppvidinge kommun &nbsp;&middot;&nbsp; <b>Miljö och bygg</b> &nbsp;|&nbsp; <b>Version 1.1</b></div>
     </div>
   </div>
   <div class="actions">
@@ -233,7 +233,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 </main>
 
 <footer class="app">
-  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 1 – Miljö och bygg</span><br>
+  <span style="display:inline-block;padding:2px 10px;border:1px solid var(--muted);border-radius:999px;font-size:.72rem;margin-bottom:6px">Version 1.1 – Miljö och bygg</span><br>
   <div style="max-width:1100px;margin:6px auto 0;text-align:left;font-size:.78rem;line-height:1.5;color:var(--muted)">
   <b style="color:#2f332b">Hur din information hanteras:</b><br>
   • <b>Ingen server, ingen tredjepart.</b> Appen är en enda HTML-fil som körs helt i din webbläsare. Den skickar ingenting utåt – ingen statistik, inga molntjänster, inga cookies. Fungerar därför offline.<br>
@@ -374,7 +374,7 @@ footer.app{max-width:1280px;margin:0 auto;padding:0 24px 30px;color:var(--muted)
 
 <script>
 "use strict";
-const LS_KEY = "va_projektregister_v2";
+const LS_KEY = "miljobygg_projektregister_v1";
 const KATEGORIER = {miljohalsoskydd:"Miljö hälsoskydd", planbygg:"Plan och bygg", ekonomiledning:"Ekonomi och ledning", verksamhetsutveckling:"Verksamhetsutveckling", personalarbetsmiljo:"Personal och arbetsmiljö"};
 const HUVUD = {miljobygg:{namn:"Miljö och bygg", under:["miljohalsoskydd","planbygg","ekonomiledning","verksamhetsutveckling","personalarbetsmiljo"]}};
 const MAX_FIL = 10*1024*1024;   /* inline-lagring i registret */
@@ -470,7 +470,7 @@ async function connectFolder(){
     try{ namn = localStorage.getItem("va_reg_user") || ""; }catch(e){}
     if(!namn) namn = getUser();
     if(!namn){ toast("\u26a0 Namn kr\u00e4vs f\u00f6r att skapa din egen datafil."); return; }
-    const saved = await idbGet("sharedDirHandle");
+    const saved = await idbGet("sharedDirHandle_miljobygg");
     if(saved){
       try{
         const p = await saved.requestPermission({mode:"readwrite"});
@@ -491,7 +491,7 @@ function tombMap(){
   return m;
 }
 function migrateUppgifter(){
-  if(!data.aterkommande) { try{ data.aterkommande = JSON.parse(localStorage.getItem("aterkommande")||"null") || {list:[],updated:""}; }catch(e){ data.aterkommande = {list:[],updated:""}; } }
+  if(!data.aterkommande) { try{ data.aterkommande = JSON.parse(localStorage.getItem("aterkommande_mb")||"null") || {list:[],updated:""}; }catch(e){ data.aterkommande = {list:[],updated:""}; } }
   data.aterkommande.list = data.aterkommande.list || [];
   let changed = false;
   data.projects.forEach(p=>{
@@ -507,20 +507,20 @@ function migrateUppgifter(){
 }
 function aterkommandeSpara(){
   data.aterkommande.updated = new Date().toISOString();
-  try{ localStorage.setItem("aterkommande", JSON.stringify(data.aterkommande)); }catch(e){}
+  try{ localStorage.setItem("aterkommande_mb", JSON.stringify(data.aterkommande)); }catch(e){}
   persist(); writeSharedNow(true); updateSaveInfo(); renderRail();
 }
 function aterkommandeSparaVsAnnan(){ try{ if(m2cfg && m2cfg.key==="_ingen") aterkommandeSpara(); else autosave(); }catch(e){} }
 function teamsChattNamn(namn){
   let ep = "";
-  try{ ep = JSON.parse(localStorage.getItem("teamsEpost")||"{}")[namn] || ""; }catch(e){}
+  try{ ep = JSON.parse(localStorage.getItem("teamsEpost_mb")||"{}")[namn] || ""; }catch(e){}
   if(!ep){
     ep = prompt("E-postadress till " + namn + " (sparas lokalt, frågas bara en gång):","");
     if(!ep || !ep.trim()) return;
     try{
-      const m = JSON.parse(localStorage.getItem("teamsEpost")||"{}");
+      const m = JSON.parse(localStorage.getItem("teamsEpost_mb")||"{}");
       m[namn] = ep.trim();
-      localStorage.setItem("teamsEpost", JSON.stringify(m));
+      localStorage.setItem("teamsEpost_mb", JSON.stringify(m));
     }catch(e2){}
     ep = ep.trim();
   }
@@ -547,10 +547,10 @@ function minaMeddelanden(){
   $("m2body").innerHTML = html + '<div style="color:var(--muted);font-size:.72rem;margin-top:8px">Meddelandena följer med datafilerna – här visas de senaste 25.</div>';
   m2cfg = null;
   $("m2bg").classList.add("open");
-  try{ localStorage.setItem("lastaMsg", JSON.stringify(list.map(m=>m.id))); }catch(e){}
+  try{ localStorage.setItem("lastaMsg_mb", JSON.stringify(list.map(m=>m.id))); }catch(e){}
 }
-function borttagnaMsgIds(){ try{ return JSON.parse(localStorage.getItem("borttagnaMsg")||"[]"); }catch(e){ return []; } }
-function lastaMsgIds(){ try{ return JSON.parse(localStorage.getItem("lastaMsg")||"[]"); }catch(e){ return []; } }
+function borttagnaMsgIds(){ try{ return JSON.parse(localStorage.getItem("borttagnaMsg_mb")||"[]"); }catch(e){ return []; } }
+function lastaMsgIds(){ try{ return JSON.parse(localStorage.getItem("lastaMsg_mb")||"[]"); }catch(e){ return []; } }
 function minaMeddLista(){
   const jag = (getUser()||"").trim().toLowerCase();
   const bort = new Set(borttagnaMsgIds());
@@ -564,7 +564,7 @@ function taBortMsg(id){
   if(!m || !confirm("Ta bort meddelandet?")) return;
   const bort = borttagnaMsgIds();
   if(!bort.includes(id)) bort.push(id);
-  try{ localStorage.setItem("borttagnaMsg", JSON.stringify(bort)); }catch(e){}
+  try{ localStorage.setItem("borttagnaMsg_mb", JSON.stringify(bort)); }catch(e){}
   data.meddelanden = data.meddelanden.filter(x=>x.id!==id);
   minaMeddelanden();
   renderRail();
@@ -573,7 +573,7 @@ function taBortMsg(id){
 function kollaNyaMeddelanden(){
   const jag = (getUser()||"").trim().toLowerCase();
   let las = [];
-  try{ las = JSON.parse(localStorage.getItem("lastaMsg")||"[]"); }catch(e){}
+  try{ las = JSON.parse(localStorage.getItem("lastaMsg_mb")||"[]"); }catch(e){}
   const nya = minaMeddLista().filter(m=>!las.includes(m.id));
   if(nya.length){
     lastUnread = nya.length;
@@ -645,7 +645,7 @@ async function openBibFil(id){
   }catch(e){ toast("⚠ Filen kunde inte hämtas – kontrollera att mappen är ansluten."); }
 }
 function bibBytSort(v){
-  try{ localStorage.setItem("bibSort", v); }catch(e){}
+  try{ localStorage.setItem("bibSort_mb", v); }catch(e){}
   bibSok("bibSokfalt");
 }
 function nyBibliotek(){ bibliotekDialog(null); }
@@ -670,7 +670,7 @@ function bibSok(id){
   const box = $("bibLista");
   if(!box) return;
   let sortLage = "az";
-  try{ sortLage = localStorage.getItem("bibSort") || "az"; }catch(e){}
+  try{ sortLage = localStorage.getItem("bibSort_mb") || "az"; }catch(e){}
   const list = bibliotekLista().filter(b=> !q || (b.namn+" "+(b.kategori||"")+" "+(b.beskrivning||"")).toLowerCase().includes(q)).slice().sort((a,b)=>{
     const jfr = (x,y)=> String(x||"").localeCompare(String(y||""), "sv");
     if(sortLage === "za") return jfr(b.namn, a.namn);
@@ -680,7 +680,7 @@ function bibSok(id){
   });
   box.innerHTML = `
     <div style="display:flex;gap:6px;margin-bottom:8px">
-      <select id="bibSortera" onchange="bibBytSort(this.value)" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.8rem;background:#fff">${(()=>{const v=(()=>{try{return localStorage.getItem("bibSort")||"az"}catch(e){return "az"}})();const el=$("bibSortera");setTimeout(()=>{try{el.value=v}catch(e){}},0);return "";})()}
+      <select id="bibSortera" onchange="bibBytSort(this.value)" style="flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:.8rem;background:#fff">${(()=>{const v=(()=>{try{return localStorage.getItem("bibSort_mb")||"az"}catch(e){return "az"}})();const el=$("bibSortera");setTimeout(()=>{try{el.value=v}catch(e){}},0);return "";})()}
         <option value="az">Sortera: Namn A–Ö</option>
         <option value="za">Sortera: Namn Ö–A</option>
         <option value="kat">Sortera: Ämnesord, sedan namn</option>
@@ -754,7 +754,7 @@ function mergeIntoLocal(src){
   const egnaIds = new Set(data.meddelanden.map(m=>m.id));
   (src.meddelanden||[]).forEach(m=>{ if(m && m.id && !egnaIds.has(m.id)) data.meddelanden.push(m); });
   if(src.aterkommande && String(src.aterkommande.updated||"") > String((data.aterkommande||{}).updated||"")){
-    data.aterkommande = src.aterkommande; try{ localStorage.setItem("aterkommande", JSON.stringify(data.aterkommande)); }catch(e){}
+    data.aterkommande = src.aterkommande; try{ localStorage.setItem("aterkommande_mb", JSON.stringify(data.aterkommande)); }catch(e){}
   }
   if(src.bibliotek && String(src.bibliotek.updated||"") > String((data.bibliotek||{}).updated||"")){
     data.bibliotek = src.bibliotek;
@@ -871,7 +871,7 @@ async function finishConnect(dir){
   sharedDir = dir; sharedDirName = dir.name || (sharedDirName||"mapp"); sharedErr = 0; lastWritten = null;
   ownEntryName = fileNameFor(namn);
   try{ localStorage.setItem("va_reg_dir", sharedDirName); localStorage.setItem("va_reg_own", ownEntryName); localStorage.setItem("va_reg_user", namn); }catch(e){}
-  await idbSet("sharedDirHandle", dir);
+  await idbSet("sharedDirHandle_miljobygg", dir);
   await idbSet("ownEntryName", ownEntryName);
   hideConnectPopup();
   await refreshFromShared(true);
@@ -938,7 +938,7 @@ function stallMappSokvag(){
 }
 async function autoConnect(){
   if(!canFS) return;
-  const dir = await idbGet("sharedDirHandle");
+  const dir = await idbGet("sharedDirHandle_miljobygg");
   const namn = await idbGet("ownEntryName");
   if(!dir || !namn){
     const btn = $("sharedBtn");
@@ -1190,7 +1190,7 @@ function render(){
   const dolda = new Set();
   if($("hideAvslutade") && $("hideAvslutade").checked) dolda.add("Avslutat");
   if($("hideAvbrutna") && $("hideAvbrutna").checked) dolda.add("Avbrutet");
-  try{ localStorage.setItem("va_reg_dolj", Array.from(dolda).join(",")); }catch(e){}
+  try{ localStorage.setItem("va_reg_dolj_mb", Array.from(dolda).join(",")); }catch(e){}
   let list = data.projects.filter(p=>{
     if(dolda.has(p.status)) return false;
     if(activeCat!=="alla"){
@@ -2440,14 +2440,14 @@ document.querySelector(".detail-tabs").addEventListener("click", e=>{
   $("p-"+btn.dataset.panel).classList.add("active");
 });
 try{ load(); updateSaveInfo(); sharedUI(); renderStats(); render(); }catch(e){ console.error('Initfel', e); }
-console.log('Projektregister Miljö och bygg v1 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
+console.log('Projektregister Miljö och bygg v1.1 startad. Om du ser denna rad i F12-konsolen k\u00f6r du r\u00e4tt fil.');
 function chipToggle(cb){
   const chip = cb.parentElement;
   if(chip) chip.classList.toggle("on", cb.checked);
   render();
 }
 try{
-  const d = (localStorage.getItem("va_reg_dolj")||"").split(",").filter(Boolean);
+  const d = (localStorage.getItem("va_reg_dolj_mb")||"").split(",").filter(Boolean);
   if(d.includes("Avslutat") && $("hideAvslutade")){ $("hideAvslutade").checked = true; $("chipAvslutade").classList.add("on"); }
   if(d.includes("Avbrutet") && $("hideAvbrutna")){ $("hideAvbrutna").checked = true; $("chipAvbrutna").classList.add("on"); }
   if(d.length) render();
